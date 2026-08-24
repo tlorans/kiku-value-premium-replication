@@ -19,7 +19,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "matplotlib"]
+fast = ["numba>=0.56"]
+dev = ["pytest", "matplotlib", "numba>=0.56"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
