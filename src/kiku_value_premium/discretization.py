@@ -1,124 +1,123 @@
 """
-Discretization of the joint state (x, σ²) following Tauchen-Hussey (1991)
-as described in the Appendix of Kiku (2006).
+Tauchen-Hussey style discretization of the joint (x, σ²) state space
+following the Appendix of Kiku (2006).
 
-- x : 30-point Gauss-Hermite (conditional on current σ)
-- σ² : 4-point approximation of the AR(1) variance process
-Product grid size ≈ 120 states. Transition matrix is row-stochastic.
+- σ² : 4-point approximation of the highly persistent AR(1) variance process
+- x  : Gauss-Hermite nodes (default 15 for speed; paper uses 30)
+- Product grid + transition matrix that respects the state-dependent volatility of x
 """
 from __future__ import annotations
 import numpy as np
 from scipy.special import roots_hermitenorm
-from scipy.stats import norm
 from .params import ModelParams, get_default_params
 
 
-def gauss_hermite_nodes_weights(n: int):
-    """Standard normal Gauss-Hermite nodes and weights (scipy roots_hermitenorm)."""
-    nodes, weights = roots_hermitenorm(n)
-    # roots_hermitenorm are for weight exp(-x²/2)/sqrt(2π), so weights already integrate to 1 for N(0,1)
-    weights = weights / np.sqrt(2 * np.pi)   # ensure proper normalization if needed
-    weights = weights / weights.sum()        # force sum to 1
-    return nodes, weights
+class StateGrid:
+    """Product grid over expected growth x and variance σ²."""
 
+    def __init__(self, params: ModelParams | None = None,
+                 n_x: int = 15, n_s: int = 4):
+        self.p = params or get_default_params()
+        self.n_x = n_x
+        self.n_s = n_s
+        self.n_states = n_x * n_s
 
-def discretize_variance(n_s: int = 4, params: ModelParams | None = None):
-    """Simple 4-point discretization of σ² AR(1).
+        c = self.p.cons
 
-    Uses a Tauchen-style method around the unconditional mean.
-    """
-    if params is None:
-        params = get_default_params()
-    c = params.cons
-    mu = c.sigma ** 2
-    # unconditional std of σ²
-    std = c.sigma_w / np.sqrt(1 - c.nu ** 2)
-    # equally spaced points covering ~ ±2 std (keep positive)
-    low = max(mu - 2.0 * std, 1e-10)
-    high = mu + 2.0 * std
-    s2_nodes = np.linspace(low, high, n_s)
-    step = s2_nodes[1] - s2_nodes[0] if n_s > 1 else 1.0
+        # --- Variance grid (simple equally-spaced + Rouwenhorst-like transitions) ---
+        # Unconditional mean and std of σ²
+        mean_s2 = c.sigma ** 2
+        # Var(σ²) = σ_w² / (1 - ν²)
+        std_s2 = c.sigma_w / np.sqrt(1 - c.nu ** 2)
+        # 4 points covering ~ ±2 std, clipped to positive
+        self.s2_nodes = np.linspace(max(1e-8, mean_s2 - 1.5 * std_s2),
+                                    mean_s2 + 1.5 * std_s2, n_s)
+        self.s2_nodes = np.maximum(self.s2_nodes, 1e-8)
 
-    # transition: AR(1) + normal innovation
-    P_s = np.zeros((n_s, n_s))
-    for i, s2 in enumerate(s2_nodes):
-        mean_next = c.sigma**2 * (1 - c.nu) + c.nu * s2
-        for j, s2p in enumerate(s2_nodes):
-            if j == 0:
-                P_s[i, j] = norm.cdf((s2_nodes[0] + step/2 - mean_next) / c.sigma_w)
-            elif j == n_s - 1:
-                P_s[i, j] = 1.0 - norm.cdf((s2_nodes[-1] - step/2 - mean_next) / c.sigma_w)
+        # Transition for σ² (Tauchen style)
+        self.Pi_s = self._tauchen_ar1(self.s2_nodes, c.nu,
+                                      c.sigma**2 * (1 - c.nu), c.sigma_w)
+
+        # --- x grid: Gauss-Hermite nodes scaled to the unconditional distribution ---
+        # Unconditional std of x ≈ (φx * σ) / sqrt(1-ρ²)
+        std_x = (c.phi_x * c.sigma) / np.sqrt(1 - c.rho ** 2)
+        # roots_hermitenorm returns nodes/weights for N(0,1)
+        nodes, weights = roots_hermitenorm(n_x)
+        self.x_nodes = nodes * std_x * np.sqrt(2)   # scale (GH is for exp(-x²), adjust)
+        # Better standard scaling for standard normal GH:
+        # scipy.special.roots_hermitenorm already gives nodes for weight exp(-x²/2)/sqrt(2π)
+        self.x_nodes = nodes * std_x
+        self.x_weights = weights / np.sqrt(2 * np.pi)  # approximate density weights
+
+        # Product grid: state index k = i_x * n_s + i_s
+        self.x_grid = np.repeat(self.x_nodes, n_s)
+        self.s2_grid = np.tile(self.s2_nodes, n_x)
+
+        # Full transition matrix (n_states, n_states)
+        self.Pi = self._build_transition()
+
+    def _tauchen_ar1(self, nodes, rho, mu_innov, sigma_innov):
+        """Simple Tauchen transition matrix for an AR(1)."""
+        n = len(nodes)
+        Pi = np.zeros((n, n))
+        step = nodes[1] - nodes[0] if n > 1 else 1.0
+        for i in range(n):
+            loc = rho * nodes[i] + mu_innov
+            for j in range(n):
+                if j == 0:
+                    Pi[i, j] = _norm_cdf((nodes[j] + step / 2 - loc) / sigma_innov)
+                elif j == n - 1:
+                    Pi[i, j] = 1.0 - _norm_cdf((nodes[j] - step / 2 - loc) / sigma_innov)
+                else:
+                    Pi[i, j] = (_norm_cdf((nodes[j] + step / 2 - loc) / sigma_innov)
+                                - _norm_cdf((nodes[j] - step / 2 - loc) / sigma_innov))
+            # renormalize
+            Pi[i, :] /= Pi[i, :].sum()
+        return Pi
+
+    def _build_transition(self):
+        """Product transition: independent σ² transition + conditional x transition."""
+        n = self.n_states
+        Pi = np.zeros((n, n))
+        c = self.p.cons
+
+        for i in range(n):
+            ix = i // self.n_s
+            is_ = i % self.n_s
+            x = self.x_grid[i]
+            s2 = self.s2_grid[i]
+            sig = np.sqrt(s2)
+
+            # next σ² probabilities
+            p_s = self.Pi_s[is_, :]
+
+            # conditional x' ~ N(ρ x, (φx σ)^2)
+            loc = c.rho * x
+            scale = c.phi_x * sig + 1e-12
+
+            for j in range(n):
+                jx = j // self.n_s
+                js = j % self.n_s
+                x_next = self.x_nodes[jx]
+                # density of normal at the node, times weight / spacing approximation
+                # simple: use normal pdf * average spacing
+                dens = _norm_pdf((x_next - loc) / scale) / scale
+                # combine with σ transition
+                Pi[i, j] = p_s[js] * dens * (self.x_nodes[1] - self.x_nodes[0] if self.n_x > 1 else 1.0)
+
+            # renormalize row
+            row_sum = Pi[i, :].sum()
+            if row_sum > 0:
+                Pi[i, :] /= row_sum
             else:
-                P_s[i, j] = (norm.cdf((s2p + step/2 - mean_next) / c.sigma_w)
-                             - norm.cdf((s2p - step/2 - mean_next) / c.sigma_w))
-        P_s[i] = np.maximum(P_s[i], 0)
-        P_s[i] /= P_s[i].sum()
-    return s2_nodes, P_s
+                Pi[i, i] = 1.0
+        return Pi
 
 
-def discretize_states(n_x: int = 30, n_s: int = 4, params: ModelParams | None = None):
-    """Build product grid and approximate transition matrix for (x, σ²).
-
-    Returns
-    -------
-    states : (N, 2) array of (x, sigma2)
-    P : (N, N) transition matrix
-    """
-    if params is None:
-        params = get_default_params()
-    c = params.cons
-
-    # Variance grid
-    s2_nodes, P_s = discretize_variance(n_s, params)
-
-    # For x we use a global grid based on unconditional scale (average σ)
-    # and then compute conditional transition probabilities.
-    avg_sigma = c.sigma
-    # unconditional std of x ≈ (phi_x * avg_sigma) / sqrt(1-rho²)
-    std_x = (c.phi_x * avg_sigma) / np.sqrt(1 - c.rho ** 2)
-    # Gauss-Hermite for standard normal, then scale
-    gh_nodes, gh_weights = gauss_hermite_nodes_weights(n_x)
-    # Place x nodes over a wide range
-    x_nodes = gh_nodes * std_x * 1.5   # slightly wider
-
-    # Product grid
-    xx, ss = np.meshgrid(x_nodes, s2_nodes, indexing="ij")
-    states = np.column_stack([xx.ravel(), ss.ravel()])
-    N = states.shape[0]  # n_x * n_s
-
-    # Transition matrix
-    P = np.zeros((N, N))
-    for i in range(N):
-        x, s2 = states[i]
-        sigma = np.sqrt(s2)
-        # next x ~ N(rho * x, (phi_x * sigma)^2)
-        mean_x = c.rho * x
-        std_cond = c.phi_x * sigma
-        # next sigma2 transitions from P_s
-        # index of current sigma2
-        s_idx = np.argmin(np.abs(s2_nodes - s2))
-        for j in range(N):
-            xp, s2p = states[j]
-            # density of xp under conditional normal, mapped to discrete
-            # use a simple kernel / bin probability around the nodes
-            # For speed we use the GH weights idea but reweighted by conditional density
-            dens = norm.pdf(xp, loc=mean_x, scale=max(std_cond, 1e-12))
-            # approximate mass: dens * local spacing
-            # better: find the corresponding weight by nearest or use continuous density normalized later
-            P[i, j] = dens * P_s[s_idx, np.argmin(np.abs(s2_nodes - s2p))]
-        # renormalize
-        row_sum = P[i].sum()
-        if row_sum > 0:
-            P[i] /= row_sum
-        else:
-            P[i, i] = 1.0  # fallback
-
-    return states, P, x_nodes, s2_nodes
+def _norm_pdf(z):
+    return np.exp(-0.5 * z**2) / np.sqrt(2 * np.pi)
 
 
-if __name__ == "__main__":
-    states, P, x_nodes, s2_nodes = discretize_states()
-    print("Number of states:", states.shape[0])
-    print("x range:", x_nodes.min(), x_nodes.max())
-    print("sigma2 nodes:", s2_nodes)
-    print("Transition row sums (should be 1):", P.sum(axis=1)[:5])
+def _norm_cdf(z):
+    from scipy.stats import norm
+    return norm.cdf(z)
