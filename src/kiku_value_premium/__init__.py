@@ -28,7 +28,7 @@ The recipe (and the corresponding public API) is:
 Full documentation: https://tlorans.github.io/kiku-value-premium-replication/
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 # ------------------------------------------------------------------
 # Public API organised around Kiku’s 6-step recipe
