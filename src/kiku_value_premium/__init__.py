@@ -2,82 +2,84 @@
 Kiku (2006) Value Premium Puzzle – Replication Package
 =====================================================
 
-This package implements the **exact 6-step methodology** of Dana Kiku’s
-Job Market Paper “Is the Value Premium a Puzzle?”.
+This package is a transparent replica of Dana Kiku’s Job Market Paper
+“Is the Value Premium a Puzzle?”. The public API follows her paper order.
 
-The recipe (and the corresponding public API) is:
+2. Empirical Evidence
+   → `empirical.START`, `empirical.END`
 
-1. Aggregate long-run risks consumption process
-   → `params.ConsumptionParams`, `dynamics.Dynamics`
+3. Model
+   → `model.ModelParams`, `model.PreferencesParams`, `model.ConsumptionParams`,
+     `model.DividendParams`, `model.get_table_ii_params`,
+     `model.EpsteinZinPreferences`, `model.Dynamics`, `model.StateGrid`,
+     `model.ModelSolver`, `model.solve_analytical`
 
-2. Heterogeneous cash-flow processes (different long-run loadings)
-   → `params.DividendParams`  (the key field is `phi` = long-run leverage)
+4. Calibration
+   → `calibration.estimate_long_run_leverage`, `calibration.calibrate_from_data`,
+     `calibration.get_table_ii_dividends`, `calibration.simulate_cashflow_moments`
 
-3. Calibrate cash-flow dynamics *only* to time-series moments
-   → `calibration.calibrate_from_data`, `calibration.get_table_ii_dividends`
-
-4. Epstein–Zin preferences
-   → `preferences.EpsteinZinPreferences`, `params.PreferencesParams`
-
-5. Numerical solution (Tauchen–Hussey style)
-   → `solver.ModelSolver`, `discretization.StateGrid`
-
-6. Evaluate both time-series and cross-section
-   → `moments.compute_asset_pricing_moments`, `analytical.solve_analytical`
+5. Asset Pricing Implications
+   → `implications.compute_asset_pricing_moments`,
+     `implications.print_asset_pricing_moments`,
+     `implications.figure_lr_premium`, `implications.figure_mean_pd`,
+     `implications.figure5`
 
 Full documentation: https://tlorans.github.io/kiku-value-premium-replication/
 """
 
 __version__ = "0.3.0"
 
-# ------------------------------------------------------------------
-# Public API organised around Kiku’s 6-step recipe
-# ------------------------------------------------------------------
-
+from .empirical import START, END
 from .model import (
     ModelParams,
     PreferencesParams,
     ConsumptionParams,
     DividendParams,
-    get_default_params,
-    Dynamics,
+    get_table_ii_params,
     EpsteinZinPreferences,
+    Dynamics,
     StateGrid,
     ModelSolver,
     solve_analytical,
-    print_value_premium,
 )
 from .calibration import (
-    calibrate_from_data,
     estimate_long_run_leverage,
+    calibrate_from_data,
     get_table_ii_dividends,
     simulate_cashflow_moments,
-    print_moments,
 )
-from .moments import compute_asset_pricing_moments, print_asset_pricing_moments
+from .implications import (
+    compute_asset_pricing_moments,
+    print_asset_pricing_moments,
+    figure_lr_premium,
+    figure_mean_pd,
+    figure5,
+)
 
 __all__ = [
-    # Step 1–2
+    # Section 2 – Empirical Evidence
+    "START",
+    "END",
+    # Section 3 – Model
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
     "DividendParams",
-    "get_default_params",
-    "Dynamics",
-    # Step 3
-    "calibrate_from_data",
-    "estimate_long_run_leverage",
-    "get_table_ii_dividends",
-    # Step 4
+    "get_table_ii_params",
     "EpsteinZinPreferences",
-    # Step 5
+    "Dynamics",
     "StateGrid",
     "ModelSolver",
-    # Step 6
     "solve_analytical",
-    "print_value_premium",
+    # Section 4 – Calibration
+    "estimate_long_run_leverage",
+    "calibrate_from_data",
+    "get_table_ii_dividends",
+    "simulate_cashflow_moments",
+    # Section 5 – Asset Pricing Implications
     "compute_asset_pricing_moments",
     "print_asset_pricing_moments",
-    "simulate_cashflow_moments",
-    "print_moments",
+    "figure_lr_premium",
+    "figure_mean_pd",
+    "figure5",
 ]

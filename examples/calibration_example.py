@@ -12,9 +12,11 @@ from kiku_value_premium.calibration import (
     print_calibration_summary,
     get_table_ii_dividends,
     estimate_long_run_leverage,
+)
+from kiku_value_premium.calibration.from_data import (
     calibrate_dividend_params_from_targets,
 )
-from kiku_value_premium.params import ModelParams, get_default_params
+from kiku_value_premium.model import ModelParams, get_default_params
 
 
 def main():

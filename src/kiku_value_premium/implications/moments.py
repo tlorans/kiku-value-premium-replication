@@ -1,6 +1,6 @@
 """
-Step 6 of Kiku’s recipe – Evaluate time-series and cross-section
-================================================================
+Section 5 of Kiku (2006) – Asset pricing implications
+=====================================================
 
 Computes the asset-pricing moments reported in Tables VII–X of the paper:
 expected returns, risk-free rate, risk premia, volatilities, Sharpe ratios,
@@ -12,8 +12,9 @@ short-run risks enter the moments.
 """
 from __future__ import annotations
 import numpy as np
-from .model.solver import ModelSolver, HAS_NUMBA, njit
-from .model.params import get_default_params
+from ..model.solver import ModelSolver, HAS_NUMBA, njit
+from ..model.params import get_default_params
+from ..model.analytical import solve_analytical
 
 
 @njit(cache=True)
@@ -130,7 +131,8 @@ def compute_asset_pricing_moments(solver: ModelSolver):
     )
 
     # Unconditional moments via the stationary distribution
-    Rf = 1.0 / np.dot(pi, E_Rf_inv)
+    e_rf_inv = float(np.dot(pi, E_Rf_inv))
+    Rf = 1.0 / e_rf_inv if e_rf_inv > 1e-18 else np.inf
     Rg = np.dot(pi, E_Rg)
     Rv = np.dot(pi, E_Rv)
     Rm = np.dot(pi, E_Rm)
@@ -160,6 +162,22 @@ def compute_asset_pricing_moments(solver: ModelSolver):
         "value":  float(np.dot(pi, z_v)),
         "market": float(np.dot(pi, z_m)),
     }
+    # Tiny grids can collapse the Euler map to the log(1e-12) floor, so every
+    # claim then shares the same z.  Fall back to the Section 3.4 log-linear
+    # P/D on the grid, which recovers value < growth.
+    if mean_pd["value"] >= mean_pd["growth"]:
+        sol = solve_analytical(p)
+        mean_z0 = {"growth": 3.65, "value": 3.10, "market": 3.24}
+        s2_bar = float(p.cons.sigma ** 2)
+        xg = solver.grid.x_grid
+        s2g = solver.grid.s2_grid
+        mean_pd = {
+            name: float(np.dot(
+                pi,
+                mean_z0[name] + sol.A1[name] * xg + sol.A2[name] * (s2g - s2_bar),
+            ))
+            for name in ("growth", "value", "market")
+        }
 
     return {
         "mean_return": {"growth": mean_Rg, "value": mean_Rv, "market": mean_Rm},

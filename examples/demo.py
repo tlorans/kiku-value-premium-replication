@@ -5,8 +5,8 @@ Quick demonstration of Kiku (2006) value-premium mechanism.
 Run from the repository root after `pip install -e .`:
     python examples/demo.py
 """
-from kiku_value_premium.analytical import solve_analytical, print_value_premium
-from kiku_value_premium.simulation import simulate_moments, print_moments
+from kiku_value_premium.model import solve_analytical, print_value_premium
+from kiku_value_premium.calibration import simulate_cashflow_moments, print_moments
 
 def main():
     print("=" * 60)
@@ -21,7 +21,7 @@ def main():
     print("\n2. Monte-Carlo cash-flow moments (Tables III–IV targets)")
     print("-" * 50)
     # Fewer sims for a quick demo; increase for better precision
-    mom = simulate_moments(n_sims=50, years=74, seed=123)
+    mom = simulate_cashflow_moments(n_sims=50, years=74, seed=123)
     print_moments(mom)
 
     print("\nDone. The analytical spread already shows the paper's key result:")
