@@ -10,12 +10,11 @@ Dana Kiku
 Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
-[Time series]({% link time-series.md %}) · [Cross section]({% link cross-section.md %}) · [The replica]({% link replica.md %}) · [Package]({% link package.md %})  
-[Value]({% link value.md %}) · [Size, profitability, investment]({% link further.md %}) · [Climate]({% link climate.md %})  
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %})  
-[Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})
+[Time series]({% link time-series.md %}) · [Cross section]({% link cross-section.md %}) · [Other risk premia]({% link further.md %}) · [Climate]({% link climate.md %})  
+[The replica]({% link replica.md %}) · [Package]({% link package.md %}) · [Installation]({% link installation.md %}) · [API]({% link api.md %})  
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Other portfolios]({% link generalization.md %}) · [Value]({% link value.md %})
 
-The site is ordered by object. [Time series]({% link time-series.md %}) is the market claim. [Cross section]({% link cross-section.md %}) is a pair of claims: [value]({% link value.md %}) first, then profitability, investment, and size, then climate. [The replica]({% link replica.md %}) is Sections 2–5 of the paper.
+The documentation is four objects. [Time series]({% link time-series.md %}) is the long-run risks model and the market claim. [Cross section]({% link cross-section.md %}) is value versus growth: methods and results from the paper, repackaged as one argument. [Other risk premia]({% link further.md %}) asks the same investor to price size, profitability, and investment. [Climate]({% link climate.md %}) asks it to price transition and physical sorts.
 
 ## Abstract
 
@@ -37,26 +36,19 @@ One of the most robust features of financial data is the finding that value firm
 
 I introduce value, growth, and market portfolios into a general equilibrium model that features long-run consumption risks, in the sense of Bansal and Yaron (2004). Once time-series dynamics of aggregate and asset-specific cash flows are calibrated to annual consumption and dividends, the model is asked to account for both time-series and cross-sectional properties of assets’ prices and returns.
 
-The time-series object is the market claim: the equity premium, the risk-free rate, return volatility, persistence of $$\log(P/D)$$, and the failure of a consumption CAPM fitted to the aggregate. Matching those moments is the usual test of a consumption-based model. It is not the test that resolves the value premium.
+The time-series object is the market claim. Preferences, the consumption process, and market dividends are chosen from consumption and dividend moments. The Euler equation is then asked for the equity premium, the risk-free rate, and market $$\log(P/D)$$. That check is [Time series]({% link time-series.md %}). Matching it is the usual test of a consumption-based model. It is not the test that resolves the value premium.
 
-The cross-sectional object is a pair of claims that differ only in how their dividends load on the persistent component of consumption. Value is the first such pair, and it is the argument of the paper. Growth and value have market betas near one. They do not have the same loading $$\phi$$ on $$x_t$$. An Epstein–Zin investor with $$\gamma \neq 1/\psi$$ prices that difference. The Euler equation then requires a higher expected return on value and a lower price–dividend ratio.
+The cross-sectional object is value versus growth. The two claims have market betas near one. They do not have the same loading $$\phi$$ on $$x_t$$. An Epstein–Zin investor with $$\gamma \neq 1/\psi$$ prices that difference. Methods and results are [Cross section]({% link cross-section.md %}).
 
 Two ingredients do the work, and both are necessary. Consumption and dividend growth contain a small persistent component $$x_t$$. Preferences are recursive. Under power utility the price of long-run news is zero, and a gap in $$\phi$$ does not generate a large premium.
 
-The argument has four steps.
-
-1. Measure cash flows and returns of book-to-market portfolios. The six-percent premium is a fact to be explained. It is not a calibration target ([Section 2]({% link empirical.md %})).
-2. Write preferences and cash-flow laws in which the three claims differ only by $$(\mu,\phi,\varphi,\alpha)$$ ([Section 3]({% link model.md %})).
-3. Choose those loadings, and the remaining cash-flow parameters, from consumption and dividend moments only ([Section 4]({% link calibration.md %})).
-4. Read expected returns and price–dividend ratios off the Euler equation ([Section 5]({% link implications.md %})). The market column of Table VII is the time-series check. The value–growth columns are the cross-section.
-
-If the premium appears in step 4, it is a prediction. Feeding the premium into step 3 would assume the puzzle away.
+The six-percent premium is a fact to be explained. It is not a calibration target. If it appears after the cash-flow step, it is a prediction.
 
 Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Persistence of expected consumption growth is $$\rho=0.98$$. With those numbers the model produces about 5.3 percent of value premium, a lower mean $$\log(P/D)$$ on value than on growth, and a value-to-growth CAPM-beta ratio below one. The same calibration accommodates the time-series behavior of the market.
 
-Fama and French (2015) isolate further CAPM failures — profitability, investment, and size. [Section 6]({% link further.md %}) records those facts and states the same cross-sectional test. Melin and Zhang (2026) put climate into the consumption process and price the market. [Section 7]({% link climate.md %}) writes the corresponding test for transition and physical sorts. Those premia are not calibration targets either. Value remains the first argument. The later sections ask whether the same IMRS still accounts for cross-sectional properties of prices and returns once the characteristic is no longer book-to-market.
+Fama and French (2015) isolate further CAPM failures — profitability, investment, and size. Those facts, and the mapping onto $$(\mu,\phi,\varphi,\alpha)$$, are [Other risk premia]({% link further.md %}). They have not been used as calibration targets. Melin and Zhang (2026) put climate into consumption and price the market. [Climate]({% link climate.md %}) writes the corresponding cross-sectional test.
 
-The companion package follows the same order. Four subpackages implement Sections 2–5. Core installation solves the model at the Table II calibration with no data credentials. Reconstructing Table I from CRSP and Compustat requires the optional `[data]` extra and a WRDS login; see [Installation]({% link installation.md %}).
+[The replica]({% link replica.md %}) keeps Sections 2–5 in paper order. Core installation solves Table II with no data credentials; see [Installation]({% link installation.md %}).
 
 ## References
 
