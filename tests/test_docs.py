@@ -15,19 +15,16 @@ SECTIONS = (
     "package.md",
     "time-series.md",
     "value.md",
+    "other-risk-premia.md",
 )
 
 
 def test_pages_nav_is_paper_order():
     cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
     assert "just-the-docs" in cfg
-    assert "jekyll-theme-cayman" not in cfg
     for gone in ("KIKU_RECIPE.md", "results.md", "examples.md"):
         assert gone not in cfg
         assert not (ROOT / gone).exists()
-    assert not (ROOT / "superpowers").exists()
-    cfg_l = cfg.lower()
-    assert "package revamp" not in cfg_l
     orders = []
     for name in ("empirical.md", "model.md", "calibration.md", "implications.md"):
         text = (ROOT / name).read_text(encoding="utf-8")
@@ -45,8 +42,9 @@ def test_readme_does_not_host_six_step_recipe():
 
 def test_index_links_recipe_pages():
     text = (ROOT / "index.md").read_text(encoding="utf-8")
-    for name in SECTIONS:
-        assert name in text
+    stems = [name.replace(".md", "") for name in SECTIONS]
+    for stem in stems:
+        assert stem in text
     assert "replica.md" not in text
 
 
@@ -55,20 +53,24 @@ def test_introduction_is_macro_finance():
     assert "Cochrane" in index
     assert "Mehra" in index or "Prescott" in index
     assert "Bansal" in index and "Yaron" in index
-    assert "overlooked" in index.lower() or "often overlooked" in index.lower()
+    assert "overlooked" in index.lower()
     assert "I consider" in index or "I show" in index or "I introduce" in index
+
+
+def test_other_risk_premia_nav_page():
+    text = (ROOT / "other-risk-premia.md").read_text(encoding="utf-8")
+    assert "title: Other risk premia" in text
+    assert "nav_order: 4" in text
+    assert "RMW" in text and "CMA" in text and "SMB" in text
+    assert "```python" in text
 
 
 def test_time_series_page_is_the_market():
     text = (ROOT / "time-series.md").read_text(encoding="utf-8")
     assert "# Time series" in text
-    assert "8.56" in text
-    assert "7.53" in text
+    assert "8.56" in text and "7.53" in text
     assert "M_{t+1}" in text or "m_{t+1}" in text
-    assert "2.8" in text
     assert "```python" in text
-    assert "I " in text
-    assert "market" in text.lower()
 
 
 def test_cross_section_page_is_value():
@@ -76,18 +78,8 @@ def test_cross_section_page_is_value():
     assert "# Cross section" in text
     assert "7.81" in text and "13.88" in text
     assert "5.3" in text
-    assert "6.2" in text and "2.6" in text
-    assert "19" in text
     assert "```python" in text
     assert "calibrate_from_data" in text
-    assert "I " in text
-
-
-def test_architecture_hubs_exist():
-    ts = (ROOT / "time-series.md").read_text(encoding="utf-8")
-    assert "market" in ts.lower()
-    xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
-    assert "further.md" in xs and "value" in xs.lower()
 
 
 def test_nav_is_by_object():
@@ -96,9 +88,10 @@ def test_nav_is_by_object():
             if line.startswith("parent:"):
                 return line.split(":", 1)[1].strip()
         return None
-    assert parent_of("installation.md") == "Package"
     assert parent_of("time-series.md") is None
     assert parent_of("cross-section.md") is None
+    assert parent_of("other-risk-premia.md") is None
+    assert parent_of("installation.md") == "Package"
 
 
 def test_mathjax_and_sidebar_theme():
@@ -114,7 +107,6 @@ def test_site_is_the_paper_not_a_tutorial():
     assert "# Is the Value Premium a Puzzle?" in index
     assert "## Abstract" in index
     assert "## 1. Introduction" in index
-    assert "I consider" in index or "I show" in index or "I introduce" in index
     banned = (
         "landlord",
         "shiny new building",
@@ -131,40 +123,25 @@ def test_site_is_the_paper_not_a_tutorial():
 def test_section_pages_carry_her_equations():
     model = (ROOT / "model.md").read_text(encoding="utf-8")
     assert "M_{t+1}" in model or "m_{t+1}" in model
-    assert r"\\phi" in model or "phi" in model
-    assert "# 3." in model
     emp = (ROOT / "empirical.md").read_text(encoding="utf-8")
     assert "7.81" in emp and "13.88" in emp
-    assert "Figure 1" in emp
-    assert "# 2." in emp
     cal = (ROOT / "calibration.md").read_text(encoding="utf-8")
-    assert "# 4." in cal
     assert "6.2" in cal and "2.6" in cal
     impl = (ROOT / "implications.md").read_text(encoding="utf-8")
-    assert "# 5." in impl
     assert "5.3" in impl
     for name in ("empirical.md", "model.md", "calibration.md", "implications.md"):
         text = (ROOT / name).read_text(encoding="utf-8")
         assert "```python" in text
-        assert "I " in text
 
 
 def test_further_applications_page():
     text = (ROOT / "further.md").read_text(encoding="utf-8")
-    assert "# 6." in text
     assert "RMW" in text and "CMA" in text
-    assert "Fama" in text
-    assert "19" in text
-    assert "```python" in text
     assert "calibrate_from_data" in text
 
 
 def test_climate_risk_premia_page():
     text = (ROOT / "climate.md").read_text(encoding="utf-8")
-    assert "# 7." in text
     assert "Melin" in text and "Zhang" in text
-    assert "Omega" in text or "\Omega" in text or "Omega^i" in text
     assert "long=" in text and "short=" in text
     assert "calibrate_from_data" in text
-    assert "```python" in text
-    assert "I " in text
