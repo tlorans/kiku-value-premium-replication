@@ -1,6 +1,7 @@
 ---
 title: 5. Asset Pricing Implications
-nav_order: 6
+parent: The replica
+nav_order: 4
 ---
 
 # 5. Asset Pricing Implications
