@@ -1,7 +1,6 @@
 ---
 title: Climate
-parent: Cross section
-nav_order: 3
+nav_order: 5
 ---
 
 # 7. Climate risk premia
@@ -10,7 +9,7 @@ nav_order: 3
 1. TOC
 {:toc}
 
-Sections 2–5 account for time-series properties of the market claim and cross-sectional properties of book-to-market claims. Section 6 asks whether that cross-sectional property extends to profitability, investment, and size. Melin and Zhang (2026) put climate into the long-run risks consumption process and price a single market equity. Chronic physical damage and transition cost raise that claim’s premium by about twenty percent at three degrees of warming. I record their aggregate moments and state how a climate sort maps onto the cash-flow parameters of Section 3.
+[Time series]({% link time-series.md %}) prices the market. [Cross section]({% link cross-section.md %}) prices value versus growth. [Other risk premia]({% link further.md %}) states the test for size, profitability, and investment. Melin and Zhang (2026) put climate into the long-run risks consumption process and price a single market equity. Chronic physical damage and transition cost raise that claim’s premium by about twenty percent at three degrees of warming. I record their aggregate moments and state the cross-sectional restriction for transition and physical sorts.
 
 Those parameters are still chosen from consumption and dividends. Average brown–green returns are not used. Two further loadings appear, $$\Omega^i$$ on the persistent damage signal and $$\Gamma^i$$ on policy tightening. The objects to inspect after estimation are $$(\mu,\phi,\Omega^i,\Gamma^i)$$. A climate sort that differs only in $$\phi$$ is the value mechanism under another characteristic.
 
@@ -22,15 +21,15 @@ $$
 \Delta c_{t+1}=\mu+x_t+\Omega Y_t+\Gamma(P_{t+1}-P_t)+\sigma_{\eta}\eta_{t+1}.
 $$
 
-Temperature loads on the policy target and on activity, $$\Theta x_t$$. Market dividends are levered consumption plus the same climate terms. The IMRS is still equation (3). Closed forms for the risk-free rate and the equity premium follow from the same linearization as Section 3.4.
+Temperature loads on the policy target and on activity, $$\Theta x_t$$. Market dividends are levered consumption plus the same climate terms. The IMRS is still equation (3). Closed forms for the risk-free rate and the equity premium follow from the same linearization as the time-series page.
 
-Two sorts correspond to the two climate terms. Transition ranks firms on carbon emissions or emission intensity. Physical ranks firms on location-based exposure to heat, flood, cyclone, or wildfire. Dividends are the Campbell–Shiller series of [Section 2]({% link empirical.md %}). Consumption remains NIPA nondurables and services. $$Y_t$$ and $$P_t$$ are aligned to the dividend year from the temperature and policy paths used to calibrate the aggregate module.
+Two sorts correspond to the two climate terms. Transition ranks firms on carbon emissions or emission intensity. Physical ranks firms on location-based exposure to heat, flood, cyclone, or wildfire. Dividends are the Campbell–Shiller series of the cross-section page. Consumption remains NIPA nondurables and services. $$Y_t$$ and $$P_t$$ are aligned to the dividend year from the temperature and policy paths used to calibrate the aggregate module.
 
 I do not take a stand on the sign of realized brown–green returns. Those spreads change sign across samples. The characteristic defines the legs. The Euler equation is asked to price the legs.
 
 ## 7.2 Aggregate moments
 
-Melin and Zhang report the market claim under their NGFS-aligned path and under a no-climate counterfactual.
+Melin and Zhang report the market claim under their NGFS-aligned path and under a no-climate counterfactual. That is a time-series statement.
 
 |  | Counterfactual | Climate calibration |
 |:---|---:|---:|
@@ -40,15 +39,15 @@ Melin and Zhang report the market claim under their NGFS-aligned path and under 
 | Share of ERP from temperature change | 0 | 0.6% |
 | Share of ERP from the policy target | 0 | 3.6% |
 
-At $$3^{\circ}$$C the equity premium is about twenty percent higher than in the counterfactual. The risk-free rate falls by about fifty basis points near peak warming and remains about twenty-five basis points lower at 2100. Mean $$\log(P/D)$$ on the market is about four percent lower. High-damage calibrations move the premium by twelve to twenty-five percent at the same temperature.
+At $$3^{\circ}$$C the equity premium is about twenty percent higher than in the counterfactual. The risk-free rate falls by about fifty basis points near peak warming and remains about twenty-five basis points lower at 2100. Mean $$\log(P/D)$$ on the market is about four percent lower.
 
-Those numbers are a level for one claim. They are not a ranking across firms. Bansal, Kiku, and Ochoa (2016, 2019) introduced climate into this class of model as disaster risk. Melin and Zhang price chronic, calibrated physical and transition risk, with activity feeding temperature. That is the aggregate fact I take as given. They price one claim. The dividend process they write is already asset-specific.
+Those numbers are a level for one claim. They are not a ranking across firms.
 
 ## 7.3 Valuations
 
-Value in Section 2 is the cheap claim. Green firms, like the robust-profitability leg of Section 6, often sell at a higher valuation ratio. A transition premium with rich green prices is therefore a joint restriction on $$\Gamma^i$$ and $$\mu$$: policy loading larger on brown, mean growth larger on green by enough to keep that claim expensive.
+Value is the cheap claim. Green firms, like the robust-profitability leg, often sell at a higher valuation ratio. A transition premium with rich green prices is a joint restriction on $$\Gamma^i$$ and $$\mu$$: policy loading larger on brown, mean growth larger on green by enough to keep that claim expensive.
 
-Physical exposure is closer to book-to-market. Damages and adaptation costs lower expected cash flows. The exposed claim should occupy the high-return, cheaper side if $$\Omega^i$$ is the mechanism. A rich price on the exposed leg, with $$\Omega^{\text{exposed}}$$ larger, is the same contradiction Novy-Marx poses for a profitability sort that is priced only with $$\phi$$.
+Physical exposure is closer to book-to-market. The exposed claim should occupy the high-return, cheaper side if $$\Omega^i$$ is the mechanism.
 
 ## 7.4 Mapping a sort onto $$(\mu,\phi,\Omega^i,\Gamma^i)$$
 
@@ -68,25 +67,17 @@ Preferences, $$x_t$$, and the climate laws stay at the Melin–Zhang aggregate c
 | $$\Gamma^i$$ | projection of $$\Delta d$$ on $$\Delta P$$ | rises with $$\Gamma^i$$ | falls with $$\Gamma^i$$ |
 | $$\varphi,\alpha$$ | residual vol and consumption correlation | short-run | weak |
 
-Temperature loads on $$x_t$$. A climate sort that is value relabeled will show a $$\phi$$ ranking and flat $$\Omega^i$$ and $$\Gamma^i$$. Shutting those two loadings to zero and rerunning Table II on the same dividends asks how much of the sort Section 3 already prices.
+A climate sort that is value relabeled will show a $$\phi$$ ranking and flat $$\Omega^i$$ and $$\Gamma^i$$.
 
-**Transition.** Brown dividends should fall when policy tightens: $$\Gamma^{\text{brown}}>\Gamma^{\text{green}}$$. That ranking is what produces a positive carbon premium. Green may have a larger $$\mu$$. If $$\mu$$ is larger on green and $$\Gamma$$ is flat, the model can match a high green price and will not produce the premium. If $$\Gamma$$ is reversed, policy risk is not the mechanism.
+**Transition.** $$\Gamma^{\text{brown}}>\Gamma^{\text{green}}$$. Green may have a larger $$\mu$$. If $$\mu$$ is larger on green and $$\Gamma$$ is flat, the model can match a high green price and will not produce the premium.
 
-**Physical.** Exposed dividends should load more on the damage signal: $$\Omega^{\text{exposed}}>\Omega^{\text{sheltered}}$$. A lower $$\mu$$ on the exposed leg cheapens that claim and raises the predicted premium. That is the opposite of the profitability configuration in Section 6. Historical $$\Omega^i$$ understates the loading the investor prices if firms have already adapted.
-
-**Short-run loadings.** $$\varphi$$ and $$\alpha$$ are not the climate mechanism. I still estimate them. I do not interpret a gap in residual dividend volatility as evidence that the model has priced transition or physical risk.
-
-Book-to-market in Table II is the case in which $$\phi$$ and $$\mu$$ move together and $$\phi$$ wins the valuation ranking. Profitability is the case in which they must move together and $$\mu$$ must win. Transition is the case that can look like profitability on $$\mu$$ and like value on $$\Gamma$$. Physical is the case that should look like value on $$\Omega$$, with $$\mu$$ if anything lower on the exposed leg.
+**Physical.** $$\Omega^{\text{exposed}}>\Omega^{\text{sheltered}}$$. A lower $$\mu$$ on the exposed leg cheapens that claim and raises the predicted premium.
 
 ## 7.5 The restriction
-
-I apply the analogue of equation (19) to each leg. The regressors are lagged consumption growth and the climate states,
 
 $$
 \Delta d_t = d_0 + \tilde\phi \sum_{k=1}^{2}\Delta c_{t-k} + \tilde\Omega Y_{t-1} + \tilde\Gamma \Delta P_t + \varepsilon_t.
 $$
-
-These slopes are not in Table II and are not reported by Melin and Zhang for firm sorts. They are estimated from dividends, consumption, and the climate states. Preferences, aggregate consumption, and the climate module remain those of Melin and Zhang. The three claims the solver prices are a naming convention.
 
 | Sort | `short=` | `long=` |
 |:---|:---|:---|
@@ -94,11 +85,9 @@ These slopes are not in Table II and are not reported by Melin and Zhang for fir
 | Transition | green | brown |
 | Physical | sheltered | exposed |
 
-The model prices a climate sort if four implications hold together. First, the high-return leg’s estimated climate loading — $$\tilde\Gamma$$ for transition, $$\tilde\Omega$$ for physical — exceeds the low-return leg’s. Second, the estimated $$\mu$$ ranking is the ranking the valuation pattern requires: higher on green than on brown if green is to stay expensive; not higher on exposed than on sheltered if exposed is to stay cheap. Third, setting $$\Omega^i=\Gamma^i=0$$ does not already absorb the premium through $$\phi$$. Fourth, the Euler equation, given those loadings, produces a premium of the same sign as the hypothesis and a $$\log(P/D)$$ ranking that does not contradict the data.
+The model prices a climate sort if four implications hold together. First, the high-return leg’s estimated climate loading exceeds the low-return leg’s. Second, the estimated $$\mu$$ ranking is the ranking the valuation pattern requires. Third, setting $$\Omega^i=\Gamma^i=0$$ does not already absorb the premium through $$\phi$$. Fourth, the Euler equation produces a premium of the same sign and a $$\log(P/D)$$ ranking that does not contradict the data.
 
-Their twenty-percent rise in the market premium at $$3^{\circ}$$C is a level. The cross-section asks whether the same IMRS assigns that level to the claims whose dividends move with $$Y_t$$ and $$P_t$$.
-
-A reversal on $$\Omega$$ or $$\Gamma$$ means the factor is not a climate cash-flow factor. A reversal on $$\mu$$, with the climate loading intact, means the model can match the premium and will miss the price. A reversal on the premium, with both rankings intact, means the investor of Sections 3–5, even after climate is put into consumption, cannot be recycled. A finding that only $$\phi$$ differs is Section 3, not this one.
+Their twenty-percent rise in the market premium at $$3^{\circ}$$C is a level. This page asks whether the same IMRS assigns that level to the claims whose dividends move with $$Y_t$$ and $$P_t$$.
 
 ```python
 from kiku_value_premium.calibration import calibrate_from_data, estimate_long_run_leverage
@@ -129,10 +118,8 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-The four printed numbers are the map with climate shut off. Compare `long.phi` to `short.phi` and `long.mu` to `short.mu` before attributing a spread to $$Y_t$$ or $$P_t$$. The additional slopes on $$Y$$ and $$\Delta P$$ identify $$\Omega^i$$ and $$\Gamma^i$$. Returns do not enter. Construction of the dividend series follows [Section 2]({% link empirical.md %}). The long and short roles follow [Section 6]({% link further.md %}).
-
 {: .package }
-`calibrate_from_data` estimates $$(\mu,\phi,\varphi,\alpha)$$. It does not see $$Y_t$$ or $$P_t$$. `solve_analytical` and `compute_asset_pricing_moments` price those four numbers under the Table II consumption process. The premium this snippet produces is the part of the sort already priced by Section 3. The remainder is the object the climate states would have to deliver.
+`calibrate_from_data` estimates $$(\mu,\phi,\varphi,\alpha)$$. It does not see $$Y_t$$ or $$P_t$$. The premium this snippet produces is the part of the sort already priced by $$\phi$$ and $$\mu$$. The remainder is the object the climate states would have to deliver.
 
 ## References
 
