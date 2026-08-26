@@ -11,10 +11,8 @@ Job Market Paper — January 17, 2006
 Companion package `kiku_value_premium` 0.3.0
 
 [Time series]({% link time-series.md %}) · [Cross section]({% link cross-section.md %}) · [Other risk premia]({% link further.md %}) · [Climate]({% link climate.md %})  
-[The replica]({% link replica.md %}) · [Package]({% link package.md %}) · [Installation]({% link installation.md %}) · [API]({% link api.md %})  
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Other portfolios]({% link generalization.md %}) · [Value]({% link value.md %})
-
-The documentation is four objects. [Time series]({% link time-series.md %}) is the long-run risks model and the market claim. [Cross section]({% link cross-section.md %}) is value versus growth: methods and results from the paper, repackaged as one argument. [Other risk premia]({% link further.md %}) asks the same investor to price size, profitability, and investment. [Climate]({% link climate.md %}) asks it to price transition and physical sorts.
+[Package]({% link package.md %}) · [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})  
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Value]({% link value.md %})
 
 ## Abstract
 
@@ -32,23 +30,17 @@ print_value_premium(solve_analytical(get_table_ii_params()))
 
 ## 1. Introduction
 
-One of the most robust features of financial data is the finding that value firms, on average, have higher returns than growth firms. Over 1930–2003 the high book-to-market quintile earned 13.88 percent a year and the low book-to-market quintile 7.81 percent. Market betas of both portfolios sit near one. A model that prices only covariance with the market cannot justify a six-percent gap. That is the value premium puzzle.
+Macro-finance studies the link between asset prices and economic fluctuations (Cochrane 2017). The facts that organized the field are time-series facts about the market. Stocks earn more than bonds by more than power utility over aggregate consumption can justify (Mehra and Prescott 1985). The risk-free rate is too low. Prices move more than dividends (Shiller 1981). The discount factor implied by returns is more volatile than consumption growth raised to a modest power — the Hansen and Jagannathan (1991) bound. Cochrane’s survey is explicit about the common mechanism that later models share: the market’s ability to bear risk varies over time, with the business cycle. The frameworks differ. Habits (Campbell and Cochrane 1999) put that variation in surplus consumption. Rare disasters put it in a tail. Long-run risks put it in a small persistent component of consumption growth, priced by recursive utility.
 
-I introduce value, growth, and market portfolios into a general equilibrium model that features long-run consumption risks, in the sense of Bansal and Yaron (2004). Once time-series dynamics of aggregate and asset-specific cash flows are calibrated to annual consumption and dividends, the model is asked to account for both time-series and cross-sectional properties of assets’ prices and returns.
+Bansal and Yaron (2004) is the long-run risks model as a *time-series* resolution. Consumption and dividends contain a slowly moving expected-growth factor $$x_t$$ and fluctuating uncertainty. Preferences are Epstein and Zin (1989): risk aversion is no longer the reciprocal of the elasticity of intertemporal substitution, so news about $$x_t$$ is priced. The objects the paper is asked to match are the equity premium, the risk-free rate, the volatility of the market return and of $$\log(P/D)$$, and the predictability of market returns by the dividend yield. Bansal, Kiku, and Yaron (2012) take the same objects to estimation. That is how the model is usually judged. Cochrane (2017) lists long-run risks in that sampling — recursive utility, Bansal and Yaron, Bansal, Kiku, and Yaron — next to habits and disasters, as competing accounts of the *market*.
 
-The time-series object is the market claim. Preferences, the consumption process, and market dividends are chosen from consumption and dividend moments. The Euler equation is then asked for the equity premium, the risk-free rate, and market $$\log(P/D)$$. That check is [Time series]({% link time-series.md %}). Matching it is the usual test of a consumption-based model. It is not the test that resolves the value premium.
+The same IMRS implies a cross-section. A claim whose dividends load more on $$x_t$$ covaries more with the priced long-run shock. The Euler equation requires a higher expected return and a lower price–dividend ratio. That implication is often overlooked. Evaluations of long-run risks stop at the market column. Book-to-market, profitability, investment, and size are treated as a different literature, to be priced by factors rather than by consumption. I show that the overlooked column is not a separate theory. It is the same investor, applied to claims that differ only in cash-flow loadings.
 
-The cross-sectional object is value versus growth. The two claims have market betas near one. They do not have the same loading $$\phi$$ on $$x_t$$. An Epstein–Zin investor with $$\gamma \neq 1/\psi$$ prices that difference. Methods and results are [Cross section]({% link cross-section.md %}).
+The first such pair is value versus growth. Over 1930–2003 the high book-to-market quintile earned 13.88 percent a year and the low book-to-market quintile 7.81 percent. Market betas of both portfolios sit near one. A model that prices only covariance with the market cannot justify the gap. Value dividends move with the slow part of consumption; growth dividends barely do. I introduce those two claims into the Bansal–Yaron economy, choose their loadings from consumption and dividends, and read premia and valuations off the Euler equation. Average returns do not enter the cash-flow step.
 
-Two ingredients do the work, and both are necessary. Consumption and dividend growth contain a small persistent component $$x_t$$. Preferences are recursive. Under power utility the price of long-run news is zero, and a gap in $$\phi$$ does not generate a large premium.
+Two ingredients do the work, and both are necessary. Consumption growth is not i.i.d. Preferences are recursive. Under power utility the price of long-run news is zero, and a gap in long-run leverage does not generate a large premium.
 
-The six-percent premium is a fact to be explained. It is not a calibration target. If it appears after the cash-flow step, it is a prediction.
-
-Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Persistence of expected consumption growth is $$\rho=0.98$$. With those numbers the model produces about 5.3 percent of value premium, a lower mean $$\log(P/D)$$ on value than on growth, and a value-to-growth CAPM-beta ratio below one. The same calibration accommodates the time-series behavior of the market.
-
-Fama and French (2015) isolate further CAPM failures — profitability, investment, and size. Those facts, and the mapping onto $$(\mu,\phi,\varphi,\alpha)$$, are [Other risk premia]({% link further.md %}). They have not been used as calibration targets. Melin and Zhang (2026) put climate into consumption and price the market. [Climate]({% link climate.md %}) writes the corresponding cross-sectional test.
-
-[The replica]({% link replica.md %}) keeps Sections 2–5 in paper order. Core installation solves Table II with no data credentials; see [Installation]({% link installation.md %}).
+[Time series]({% link time-series.md %}) is the standard test: the model, the market claim, and the moments Bansal and Yaron were written to match. [Cross section]({% link cross-section.md %}) is the overlooked test: value versus growth under that investor. [Other risk premia]({% link further.md %}) asks whether the same mapping extends to size, profitability, and investment (Fama and French 2015). [Climate]({% link climate.md %}) asks it of transition and physical sorts after Melin and Zhang (2026) put climate into consumption — still a time-series statement about the market until the loadings are allowed to differ across firms.
 
 ## References
 
@@ -56,10 +48,22 @@ Kiku, D. 2006. “Is the Value Premium a Puzzle?” Job Market Paper, Duke Unive
 
 Bansal, R., and A. Yaron. 2004. “Risks for the Long Run: A Potential Resolution of Asset Pricing Puzzles.” *Journal of Finance* 59 (4): 1481–1509.
 
+Bansal, R., D. Kiku, and A. Yaron. 2012. “An Empirical Evaluation of the Long-Run Risks Model for Asset Prices.” *Critical Finance Review* 1: 183–221.
+
+Campbell, J., and J. Cochrane. 1999. “By Force of Habit: A Consumption-Based Explanation of Aggregate Stock Market Behavior.” *Journal of Political Economy* 107 (2): 205–251.
+
+Cochrane, J. 2017. “Macro-Finance.” *Review of Finance* 21 (3): 945–985.
+
 Epstein, L., and S. Zin. 1989. “Substitution, Risk Aversion, and the Temporal Behavior of Consumption and Asset Returns.” *Econometrica* 57 (4): 937–969.
 
 Fama, E., and K. French. 1993. “Common Risk Factors in the Returns on Stocks and Bonds.” *Journal of Financial Economics* 33 (1): 3–56.
 
 Fama, E., and K. French. 2015. “A Five-Factor Asset Pricing Model.” *Journal of Financial Economics* 116 (1): 1–22.
 
+Hansen, L., and R. Jagannathan. 1991. “Implications of Security Market Data for Models of Dynamic Economies.” *Journal of Political Economy* 99 (2): 225–262.
+
+Mehra, R., and E. Prescott. 1985. “The Equity Premium: A Puzzle.” *Journal of Monetary Economics* 15 (2): 145–161.
+
 Melin, L., and F. Zhang. 2026. “Quantifying Climate Risk Premia.” EDHEC Climate Institute.
+
+Shiller, R. 1981. “Do Stock Prices Move Too Much to Be Justified by Subsequent Changes in Dividends?” *American Economic Review* 71 (3): 421–436.
