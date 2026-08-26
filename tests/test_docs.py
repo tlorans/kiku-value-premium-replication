@@ -51,27 +51,41 @@ def test_mathjax_and_sidebar_theme():
     assert (ROOT / "_sass" / "color_schemes" / "kiku.scss").exists()
 
 
+def test_site_is_the_paper_not_a_tutorial():
+    index = (ROOT / "index.md").read_text(encoding="utf-8")
+    assert "# Is the Value Premium a Puzzle?" in index
+    assert "## Abstract" in index
+    assert "## 1. Introduction" in index
+    assert "I consider" in index or "I show" in index or "I introduce" in index
+    banned = (
+        "landlord",
+        "shiny new building",
+        "rainy Tuesday",
+        "weather model",
+        "**Check.**",
+        "If you are lost, start here",
+    )
+    blob = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in ("index.md",) + SECTIONS[:4])
+    for phrase in banned:
+        assert phrase.lower() not in blob.lower()
+
+
 def test_section_pages_carry_her_equations():
     model = (ROOT / "model.md").read_text(encoding="utf-8")
     assert "M_{t+1}" in model or "m_{t+1}" in model
-    assert r"\phi" in model or "phi" in model
+    assert r"\\phi" in model or "phi" in model
+    assert "# 3." in model
     emp = (ROOT / "empirical.md").read_text(encoding="utf-8")
     assert "7.81" in emp and "13.88" in emp
     assert "Figure 1" in emp
-    assert "In a nutshell" in (ROOT / "index.md").read_text(encoding="utf-8")
-    for name in (
-        "empirical.md",
-        "model.md",
-        "calibration.md",
-        "implications.md",
-        "installation.md",
-        "api.md",
-        "generalization.md",
-    ):
-        text = (ROOT / name).read_text(encoding="utf-8")
-        assert "**In a nutshell.**" in text
+    assert "# 2." in emp
+    cal = (ROOT / "calibration.md").read_text(encoding="utf-8")
+    assert "# 4." in cal
+    assert "6.2" in cal and "2.6" in cal
+    impl = (ROOT / "implications.md").read_text(encoding="utf-8")
+    assert "# 5." in impl
+    assert "5.3" in impl
     for name in ("empirical.md", "model.md", "calibration.md", "implications.md"):
         text = (ROOT / name).read_text(encoding="utf-8")
-        assert "{: .why }" in text
-        assert "{: .idea }" in text
-        assert "{: .here }" in text
+        assert "```python" in text
+        assert "I " in text
