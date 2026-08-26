@@ -20,10 +20,17 @@ Table I uses Newey–West **8** lags (returns and growth in percent; \(\log(P/D)
 ## What you call
 
 ```python
-from kiku_value_premium.empirical import START, END
-from kiku_value_premium.empirical.panel import build_annual_panel
-from kiku_value_premium.empirical.tables import table_i, table_vi_data
-from kiku_value_premium.empirical.figures import figure1, figure2, figure3, figure4
+from kiku_value_premium.empirical import (
+    START,
+    END,
+    build_annual_panel,
+    table_i,
+    table_vi_data,
+    figure1,
+    figure2,
+    figure3,
+    figure4,
+)
 import pandas as pd
 
 bm = build_annual_panel(refresh=False)   # reuse data/raw/ when present

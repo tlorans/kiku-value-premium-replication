@@ -1,12 +1,7 @@
-from pathlib import Path
-
-
 def main():
     print("Kiku (2006) recipe — paper order")
     try:
-        from kiku_value_premium.empirical.panel import build_annual_panel
-        from kiku_value_premium.empirical.tables import table_i
-        from kiku_value_premium.empirical.goldens import START, END
+        from kiku_value_premium.empirical import START, END, build_annual_panel, table_i
         bm = build_annual_panel(refresh=False)
         print(table_i(bm, START, END))
     except Exception as exc:
