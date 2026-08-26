@@ -10,11 +10,12 @@ Dana Kiku
 Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
-[The replica]({% link replica.md %}) · [Cross section]({% link cross-section.md %}) · [Package]({% link package.md %})  
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %}) · [Section 7]({% link climate.md %})  
+[Time series]({% link time-series.md %}) · [Cross section]({% link cross-section.md %}) · [The replica]({% link replica.md %}) · [Package]({% link package.md %})  
+[Value]({% link value.md %}) · [Size, profitability, investment]({% link further.md %}) · [Climate]({% link climate.md %})  
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %})  
 [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})
 
-Once cash flows are calibrated to consumption and dividends, the model is asked to account for both time-series and cross-sectional properties of assets’ prices and returns. The [replica]({% link replica.md %}) is that argument for the market and for value. The [cross section]({% link cross-section.md %}) keeps the same investor and changes the characteristic.
+The site is ordered by object. [Time series]({% link time-series.md %}) is the market claim. [Cross section]({% link cross-section.md %}) is a pair of claims: [value]({% link value.md %}) first, then profitability, investment, and size, then climate. [The replica]({% link replica.md %}) is Sections 2–5 of the paper.
 
 ## Abstract
 

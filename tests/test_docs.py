@@ -14,6 +14,8 @@ SECTIONS = (
     "replica.md",
     "cross-section.md",
     "package.md",
+    "time-series.md",
+    "value.md",
 )
 
 
@@ -49,13 +51,31 @@ def test_index_links_recipe_pages():
 
 
 def test_architecture_hubs_exist():
-    for name in ("replica.md", "cross-section.md", "package.md"):
+    for name in ("replica.md", "cross-section.md", "package.md", "time-series.md", "value.md"):
         text = (ROOT / name).read_text(encoding="utf-8")
         assert "time-series" in text.lower() or "cross-sectional" in text.lower() or "cross section" in text.lower()
     replica = (ROOT / "replica.md").read_text(encoding="utf-8")
     assert "empirical.md" in replica and "implications.md" in replica
     xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
-    assert "further.md" in xs and "climate.md" in xs
+    assert "further.md" in xs and "climate.md" in xs and "value.md" in xs
+    ts = (ROOT / "time-series.md").read_text(encoding="utf-8")
+    assert "market" in ts.lower()
+    val = (ROOT / "value.md").read_text(encoding="utf-8")
+    assert "phi" in val.lower() or "\\phi" in val
+
+
+def test_nav_is_by_object():
+    def parent_of(name):
+        for line in (ROOT / name).read_text(encoding="utf-8").splitlines()[:8]:
+            if line.startswith("parent:"):
+                return line.split(":", 1)[1].strip()
+        return None
+    assert parent_of("empirical.md") == "The replica"
+    assert parent_of("implications.md") == "The replica"
+    assert parent_of("value.md") == "Cross section"
+    assert parent_of("further.md") == "Cross section"
+    assert parent_of("climate.md") == "Cross section"
+    assert parent_of("installation.md") == "Package"
 
 
 def test_mathjax_and_sidebar_theme():
