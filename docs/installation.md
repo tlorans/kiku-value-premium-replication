@@ -1,6 +1,7 @@
 ---
 title: Installation
-nav_order: 2
+parent: Package
+nav_order: 1
 ---
 
 # Installation

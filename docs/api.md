@@ -1,6 +1,7 @@
 ---
 title: API
-nav_order: 7
+parent: Package
+nav_order: 2
 ---
 
 # API
@@ -24,4 +25,4 @@ Extras: `[fast]` (numba), `[data]` (wrds, python-dotenv, matplotlib), `[dev]` (p
 
 `connect_wrds()` raises `EmpiricalDataError` if `[data]` is missing or `.env` keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
 
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %}) · [Section 7]({% link climate.md %})
+[The replica]({% link replica.md %}) · [Cross section]({% link cross-section.md %}) · [Section 2]({% link empirical.md %}) · [Section 5]({% link implications.md %})

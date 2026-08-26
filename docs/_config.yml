@@ -1,5 +1,5 @@
 title: Is the Value Premium a Puzzle?
-description: Dana Kiku, Job Market Paper, January 17, 2006. Companion package kiku_value_premium.
+description: Time-series and cross-sectional properties of asset prices and returns. Dana Kiku, Job Market Paper, January 17, 2006.
 url: https://tlorans.github.io
 baseurl: /kiku-value-premium-replication
 
@@ -16,7 +16,7 @@ search:
 heading_anchors: true
 back_to_top: true
 back_to_top_text: Back to top
-footer_content: "Kiku (2006), Job Market Paper. Companion package. EDHEC Climate Institute. MIT License."
+footer_content: "Kiku (2006), Job Market Paper. Time-series and cross-sectional properties of prices and returns. MIT License."
 
 aux_links:
   GitHub:
