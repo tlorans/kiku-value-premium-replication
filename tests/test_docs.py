@@ -10,6 +10,7 @@ SECTIONS = (
     "api.md",
     "generalization.md",
     "further.md",
+    "climate.md",
 )
 
 
@@ -100,3 +101,14 @@ def test_further_applications_page():
     assert "19" in text
     assert "```python" in text
     assert "calibrate_from_data" in text
+
+
+def test_climate_risk_premia_page():
+    text = (ROOT / "climate.md").read_text(encoding="utf-8")
+    assert "# 7." in text
+    assert "Melin" in text and "Zhang" in text
+    assert "Omega" in text or "\Omega" in text or "Omega^i" in text
+    assert "long=" in text and "short=" in text
+    assert "calibrate_from_data" in text
+    assert "```python" in text
+    assert "I " in text
