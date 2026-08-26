@@ -1,24 +1,18 @@
 """
-Calibration of DividendParams following Kiku (2006, Section 4.3).
+Step 3 of Kiku’s recipe – Calibrate cash-flow dynamics *only* to time-series moments
+====================================================================================
 
-Provides both the exact Table II values and a general data-driven procedure
-that can be applied to *any* set of portfolios.
+Critical discipline of the paper: never target cross-sectional return premia.
+Only match the observed time-series properties of consumption and of the
+portfolios’ cash flows (especially the differential exposure to the long-run
+risk factor).
 
-General recipe for an arbitrary portfolio with dividend-growth series dd and
-consumption-growth series dc (same frequency):
+The key object estimated here is the long-run leverage φ (equation 19 of the paper):
 
-1. μ   = mean(dd)          (scale by 1/12 if the series is annual and you want
-                            a monthly parameter)
-2. φ   = OLS coefficient from the paper’s regression (eq. 19)
+    Δd_t = d₀ + φ̃ · MA(Δc, window=2) + ε_t
 
-       Δd_t = d0 + φ̃ · MA(Δc, window=2) + ε_t
-
-3. α   ≈ Corr( residual from the regression , consumption innovation )
-         or the simpler Corr(dd, dc) as a first approximation
-4. φ_σ chosen so that the model residual volatility roughly matches the data
-   residual volatility (or left as a free parameter for the user to fine-tune)
-
-The helper `calibrate_from_data` implements this recipe automatically.
+`calibrate_from_data` implements the full recipe for any set of portfolios
+(industries, climate-sorted portfolios, quality factors, …).
 """
 from __future__ import annotations
 import numpy as np
@@ -78,29 +72,24 @@ def estimate_long_run_leverage(
     mask = ~np.isnan(ma)
     y = dd[mask]
     x = ma[mask]
+    # simple OLS with intercept
     x_demean = x - x.mean()
     y_demean = y - y.mean()
-    denom = np.dot(x_demean, x_demean)
-    if denom < 1e-18:
-        return 0.0
-    return float(np.dot(x_demean, y_demean) / denom)
+    phi = float(np.dot(x_demean, y_demean) / np.dot(x_demean, x_demean))
+    return phi
 
 
 def _consumption_innovation(dc: np.ndarray) -> np.ndarray:
-    """Simple AR(1) residual as a proxy for the consumption innovation η."""
+    """Rough proxy for the short-run consumption innovation."""
     dc = np.asarray(dc, dtype=float).ravel()
+    # residual from an AR(1)
     if len(dc) < 3:
         return dc - dc.mean()
-    # AR(1)
-    y = dc[1:]
-    x = dc[:-1]
-    x_d = x - x.mean()
-    y_d = y - y.mean()
-    rho = np.dot(x_d, y_d) / max(np.dot(x_d, x_d), 1e-18)
-    resid = np.empty_like(dc)
-    resid[0] = 0.0
-    resid[1:] = y - (dc.mean() * (1 - rho) + rho * x)
-    return resid
+    rho = np.corrcoef(dc[:-1], dc[1:])[0, 1]
+    innov = np.empty_like(dc)
+    innov[0] = 0.0
+    innov[1:] = dc[1:] - rho * dc[:-1]
+    return innov
 
 
 def calibrate_from_data(
@@ -111,38 +100,29 @@ def calibrate_from_data(
     default_phi_sigma: float = 7.5,
 ) -> Dict[str, DividendParams]:
     """
-    Calibrate DividendParams for *any* set of portfolios from observed series.
+    Full data-driven calibration of DividendParams for an arbitrary set of portfolios.
+
+    Implements the exact recipe of Step 3:
+
+    1. μ   = mean(dd)   (converted to monthly if frequency="annual")
+    2. φ   = long-run leverage via equation (19)
+    3. α   ≈ correlation of residual with consumption innovation
+    4. φ_σ left at a sensible default (user can fine-tune)
 
     Parameters
     ----------
     dc : array
-        Consumption growth (annual or monthly).
-    dd_dict : dict[str, array]
-        Mapping portfolio name → dividend-growth series (same length & frequency as dc).
+        Consumption growth series.
+    dd_dict : dict
+        Mapping portfolio name → dividend-growth series (same length/frequency as dc).
     frequency : {"annual", "monthly"}
-        If "annual", the returned μ is divided by 12 so that it can be used
-        directly as a monthly parameter in the model.
+        Frequency of the supplied series.
     window : int
-        Lags for the moving-average regression that identifies φ (paper uses 2).
-    default_phi_sigma : float
-        Fallback value for φ_σ when residual volatility is hard to map.
-        Users can override after inspection.
+        Window for the moving average in equation (19). Paper uses 2.
 
     Returns
     -------
-    dict[str, DividendParams]
-        Ready to be assigned to ModelParams.dividends.
-
-    Example
-    -------
-    >>> from kiku_value_premium.calibration import calibrate_from_data
-    >>> # dc_annual, dd_growth, dd_value are 1-d numpy arrays of the same length
-    >>> params = calibrate_from_data(
-    ...     dc_annual,
-    ...     {"growth": dd_growth, "value": dd_value, "my_portfolio": dd_mine},
-    ...     frequency="annual",
-    ... )
-    >>> print(params["value"].phi)   # estimated long-run leverage
+    dict of DividendParams, one entry per portfolio.
     """
     dc = np.asarray(dc, dtype=float).ravel()
     innov = _consumption_innovation(dc)
@@ -160,7 +140,7 @@ def calibrate_from_data(
         # 2. long-run leverage via eq. 19
         phi = estimate_long_run_leverage(dc, dd, window=window)
 
-        # 3. residual after the MA regression → correlation with consumption innovation
+        # 3. residual correlation with consumption innovation
         ma = np.full(len(dc), np.nan)
         for t in range(window, len(dc)):
             ma[t] = np.mean(dc[t - window : t])
@@ -174,9 +154,7 @@ def calibrate_from_data(
             alpha = float(np.corrcoef(dd, dc)[0, 1]) if np.std(dd) > 0 else 0.0
             alpha = float(np.clip(alpha, -0.99, 0.99))
 
-        # 4. φ_σ – rough mapping from residual volatility
-        #    In the model residual vol ≈ φ_σ * σ * sqrt(1-α²).
-        #    We leave a sensible default and let the user fine-tune.
+        # 4. φ_σ – sensible default (user may fine-tune)
         phi_sigma = default_phi_sigma
 
         out[name] = DividendParams(
@@ -207,23 +185,9 @@ def calibrate_dividend_params_from_targets(
     return out
 
 
-def print_calibration_summary(params: Optional[ModelParams] = None) -> None:
-    """Pretty-print the dividend calibration used by the package."""
-    if params is None:
-        params = get_default_params()
-    print("DividendParams calibration (Kiku 2006, Table II & Section 4.3)")
-    print("-" * 60)
-    print(f"{'Asset':8s} {'μ (mo)':>8s} {'φ (LR)':>8s} {'φ_σ':>8s} {'α':>8s}")
-    for name, d in params.dividends.items():
-        print(f"{name:8s} {d.mu:8.4f} {d.phi:8.1f} {d.phi_sigma:8.1f} {d.alpha:8.2f}")
-    print()
-    print("How the parameters are chosen (paper):")
-    print("  μ     – match E[annual Δd]")
-    print("  φ     – match long-run leverage from the 2-year MA regression (eq. 19)")
-    print("          Value firms have much higher φ (6.2) than growth firms (2.6)")
-    print("  φ_σ   – match short-run / volatility risk exposures")
-    print("  α     – match Corr(annual Δd, annual Δc)")
-    print()
-    print("For arbitrary portfolios use:")
-    print("  from kiku_value_premium.calibration import calibrate_from_data")
-    print("  params = calibrate_from_data(dc, {'portA': dd_A, 'portB': dd_B})")
+def print_calibration_summary(dividends: Dict[str, DividendParams]) -> None:
+    """Pretty-print the calibrated long-run leverages and other parameters."""
+    print("Portfolio          μ (m)     φ (long-run)   φ_σ      α")
+    print("-" * 55)
+    for name, d in dividends.items():
+        print(f"{name:18s} {d.mu:8.5f}  {d.phi:8.3f}     {d.phi_sigma:6.2f}  {d.alpha:6.2f}")

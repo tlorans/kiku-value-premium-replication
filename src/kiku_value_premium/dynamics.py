@@ -1,8 +1,13 @@
 """
-State and cash-flow dynamics (Kiku 2006, eq. 6).
+Step 1 & 2 of Kiku’s recipe – State and cash-flow dynamics
+==========================================================
 
-Generates the joint process for x, sigma2, consumption growth and the three
-dividend growth series with the correct contemporaneous correlations.
+Simulates the joint process for:
+- the persistent expected-growth factor x_t and stochastic volatility (Step 1)
+- consumption growth and the portfolio-specific dividend growth series (Step 2)
+
+The differential loading of each portfolio on x_t (the long-run leverage φ)
+is the economic source of the value premium.
 """
 from __future__ import annotations
 import numpy as np
@@ -10,22 +15,23 @@ from .params import ModelParams, get_default_params
 
 
 class Dynamics:
+    """Simulator of the joint long-run risks processes."""
+
     def __init__(self, params: ModelParams | None = None, seed: int | None = None):
         self.p = params or get_default_params()
         self.rng = np.random.default_rng(seed)
 
-        # Residual correlation matrix for the orthogonalized dividend shocks v
+        # Residual correlation matrix for the orthogonalised dividend shocks
         # order: growth, value, market
         self.res_corr = np.array([
             [1.0, self.p.residual_corr_gv, self.p.residual_corr_gm],
             [self.p.residual_corr_gv, 1.0, self.p.residual_corr_vm],
             [self.p.residual_corr_gm, self.p.residual_corr_vm, 1.0],
         ])
-        # Cholesky of residual corr (for v ~ N(0, res_corr))
         self.chol_v = np.linalg.cholesky(self.res_corr)
 
     def simulate_states(self, T: int, x0: float = 0.0, s2_0: float | None = None):
-        """Simulate x_t and sigma2_t for T periods."""
+        """Simulate the long-run risk factor x_t and variance σ²_t for T periods."""
         c = self.p.cons
         if s2_0 is None:
             s2_0 = c.sigma ** 2
@@ -39,20 +45,20 @@ class Dynamics:
             w = self.rng.standard_normal()
             x[t + 1] = c.rho * x[t] + c.phi_x * np.sqrt(s2[t]) * eps
             s2[t + 1] = c.sigma**2 * (1 - c.nu) + c.nu * s2[t] + c.sigma_w * w
-            s2[t + 1] = max(s2[t + 1], 1e-12)  # positivity
+            s2[t + 1] = max(s2[t + 1], 1e-12)
         return x, s2
 
     def simulate_cashflows(self, T: int, x0: float = 0.0, s2_0: float | None = None):
         """
-        Full joint simulation:
-        returns dict with keys: x, sigma2, dc, dd_growth, dd_value, dd_market
+        Full joint simulation of consumption and all portfolio dividend series.
+
+        Returns a dict with keys:
+            x, sigma2, dc, dd_growth, dd_value, dd_market
         """
         c = self.p.cons
         x, s2 = self.simulate_states(T, x0, s2_0)
 
-        # Shocks
-        eta = self.rng.standard_normal(T)          # consumption innovation
-        # orthogonalized dividend innovations v ~ N(0, res_corr)
+        eta = self.rng.standard_normal(T)
         v = self.rng.standard_normal((T, 3)) @ self.chol_v.T
 
         alphas = np.array([
@@ -60,7 +66,6 @@ class Dynamics:
             self.p.dividends["value"].alpha,
             self.p.dividends["market"].alpha,
         ])
-        # u_i = alpha_i * eta + sqrt(1-alpha_i^2) * v_i
         scale = np.sqrt(1.0 - alphas**2)
         u = alphas[None, :] * eta[:, None] + scale[None, :] * v
 
