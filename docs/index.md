@@ -6,7 +6,7 @@ permalink: /
 
 # Long-run risks and the cross section
 
-Companion package `kiku_value_premium`
+Companion package `lrrcs`
 
 [Time series]({{ '/time-series.html' | relative_url }}) · [Cross section]({{ '/cross-section.html' | relative_url }}) · [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) · [Climate]({{ '/climate.html' | relative_url }})  
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [Other portfolios]({{ '/generalization.html' | relative_url }})  
@@ -31,9 +31,9 @@ The first pair is value versus growth. 1930–2003: high book-to-market earned 1
 Two ingredients, both required. Consumption growth is not i.i.d. Preferences are recursive. Under power utility the price of long-run news is zero. Then a gap in leverage does nothing.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, solve_analytical, print_value_premium
+from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
 
-print_value_premium(solve_analytical(get_table_ii_params()))
+print_long_short_premium(solve_analytical(get_table_ii_params()))
 ```
 
 [Time series]({{ '/time-series.html' | relative_url }}) is the usual test. [Cross section]({{ '/cross-section.html' | relative_url }}) is the overlooked one. [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) asks the same question of size, profitability, and investment. [Climate]({{ '/climate.html' | relative_url }}) asks it after climate is put into consumption. A 20 percent rise in the *market* premium is still a time-series statement. It does not rank firms.
