@@ -1,17 +1,16 @@
-title: Kiku (2006) Value Premium Replication
-description: Exact methodology and package API for replicating Dana Kiku’s long-run risks explanation of the value premium
+title: Kiku Value Premium Replication
+description: Exact 6-step methodology of Kiku (2006) mapped to a transparent Python package
 theme: jekyll-theme-cayman
-
-# Optional: make the recipe the default page if desired
-# plugins:
-#   - jekyll-relative-links
-
 markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
 
-# Navigation (simple)
+# Simple navigation for the multi-page site
 header_pages:
   - index.md
   - KIKU_RECIPE.md
+  - installation.md
+  - api.md
+  - examples.md
+  - generalization.md
