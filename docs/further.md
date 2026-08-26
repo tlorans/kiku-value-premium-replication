@@ -9,75 +9,69 @@ nav_order: 8
 1. TOC
 {:toc}
 
-The 2006 paper stops at book-to-market. Fama and French (2015) document two further spreads that the CAPM does not price: robust-minus-weak operating profitability (RMW) and conservative-minus-aggressive investment (CMA). The question this section poses is the same question Section 2 posed for value. Do the cash flows of the high-return leg load more on the persistent component of consumption growth than those of the low-return leg? If they do, the long-run risks model is a candidate. If they do not, the premia are a different puzzle.
+Sections 2–5 price book-to-market claims. After 2006 two further spreads entered the set of facts a consumption-based model must confront. Fama and French (2015) show that operating profitability and investment predict average returns in the same CRSP/Compustat universe I used for value, and that neither spread is a CAPM fact. I record those moments here and state the cash-flow restriction the long-run risks model imposes on them.
 
-The six-percent value premium was not a calibration target. Neither is RMW or CMA. Average returns stay out of `calibrate_from_data`.
+The restriction is the restriction of Section 4. Loadings $$(\mu,\phi,\varphi,\alpha)$$ are chosen from consumption and dividend growth. Average returns are not used. If the Euler equation then reproduces the published premia, the model prices the sort. If it does not, profitability and investment are a different puzzle from value.
 
-## 6.1 What changed after 2006
+## 6.1 Construction
 
-Fama and French (1993) already sat in Section 2: June sorts, NYSE breakpoints, book-to-market. Their 2015 paper keeps that construction and adds two characteristics from the dividend-discount identity. Expected return is high when, holding expected cash flows fixed, price is low. Price is also low when expected profitability is low or when expected investment (asset growth) is high. The identity therefore predicts that average returns should rise with operating profitability and fall with investment, once book-to-market is not asked to do all the work.
+Fama and French (2015) keep the June timing and NYSE breakpoints of Fama and French (1993). They add two characteristics implied by the dividend-discount identity. Holding expected cash flows fixed, a lower price requires a higher expected return. A lower price is also implied by lower expected profitability or higher expected investment. Average returns should therefore rise with profitability and fall with asset growth.
 
-Novy-Marx (2013) had already shown that gross profits-to-assets ranks average returns about as strongly as book-to-market. Fama and French measure operating profitability as annual revenues minus cost of goods sold, SG&A, and interest, divided by book equity. Investment is the annual growth rate of total assets. Both sorts are independent of size. RMW is the average of the two robust size portfolios minus the average of the two weak size portfolios. CMA is the same construction on conservative versus aggressive investment.
+Operating profitability for the June-$$t$$ sort is revenues minus cost of goods sold, selling, general and administrative expense, and interest expense, divided by book equity, all for the fiscal year ending in $$t-1$$. Investment is the growth rate of total assets from $$t-2$$ to $$t-1$$. Independent sorts on size and each characteristic produce six value-weighted portfolios. RMW is the average of the two robust-profitability portfolios minus the average of the two weak-profitability portfolios. CMA is the analogous difference for conservative versus aggressive investment.
 
-Hou, Xue, and Zhang (2015) reach a close pair of factors from the production side (ROE and investment). I stay with Fama and French’s published 2×3 factors because the construction is the direct descendant of the sorts in Section 2.
+Novy-Marx (2013) documents a closely related premium using gross profits-to-assets. Hou, Xue, and Zhang (2015) obtain an analogous pair from return on equity and investment. I use the published 2×3 Fama–French factors because their construction is the direct continuation of the sorts in Section 2.
 
-## 6.2 The two premia in the published sample
+## 6.2 Average returns
 
-Table 2 of Fama and French (2015), July 1963–December 2013, 606 months, 2×3 factors:
+Table 2 of Fama and French (2015) reports monthly 2×3 factor returns for July 1963–December 2013 (606 months).
 
-|  | Mean % / month | σ % | $$t$$ |
+|  | Mean | σ | $$t$$ |
 |:---|---:|---:|---:|
-| Market minus T-bill | 0.50 | 4.49 | 2.74 |
+| $$R_m-R_f$$ | 0.50 | 4.49 | 2.74 |
 | SMB | 0.29 | 3.07 | 2.31 |
 | HML | 0.37 | 2.88 | 3.20 |
 | RMW | 0.25 | 2.14 | 2.92 |
 | CMA | 0.33 | 2.01 | 4.07 |
 
-Annualized, robustness is worth about three percent a year and conservatism about four. Those are smaller than the six-percent value gap of 1930–2003, but they are not noise, and they survive in a sample that begins after the Depression.
+Units are percent per month. Annualized, the profitability premium is about three percent and the investment premium about four. Both are smaller than the six-percent book-to-market gap of 1930–2003. Both are estimated in a postwar sample and are not artifacts of the Depression.
 
-The size-characteristic sorts in their Table 1 make the same point without forming long–short factors. Among large stocks, monthly excess return rises from 0.39 percent in the weakest operating-profitability quintile to 0.57 percent in the strongest. Among small stocks the investment sort is sharper: 1.01 percent on the most conservative quintile against 0.35 percent on the most aggressive. The high-return legs are not high-market-beta legs in a way that would let the CAPM absorb the spreads. That is the same empirical embarrassment Section 2 recorded for value.
+The underlying size-characteristic panels (their Table 1) show the same ranking without long–short construction. Among large stocks, monthly excess return rises from 0.39 percent in the weakest operating-profitability quintile to 0.57 percent in the strongest. Among small stocks, the most conservative investment quintile earned 1.01 percent against 0.35 percent for the most aggressive. As with value, market betas do not line up with these average returns. The CAPM does not price either sort.
 
-One difference matters for prices. Value in Section 2 is the cheap claim: mean $$\log(P/D)$$ 3.25 against 3.61 for growth. Novy-Marx’s profitable firms are the opposite. They earn more and sell at *higher* valuation ratios. A mechanism that only raises $$\phi$$ lowers the model price–dividend ratio. Profitability therefore cannot be a relabeling of value inside Table II. Either expected cash-flow growth $$\mu$$ is high enough on the robust leg to offset a larger $$\phi$$, or the joint return–valuation test fails.
+## 6.3 Valuations and the status of HML
 
-Investment is closer to value. Conservative firms grow assets slowly and, in the size-investment panel, look like the high-return cheap side of a sort.
+Value in Section 2 is the cheap claim: mean $$\log(P/D)$$ of 3.25 against 3.61 for growth. Profitability does not repeat that pattern. Novy-Marx (2013) shows that the high-profitability leg earns more and sells at a *higher* valuation ratio. A larger $$\phi$$ in Section 3 raises expected return and lowers the model price–dividend ratio. Profitability cannot therefore be obtained from Table II by renaming growth and value. Either expected dividend growth $$\mu$$ on the robust claim is high enough to offset a larger long-run loading, or the model fails the joint restriction on returns and prices.
 
-## 6.3 HML is not an independent third fact
+Investment is closer to book-to-market. Conservative firms grow assets slowly. In the size-investment panel they occupy the high-return, typically cheaper side of the sort.
 
-Fama and French (2015, Table 6) regress each factor on the other four. HML’s intercept is absorbed once RMW and CMA are present. In their sample the value premium is the valuation identity restated: high book-to-market firms are disproportionately the firms that are less profitable or that invest more, once the market and size are controlled.
+Fama and French (2015, Table 6) project each factor on the other four. The intercept of HML is absorbed once RMW and CMA are included. In that sample book-to-market is the valuation identity restated: high B/M firms are disproportionately the firms with weaker profitability or faster asset growth, after size and the market are controlled. That redundancy does not retract Sections 2–5. The objects priced there remain the 1930–2003 book-to-market quintiles. It does imply that profitability and investment are the two additional cash-flow sorts the model must face, not a third independent long-run-risk test alongside HML.
 
-That redundancy is not a reason to drop the value exercise in Sections 2–5. The 1930–2003 book-to-market quintiles remain the objects priced here. It is a reason not to treat RMW, CMA, and HML as three separate long-run-risk tests. Two cash-flow sorts plus the original book-to-market sort are enough. If the model prices profitability and investment through $$\phi$$ and $$\mu$$, the residual HML claim is not an extra degree of freedom.
+## 6.4 The cash-flow restriction
 
-## 6.4 The test, unchanged
+The model of Section 3 is a consumption process and a vector of dividend claims. Book-to-market does not appear. Any characteristic that yields a dividend series can be priced. I apply equation (19) to each leg of the new sorts,
 
-Sections 3 and 4 do not mention book-to-market. They mention a consumption process and a vector of dividend claims. Any sort that produces a dividend series can be priced. The protocol is the protocol of the paper.
+$$
+\Delta d_t = d_0 + \tilde\phi \sum_{k=1}^{2} \Delta c_{t-k} + \varepsilon_t. \tag{19}
+$$
 
-1. Form the characteristic portfolios on the same CRSP/Compustat universe as Section 2. Extract Campbell–Shiller dividends. Time-aggregate to calendar years. Do not touch average returns.
-2. Estimate equation (19) on each leg,
+The ranking of $$\tilde\phi$$ is the cash-flow fact. Kiku (2006) does not report these slopes. They are to be estimated, not taken from Table II.
 
-   $$
-   \Delta d_t = d_0 + \tilde\phi \sum_{k=1}^{2} \Delta c_{t-k} + \varepsilon_t.
-   $$
+Preferences and the aggregate consumption process remain those of Table II. Only `DividendParams` change. I map each sort onto the three claims the solver already prices.
 
-   The ranking of $$\tilde\phi$$ is the cash-flow fact. Printed goldens do not exist for these sorts in Kiku (2006); the ranking is the object to be measured.
-3. Map the legs onto the solver keys. The investor and the consumption process stay at Table II.
+| Sort | Low-return claim | High-return claim |
+|:---|:---|:---|
+| Book-to-market | growth | value |
+| Operating profitability | weak | robust |
+| Investment | aggressive | conservative |
 
-   | Sort | Low-return key | High-return key | Market |
-   |:---|:---|:---|:---|
-   | Book-to-market | `growth` | `value` | `market` |
-   | Operating profitability | `growth` ← weak | `value` ← robust | `market` |
-   | Investment | `growth` ← aggressive | `value` ← conservative | `market` |
+The model prices the sort if three implications hold together, as they do for value in Section 5. First, the high-return leg’s estimated $$\tilde\phi$$ exceeds the low-return leg’s. Absent that gap there is no long-run cash-flow story. Second, the Euler equation, given only those cash-flow parameters, produces a premium of the same sign and of approximately the published magnitude — about three percent for RMW and about four percent for CMA over 1963–2013. Third, the model ranking of $$\log(P/D)$$ does not contradict the data. For investment that ranking is the value ranking. For profitability it is the joint restriction of a higher return and a higher valuation, which must come from $$\mu$$ as well as from $$\phi$$.
 
-4. Read premia and $$\log(P/D)$$ off the Euler equation. Compare to the published means. Do not retune $$\phi$$ if the premium is wrong.
-
-A successful pricing of RMW requires two inequalities at once: the robust claim’s expected return above the weak claim’s, and a price–dividend ranking that does not contradict Novy-Marx. A successful pricing of CMA is closer to the value case: conservative above aggressive in expected return, and cheaper if the cash-flow risk is long-run.
+A reversal on the first implication means the factor is not a long-run cash-flow factor. A reversal on the second, with the first intact, means the Table II investor cannot be recycled. A reversal on the third means the single-loading mechanism that cheapens value while raising its premium is too tight for profitability.
 
 ```python
 from kiku_value_premium.calibration import calibrate_from_data, estimate_long_run_leverage
 from kiku_value_premium.model import get_table_ii_params, ModelSolver, solve_analytical, print_value_premium
 from kiku_value_premium.implications import compute_asset_pricing_moments, print_asset_pricing_moments
 
-# dc, dd_weak, dd_robust, dd_market are annual Δlog dividends
-# and consumption growth. Returns never enter.
 print(estimate_long_run_leverage(dc, dd_robust, window=2))
 print(estimate_long_run_leverage(dc, dd_weak, window=2))
 
@@ -96,24 +90,10 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-Replace `dd_weak` / `dd_robust` with `dd_aggressive` / `dd_conservative` for CMA. `[data]` and WRDS are required only to build those dividend series. The solver does not import `wrds`.
+`dd_weak` and `dd_robust` are annual $$\Delta\log$$ dividends on the profitability legs. For investment replace them with the aggressive and conservative series. Returns do not enter. Campbell–Shiller construction of those series follows [Section 2]({% link empirical.md %}).
 
 {: .package }
-`solve_analytical` and `compute_asset_pricing_moments` look up the keys `growth`, `value`, and `market`. Mapping the high-return leg onto `value` is a naming convention, not a claim that profitability is book-to-market.
-
-## 6.5 What would count as an answer
-
-The model prices the new factor if three things hold together, as in Section 5.
-
-- The high-return leg’s estimated $$\tilde\phi$$ exceeds the low-return leg’s. Without that gap there is no long-run-risk story.
-- The Euler equation, fed only those cash-flow parameters, produces a premium of the same sign and of roughly the published magnitude (about three percent for RMW, about four for CMA, 1963–2013).
-- The model price–dividend ranking is not the opposite of the data. For CMA this is the value pattern. For RMW it is the harder joint test: higher return and higher valuation, which has to come from $$\mu$$ as well as from $$\phi$$.
-
-Failure on the first item means the factor is not a long-run cash-flow factor. Failure on the second, with the first intact, means Table II preferences or persistence cannot be recycled. Failure on the third means the mechanism that worked for value — one loading that raises the premium and cheapens the claim — is too tight for profitability.
-
-None of those three checks is in the 2006 tables. They are the reason to run the package on the post-2015 sorts rather than to add RMW and CMA as extra targets in Section 4.
-
-Worked templates: [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py), [`examples/calibrate_from_real_data.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_from_real_data.py). Construction notes for a new CRSP extract remain those of [Section 2]({% link empirical.md %}).
+`solve_analytical` and `compute_asset_pricing_moments` index claims by `growth`, `value`, and `market`. Assigning the high-return leg to `value` is a key convention. It is not a statement that profitability is book-to-market.
 
 ## References
 
