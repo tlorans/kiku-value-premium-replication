@@ -11,7 +11,6 @@ SECTIONS = (
     "generalization.md",
     "further.md",
     "climate.md",
-    "replica.md",
     "cross-section.md",
     "package.md",
     "time-series.md",
@@ -48,6 +47,16 @@ def test_index_links_recipe_pages():
     text = (ROOT / "index.md").read_text(encoding="utf-8")
     for name in SECTIONS:
         assert name in text
+    assert "replica.md" not in text
+
+
+def test_introduction_is_macro_finance():
+    index = (ROOT / "index.md").read_text(encoding="utf-8")
+    assert "Cochrane" in index
+    assert "Mehra" in index or "Prescott" in index
+    assert "Bansal" in index and "Yaron" in index
+    assert "overlooked" in index.lower() or "often overlooked" in index.lower()
+    assert "I consider" in index or "I show" in index or "I introduce" in index
 
 
 def test_time_series_page_is_the_market():
@@ -75,8 +84,6 @@ def test_cross_section_page_is_value():
 
 
 def test_architecture_hubs_exist():
-    replica = (ROOT / "replica.md").read_text(encoding="utf-8")
-    assert "empirical.md" in replica and "implications.md" in replica
     ts = (ROOT / "time-series.md").read_text(encoding="utf-8")
     assert "market" in ts.lower()
     xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
@@ -89,8 +96,6 @@ def test_nav_is_by_object():
             if line.startswith("parent:"):
                 return line.split(":", 1)[1].strip()
         return None
-    assert parent_of("empirical.md") == "The replica"
-    assert parent_of("implications.md") == "The replica"
     assert parent_of("installation.md") == "Package"
     assert parent_of("time-series.md") is None
     assert parent_of("cross-section.md") is None
