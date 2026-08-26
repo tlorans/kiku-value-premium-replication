@@ -9,15 +9,23 @@ nav_order: 2
 1. TOC
 {:toc}
 
-The question this page asks is the usual one. Can the model price the market?
+**Question.** Can this household price the *market* — the value-weighted claim on all listed stocks — year after year?
 
-Equity premium, risk-free rate, volatility of returns and of $$\log(P/D)$$, predictability by the dividend yield. Those are the objects Bansal and Yaron (2004) and Bansal, Kiku, and Yaron (2012) were written to match. Cochrane (2017) puts long-run risks in a list with habits and disasters for that reason. One claim. Time-series moments. That is not a ranking of firms.
+**What is measured.** How consumption and *market* dividends grow. Not the average stock return.
 
-Average market returns do not choose the parameters. Consumption and market dividends do. Then the Euler equation is asked for prices.
+**What is asked next.** The pricing equation (defined below) for four numbers: the extra return of stocks over a safe bond (the equity premium), the safe rate itself, how much the market return jumps around, and the average log price–dividend ratio. The price–dividend ratio is the price of the claim divided by this year’s dividend. We work with its log, $$\log(P/D)$$.
 
-## Preferences and the IMRS
+That is the test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
 
-Lifetime utility is Epstein and Zin (1989), Weil (1989):
+## The household
+
+The household has *recursive* preferences (Epstein and Zin 1989; Weil 1989). Risk aversion and the willingness to shift consumption across time are two different numbers.
+
+- $$\delta$$ — how much the household discounts next month relative to this month.
+- $$\gamma$$ — relative risk aversion. Larger means more dislike of wealth gambles.
+- $$\psi$$ — elasticity of intertemporal substitution (EIS). Larger means more willingness to move consumption from today to tomorrow when the safe rate rises.
+
+Lifetime value is
 
 $$
 V_t=\left[(1-\delta)C_t^{\frac{1-\gamma}{\theta}}+\delta\left(\mathrm{E}_t[V_{t+1}^{1-\gamma}]\right)^{\frac{1}{\theta}}\right]^{\frac{\theta}{1-\gamma}},
@@ -25,30 +33,44 @@ V_t=\left[(1-\delta)C_t^{\frac{1-\gamma}{\theta}}+\delta\left(\mathrm{E}_t[V_{t+
 \theta=\frac{1-\gamma}{1-1/\psi}.
 $$
 
-The discount factor — equation (3) — is
+The *intertemporal marginal rate of substitution* (IMRS) is the discount factor that prices every asset. Call it $$M_{t+1}$$.
 
 $$
 M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1}.
 $$
 
-In logs, equation (5),
+$$R_{c,t+1}$$ is the unobserved return on the claim to future consumption (wealth). In logs,
 
 $$
 m_{t+1}=\theta\log\delta-\frac{\theta}{\psi}\Delta c_{t+1}+(\theta-1)r_{c,t+1}.
 $$
 
-If $$\gamma=1/\psi$$, $$\theta=1$$. The wealth-return term drops. That is power utility. Only today’s consumption news is priced. If $$\gamma\neq 1/\psi$$, news that revises the outlook for wealth is priced too — including news in $$x_t$$. Every asset satisfies $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. That is the whole theory.
+If $$\gamma=1/\psi$$, then $$\theta=1$$ and the wealth-return term drops. That case is *power utility*. Only this month’s consumption surprise is priced. If $$\gamma\neq 1/\psi$$, news that revises the outlook for wealth is priced too.
+
+The *Euler equation* is the pricing equation. For any return $$R_{i,t+1}$$,
+
+$$
+\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1.
+$$
+
+That is the whole theory. Table II of Kiku (2006) uses $$\delta=0.999$$, $$\gamma=10$$, $$\psi=1.5$$, so $$\theta\neq 1$$.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, EpsteinZinPreferences
+from lrrcs.model import get_table_ii_params, EpsteinZinPreferences
 params = get_table_ii_params()
 ez = EpsteinZinPreferences(params.prefs)
-# Table II: δ=0.999, γ=10, ψ=1.5, so θ ≠ 1
 ```
 
-## Aggregate cash flows
+## Cash flows of the market
 
-Consumption growth is not white noise. It has a small persistent expected-growth piece $$x_t$$ and a stochastic variance. Market dividends are levered consumption.
+Consumption growth is not white noise. It has a small persistent expected-growth piece $$x_t$$ and a variance that itself moves, $$\sigma_t^2$$. Market dividends are consumption with extra leverage on those shocks.
+
+- $$\Delta c_{t+1}$$ — log consumption growth.
+- $$\Delta d_{t+1}$$ — log dividend growth of the claim.
+- $$\mu_c$$, $$\mu_m$$ — means of those two growth rates.
+- $$\phi_m$$ — how many times more the market’s expected dividend growth moves with $$x_t$$ than consumption does. Call this *long-run leverage*.
+- $$\rho$$ — how persistent $$x_t$$ is. Close to one means a shock to expected growth lasts for years.
+- $$\varphi$$, $$\varphi_x$$, $$\sigma$$ — scales of the short-run shocks.
 
 $$
 \begin{aligned}
@@ -59,71 +81,79 @@ x_{t+1}&=\rho x_t+\varphi_x\sigma_t\epsilon_{t+1},\\
 \end{aligned}
 $$
 
-Table II: $$\phi_m=2.8$$, $$\rho=0.98$$. Persistence is the whole point. The price of long-run news is
+Table II: $$\phi_m=2.8$$, $$\rho=0.98$$. Persistence is why $$x_t$$ is valuable. The *price of long-run news* — how much extra expected return you demand for a unit of exposure to the shock in $$x$$ — is
 
 $$
 \Lambda_\epsilon=\left(\gamma-\frac{1}{\psi}\right)\frac{\kappa_{c,1}\varphi_x}{1-\kappa_{c,1}\rho}.
 $$
 
-Power utility sets $$\Lambda_\epsilon=0$$. Then $$\phi_m=2.8$$ does not produce an equity premium worth talking about. With $$\gamma=10$$ and $$\psi=1.5$$, $$\Lambda_\epsilon\neq 0$$.
+$$\kappa_{c,1}$$ is a linearization weight near one. Power utility sets $$\Lambda_\epsilon=0$$. Then $$\phi_m=2.8$$ does not produce an equity premium worth talking about. With $$\gamma=10$$ and $$\psi=1.5$$, $$\Lambda_\epsilon\neq 0$$.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, Dynamics
+from lrrcs.model import get_table_ii_params
 params = get_table_ii_params()
 params.dividends["market"].phi  # 2.8
 params.cons.rho                 # 0.98
 ```
 
-## Calibration of the market
+## The cash-flow test
 
-Match consumption and *market* dividends, 1930–2003. Do not match the equity premium.
+**Question.** Do the consumption numbers look like 1930–2003 consumption?
 
-|  |  | Meaning |
+**What is matched.** Mean and persistence of consumption growth, persistence of $$x_t$$, market dividend volatility, market loading on slow consumption.
+
+**What is not matched.** The average market return, the Sharpe ratio, the CAPM beta of the market.
+
+| Symbol | Value | Meaning |
 |:---|---:|:---|
 | $$\delta$$ | 0.999 | time discount |
-| $$\gamma$$ | 10 | relative risk aversion |
+| $$\gamma$$ | 10 | risk aversion |
 | $$\psi$$ | 1.5 | EIS |
 | $$\mu_c$$ | 0.0015 | mean monthly consumption growth |
 | $$\rho$$ | 0.98 | persistence of $$x_t$$ |
 | $$\varphi_x$$ | 0.032 | scale of shocks to $$x$$ |
-| $$\sigma$$ | 0.0064 | unconditional consumption volatility |
+| $$\sigma$$ | 0.0064 | average consumption volatility |
 
-Market dividends: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$.
+Market dividends: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. The last two are short-run scale and the correlation of the dividend shock with the consumption shock.
 
-Simulated consumption, 1000 samples of 74 years: mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; AC(1) 0.43 against 0.44. If those fail, stop. The premium prediction is then a free parameter in disguise.
+**Result.** Simulated consumption, 1000 samples of 74 years: mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; first autocorrelation 0.43 against 0.44.
+
+If those fail, stop. The premium that comes next would then be a free parameter in disguise.
 
 ```python
-from kiku_value_premium.calibration import simulate_cashflow_moments
-from kiku_value_premium.model import get_table_ii_params
+from lrrcs.calibration import simulate_cashflow_moments
+from lrrcs.model import get_table_ii_params
 print(simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=get_table_ii_params()))
 ```
 
-## Market moments
+## The pricing test
 
-Parameters locked. Ask the Euler equation.
+**Question.** Given those locked cash-flow numbers, what prices does the Euler equation assign to the market and the safe bond?
 
 |  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
 |:---|---:|---:|---:|---:|
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Market return volatility: 20.1 percent in both. The risk-free rate is about seventy basis points too high. The equity premium is a little short. That is the time-series record. Close enough to ask a second question.
+**How to read it.** E[R] is the average simple return, percent per year. E[pd] is average $$\log(P/D)$$. Numbers in parentheses are standard errors across simulated samples.
+
+**Result.** Market return volatility is 20.1 percent in both. The safe rate is about seventy basis points too high. The equity premium is a little short of the sample. Close enough to ask a second question.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, ModelSolver, solve_analytical, print_value_premium
-from kiku_value_premium.implications import compute_asset_pricing_moments, print_asset_pricing_moments
+from lrrcs.model import get_table_ii_params, ModelSolver, solve_analytical, print_long_short_premium
+from lrrcs.implications import compute_asset_pricing_moments, print_asset_pricing_moments
 
 params = get_table_ii_params()
-print_value_premium(solve_analytical(params))
+print_long_short_premium(solve_analytical(params))
 solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-The market column on that printout is this page. Value and growth are not. They are the [cross section]({{ '/cross-section.html' | relative_url }}).
+The market column on that printout is this page. Value and growth are the [cross section]({{ '/cross-section.html' | relative_url }}).
 
 ## What this does not settle
 
-Two claims can have market betas near one and different average returns. Matching the market does not explain that. Stop here and the cross-sectional column is empty.
+Two firms can move one-for-one with the market and still earn different average returns. Matching the market does not explain that. Stop here and the ranking across firms is empty.
 
-Melin and Zhang (2026) keep this object and put climate into consumption. At $$3^{\circ}$$C the *market* equity premium is about twenty percent higher than in a no-climate counterfactual. Still one claim. Still not a ranking of brown against green.
+Melin and Zhang (2026) keep this object and put climate into consumption. At three degrees the *market* equity premium is about twenty percent higher than in a no-climate run. Still one claim. Still not a ranking of brown against green.
