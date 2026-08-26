@@ -7,7 +7,7 @@ The paper shows that the value premium is rational compensation for differential
 **Repository:** https://github.com/tlorans/kiku-value-premium-replication  
 **Documentation (GitHub Pages):** https://tlorans.github.io/kiku-value-premium-replication/
 
-The site is the recipe (empirical → model → calibration → implications). This README is only a pointer.
+The [documentation site](https://tlorans.github.io/kiku-value-premium-replication/) follows her paper (empirical evidence → model → calibration → implications), with equations, Printed vs Package tables, and sidebar navigation. This README is only a pointer.
 
 ## Installation
 

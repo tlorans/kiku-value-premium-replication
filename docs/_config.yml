@@ -1,17 +1,50 @@
-title: Kiku Value Premium Replication
-description: Transparent replica of Kiku (2006) in paper order — empirical, model, calibration, implications
-theme: jekyll-theme-cayman
+title: Kiku (2006) Replication
+description: A paper-order replica of Dana Kiku, “Is the Value Premium a Puzzle?”
+url: https://tlorans.github.io
+baseurl: /kiku-value-premium-replication
+
+remote_theme: just-the-docs/just-the-docs@v0.10.1
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+
+color_scheme: kiku
+search_enabled: true
+search:
+  heading_level: 3
+heading_anchors: true
+back_to_top: true
+back_to_top_text: Back to top
+footer_content: "Kiku (2006) replica. EDHEC Climate Institute. MIT License."
+
+aux_links:
+  GitHub:
+    - https://github.com/tlorans/kiku-value-premium-replication
+
+aux_links_new_tab: true
+
+nav_sort: case_insensitive
+nav_enabled: true
+
+callouts_level: quiet
+callouts:
+  paper:
+    title: Kiku (2006)
+    color: red
+  package:
+    title: This package
+    color: blue
+  caution:
+    title: Construction
+    color: yellow
+
 markdown: kramdown
 kramdown:
   input: GFM
+  math_engine: mathjax
   syntax_highlighter: rouge
+  hard_wrap: false
 
-header_pages:
-  - index.md
-  - installation.md
-  - empirical.md
-  - model.md
-  - calibration.md
-  - implications.md
-  - api.md
-  - generalization.md
+compress_html:
+  ignore:
+    envs: all

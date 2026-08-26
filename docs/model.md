@@ -1,70 +1,126 @@
 ---
-layout: default
-title: Model
+title: The Long-Run Risks Model
+nav_order: 4
 ---
 
-# Section 3 – Model
+# The Long-Run Risks Model
+{: .no_toc }
 
-## What she does
+Kiku’s Section 3. She adopts Bansal and Yaron (2004). Two ingredients matter equally: a small persistent component in cash-flow growth, and Epstein–Zin preferences that break the link between risk aversion and the IES.
 
-Preferences are Epstein–Zin. The intertemporal marginal rate of substitution is her equation (3). Agents care about long-run growth prospects because risk aversion \(\gamma\) differs from the inverse EIS.
+1. TOC
+{:toc}
 
-Aggregate consumption is the Bansal–Yaron (2004) long-run risks process — her (6)–(9) / Table II: a small persistent expected-growth factor \(x_t\) (\(\rho=0.98\)), short-run shocks, and stochastic volatility.
+## 3.1 Epstein–Zin preferences
 
-Equities are claims to heterogeneous dividend streams. Value and growth differ in their loadings on the three risks. The decisive parameter is long-run leverage \(\phi\): value 6.2, growth 2.6, market 2.8.
+Lifetime utility is recursive:
 
-She solves the model on a Tauchen–Hussey product grid over \((x,\sigma^2)\). Paper default is \(30\times 4\) plus a 7-point Gauss–Hermite quadrature for the short-run innovation inside every Euler evaluation. Section 3.4 is the log-linear solution that isolates the long-run risk prices.
+$$
+V_t=\left[(1-\delta)C_t^{\frac{1-\gamma}{\theta}}+\delta\left(\mathrm{E}_t[V_{t+1}^{1-\gamma}]\right)^{\frac{1}{\theta}}\right]^{\frac{\theta}{1-\gamma}},
+\qquad
+\theta=\frac{1-\gamma}{1-1/\psi}.
+$$
 
-## What you call
+Budget constraint: $W_{t+1}=(W_t-C_t)R_{c,t+1}$. The IMRS is her (3),
+
+$$
+M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
+$$
+
+or in logs, her (5),
+
+$$
+m_{t+1}=\theta\log\delta-\frac{\theta}{\psi}\Delta c_{t+1}+(\theta-1)r_{c,t+1}.
+$$
+
+{: .paper }
+When $\gamma=1/\psi$, $\theta=1$ and the wealth-return term drops: power utility. With $\gamma\neq 1/\psi$, “good” and “bad” times depend not only on today’s consumption but on future investment and growth opportunities inside $r_{c,t+1}$.
+
+Euler equation for any return: $\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$.
 
 ```python
-from kiku_value_premium.model import (
-    ModelParams,
-    PreferencesParams,
-    ConsumptionParams,
-    DividendParams,
-    get_table_ii_params,
-    EpsteinZinPreferences,
-    Dynamics,
-    StateGrid,
-    ModelSolver,
-    solve_analytical,
-    print_value_premium,
-)
-
+from kiku_value_premium.model import get_table_ii_params, EpsteinZinPreferences
 params = get_table_ii_params()
-print(params.prefs)            # δ=0.999, γ=10, ψ=1.5
-print(params.cons.rho)         # 0.98
-print(params.dividends["value"].phi)   # 6.2
-print(params.dividends["growth"].phi)  # 2.6
-
 ez = EpsteinZinPreferences(params.prefs)
-print(ez.theta)
+# Table II: δ=0.999, γ=10, ψ=1.5
+```
 
+## 3.2 Cash-flow growth rates
+
+Predictable variation in growth is an AR(1) $x_t$; variation in second moments is a common variance $\sigma_t^2$. Her (6):
+
+$$
+\begin{aligned}
+\Delta c_{t+1}&=\mu_c+x_t+\sigma_t\eta_{t+1},\\
+\Delta d_{t+1}&=\mu+\phi x_t+\varphi\sigma_t u_{t+1},\\
+x_{t+1}&=\rho x_t+\varphi_x\sigma_t\epsilon_{t+1},\\
+\sigma_{t+1}^2&=\sigma^2(1-\nu)+\nu\sigma_t^2+\sigma_w w_{t+1}.
+\end{aligned}
+$$
+
+Shocks are Gaussian. $\alpha=\mathrm{Corr}(\eta_t,u_t)$ is the only allowed contemporaneous correlation. $\phi$ is long-run leverage on expected consumption growth — the cross-sectional object that will produce the value premium. $\varphi$ loads dividends on volatility and short-run consumption news.
+
+Table II (monthly): $\rho=0.98$, $\phi_{\text{value}}=6.2$, $\phi_{\text{growth}}=2.6$, $\phi_{\text{market}}=2.8$.
+
+```python
+from kiku_value_premium.model import get_table_ii_params, Dynamics
+params = get_table_ii_params()
+params.dividends["value"].phi   # 6.2
+params.dividends["growth"].phi  # 2.6
 dyn = Dynamics(params, seed=42)
 path = dyn.simulate_cashflows(T=12 * 74)
+```
 
-print_value_premium(solve_analytical(params))
+## 3.3 Solving for equilibrium prices
 
-# Paper default is n_x=30; examples/run_paper.py uses 15 so it finishes.
-solver = ModelSolver(params, n_x=30, n_s=4, n_quad=7)
+Growth rates are exogenous. Price/consumption and price/dividend ratios are enough. She discretizes $(x,\sigma^2)$ with Tauchen and Hussey (1991): 30-point Gauss–Hermite on $x$, 4-point on $\sigma^2$. Euler equations are solved on that chain. The package adds a 7-point Gauss–Hermite integral over the short-run innovation $\eta$ inside every Euler evaluation.
+
+```python
+from kiku_value_premium.model import ModelSolver, get_table_ii_params
+solver = ModelSolver(get_table_ii_params(), n_x=30, n_s=4, n_quad=7)
 solver.solve()
 # solver.z_c, solver.z["value"], solver.z["growth"], solver.stationary
 ```
 
-Install the `[fast]` extra to enable Numba kernels on the Euler loops.
+Install `[fast]` for Numba kernels. `examples/run_paper.py` uses $n_x=15$ so it finishes.
 
-## What you should see
+## 3.4 Model intuition
 
-Table II defaults:
+Log $P/C$ is approximately linear in the states, her (7):
 
-| Block | Values |
-|-------|--------|
-| Preferences | \(\delta=0.999\), \(\gamma=10\), \(\psi=1.5\) |
-| Consumption | \(\mu=0.0015\), \(\rho=0.98\), \(\varphi_x=0.032\), \(\sigma=0.0064\), \(\nu=0.99\), \(\sigma_w=0.0000017\) |
-| Growth | \(\mu=0.0009\), \(\phi=2.6\), \(\varphi_\sigma=8.4\), \(\alpha=0.27\) |
-| Value | \(\mu=0.0019\), \(\phi=6.2\), \(\varphi_\sigma=7.4\), \(\alpha=0.15\) |
-| Market | \(\mu=0.0012\), \(\phi=2.8\), \(\varphi_\sigma=7.5\), \(\alpha=0.55\) |
-| Residual correlations | GV 0.20, GM 0.80, VM 0.45 |
+$$
+z_{c,t}=A_{c,0}+A_{c,1}x_t+A_{c,2}\sigma_t^2.
+$$
 
-`solve_analytical` ranks the long-run risk premium value > growth and uses Campbell–Shiller linearization points \(\log(P/D)\) growth 3.65, value 3.10, market 3.24. The paper’s model column is a value premium around 5.3%, expected returns 6.1 / 11.4 / 7.5% (growth / value / market), and CAPM \(\beta_V/\beta_G<1\).
+Campbell–Shiller wealth return (8) plus the log Euler equation (9) give, her (10)–(11),
+
+$$
+A_{c,1}=\frac{1-1/\psi}{1-\kappa_{c,1}\rho},\qquad
+A_1=\frac{\phi-1/\psi}{1-\kappa_1\rho}.
+$$
+
+{: .paper }
+$A_{c,1}>0$ when $\psi>1$: substitution dominates, and good news about future growth raises the price of the consumption claim. The effect is larger the closer $\rho$ is to one. For a dividend claim the same news is scaled by leverage $\phi$. That is why value, with $\phi=6.2$, has a much larger elasticity to $x_t$ than growth.
+
+Innovations in the IMRS, her (13)–(14):
+
+$$
+m_{t+1}-\mathrm{E}_t[m_{t+1}]=-\Lambda_\eta\sigma_t\eta_{t+1}-\Lambda_\epsilon\sigma_t\epsilon_{t+1}-\Lambda_w\sigma_w w_{t+1},
+$$
+
+with $\Lambda_\eta=\gamma$ (short-run consumption news) and
+
+$$
+\Lambda_\epsilon=\left(\gamma-\frac{1}{\psi}\right)\frac{\kappa_{c,1}\varphi_x}{1-\kappa_{c,1}\rho}
+$$
+
+the price of long-run expected-growth news. With $\gamma=10$ and $\psi=1.5$, long-run news is priced; with power utility it is not.
+
+```python
+from kiku_value_premium.model import solve_analytical, print_value_premium, get_table_ii_params
+print_value_premium(solve_analytical(get_table_ii_params()))
+```
+
+`solve_analytical` ranks the long-run risk premium value > growth and uses linearization points $\log(P/D)$ of 3.65 / 3.10 / 3.24 (growth / value / market).
+
+Next: [Calibration]({% link calibration.md %}).

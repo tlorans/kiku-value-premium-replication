@@ -1,21 +1,19 @@
 ---
-layout: default
-title: Generalizing the Recipe
+title: Other portfolios
+nav_order: 8
 ---
 
-# Generalizing beyond value / growth
+# Other portfolios
 
-The same cash-flow-only recipe prices any cross-section once you supply consumption growth and the portfolios’ dividend-growth series. Typical use: industry portfolios, quality, profitability, investment, or country sorts.
+The same cash-flow-only recipe prices any cross-section once you supply consumption growth and dividend-growth series — industries, quality, profitability, investment, countries.
 
-`calibrate_from_data` estimates \(\mu\), \(\tilde\phi\) from equation (19), \(\alpha\) from residual/consumption-innovation correlation, and \(\varphi_\sigma\) as the ratio of equation-(19) residual volatility to consumption-innovation volatility (same frequency as the series; falls back to 7.5 if that scale is degenerate). It never sees return premia. Keep Table II aggregate consumption and Epstein–Zin preferences; only the `DividendParams` change.
+Keep Table II aggregate consumption and Epstein–Zin preferences. Only `DividendParams` change. `calibrate_from_data` estimates $\mu$, $\tilde\phi$ from equation (19), $\alpha$ from residual/consumption-innovation correlation, and $\varphi_\sigma$ as residual vol over consumption-innovation vol (fallback 7.5). It never sees return premia.
 
-`solve_analytical`, `print_value_premium`, and `compute_asset_pricing_moments` look up the paper keys `growth` / `value` / `market`. Map any other cross-section onto those names before pricing.
-
-## What you call
+`solve_analytical`, `print_value_premium`, and `compute_asset_pricing_moments` look up the paper keys `growth`, `value`, and `market`. Map any other sort onto those names before pricing.
 
 ```python
 from kiku_value_premium.calibration import calibrate_from_data
-from kiku_value_premium.model import ModelParams, get_table_ii_params, ModelSolver
+from kiku_value_premium.model import get_table_ii_params, ModelSolver
 from kiku_value_premium.implications import compute_asset_pricing_moments
 
 dividends = calibrate_from_data(
@@ -24,18 +22,14 @@ dividends = calibrate_from_data(
     frequency="annual",
     window=2,
 )
-
 params = get_table_ii_params()
 params.dividends = dividends
-
 solver = ModelSolver(params)
 solver.solve()
 moments = compute_asset_pricing_moments(solver)
 ```
 
-The ranking of estimated \(\phi\) becomes the ranking of long-run risk premia. Portfolios with higher long-run leverage command higher expected returns and lower price–dividend ratios — exactly as value stocks do in the original paper.
+Higher estimated $\phi$ means higher long-run risk premia and lower price–dividend ratios — the same ranking value has in her paper.
 
-Ready-to-run starting points:
-
-- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py) — synthetic series, full workflow
-- [`examples/calibrate_from_real_data.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_from_real_data.py) — template for your own \(\Delta d\) arrays
+- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py)
+- [`examples/calibrate_from_real_data.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_from_real_data.py)

@@ -1,0 +1,57 @@
+body {
+  font-feature-settings: "ss01" on, "kern" on;
+}
+
+.main-content {
+  max-width: 48rem;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0 0.6rem;
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+}
+
+th, td {
+  white-space: nowrap;
+}
+
+td.wrap, th.wrap {
+  white-space: normal;
+}
+
+figcaption,
+.caption {
+  font-size: 0.9rem;
+  color: #5a524a;
+  margin: 0.4rem 0 1.6rem;
+}
+
+img {
+  border: 1px solid #e2d6c4;
+  background: #fff;
+  padding: 0.35rem;
+}
+
+mark.out {
+  background: #f8d9d6;
+  padding: 0.05rem 0.2rem;
+}
+
+mark.in {
+  background: #dcefe0;
+  padding: 0.05rem 0.2rem;
+}
+
+.nav-list .nav-list-item .nav-list-link {
+  font-size: 0.92rem;
+}
