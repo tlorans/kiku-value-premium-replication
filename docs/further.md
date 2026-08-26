@@ -9,9 +9,9 @@ nav_order: 8
 1. TOC
 {:toc}
 
-Sections 2–5 price book-to-market claims. After 2006 two further spreads entered the set of facts a consumption-based model must confront. Fama and French (2015) show that operating profitability and investment predict average returns in the same CRSP/Compustat universe I used for value, and that neither spread is a CAPM fact. I record those moments here and state the cash-flow restriction the long-run risks model imposes on them.
+Sections 2–5 price book-to-market claims. After 2006 two further spreads entered the set of facts a consumption-based model must confront. Fama and French (2015) show that operating profitability and investment predict average returns in the same CRSP/Compustat universe I used for value, and that neither spread is a CAPM fact. I record those moments here and state how each sort maps onto the four cash-flow loadings of Section 3.
 
-The restriction is the restriction of Section 4. Loadings $$(\mu,\phi,\varphi,\alpha)$$ are chosen from consumption and dividend growth. Average returns are not used. If the Euler equation then reproduces the published premia, the model prices the sort. If it does not, profitability and investment are a different puzzle from value.
+Those loadings, $$(\mu,\phi,\varphi,\alpha)$$, are chosen from consumption and dividend growth. Average returns are not used. The objects to inspect after estimation are not only $$\phi$$. For profitability the mean growth rate $$\mu$$ is the parameter that can support a high price–dividend ratio. Without it, renaming the value claim “robust” and rerunning Table II cannot reproduce Novy-Marx (2013).
 
 ## 6.1 Construction
 
@@ -39,33 +39,60 @@ The underlying size-characteristic panels (their Table 1) show the same ranking 
 
 ## 6.3 Valuations and the status of HML
 
-Value in Section 2 is the cheap claim: mean $$\log(P/D)$$ of 3.25 against 3.61 for growth. Profitability does not repeat that pattern. Novy-Marx (2013) shows that the high-profitability leg earns more and sells at a *higher* valuation ratio. A larger $$\phi$$ in Section 3 raises expected return and lowers the model price–dividend ratio. Profitability cannot therefore be obtained from Table II by renaming growth and value. Either expected dividend growth $$\mu$$ on the robust claim is high enough to offset a larger long-run loading, or the model fails the joint restriction on returns and prices.
+Value in Section 2 is the cheap claim: mean $$\log(P/D)$$ of 3.25 against 3.61 for growth. Profitability does not repeat that pattern. Novy-Marx (2013) shows that the high-profitability leg earns more and sells at a *higher* valuation ratio. Investment is closer to book-to-market: conservative firms grow assets slowly and occupy the high-return, typically cheaper side of the size-investment panel.
 
-Investment is closer to book-to-market. Conservative firms grow assets slowly. In the size-investment panel they occupy the high-return, typically cheaper side of the sort.
+Fama and French (2015, Table 6) project each factor on the other four. The intercept of HML is absorbed once RMW and CMA are included. In that sample book-to-market is the valuation identity restated: high B/M firms are disproportionately the firms with weaker profitability or faster asset growth, after size and the market are controlled. That redundancy does not retract Sections 2–5. It does imply that profitability and investment are the two additional cash-flow sorts the model must face, not a third independent test alongside HML.
 
-Fama and French (2015, Table 6) project each factor on the other four. The intercept of HML is absorbed once RMW and CMA are included. In that sample book-to-market is the valuation identity restated: high B/M firms are disproportionately the firms with weaker profitability or faster asset growth, after size and the market are controlled. That redundancy does not retract Sections 2–5. The objects priced there remain the 1930–2003 book-to-market quintiles. It does imply that profitability and investment are the two additional cash-flow sorts the model must face, not a third independent long-run-risk test alongside HML.
+## 6.4 Mapping a sort onto $$(\mu,\phi,\varphi,\alpha)$$
 
-## 6.4 The cash-flow restriction
+Equation (6) gives each claim four numbers. Preferences and the consumption process stay at Table II. Only these four change.
 
-The model of Section 3 is a consumption process and a vector of dividend claims. Book-to-market does not appear. Any characteristic that yields a dividend series can be priced. I apply equation (19) to each leg of the new sorts,
+$$
+\Delta d_{t+1}=\mu+\phi x_t+\varphi\sigma_t u_{t+1},\qquad \alpha=\mathrm{Corr}(\eta,u).
+$$
+
+`calibrate_from_data` estimates all four from dividends and consumption. It does not see returns. What each loading does in the Euler equation is fixed by Section 3.
+
+| Loading | Estimated from | Effect on E$$[R]$$ | Effect on $$\log(P/D)$$ |
+|:---|:---|:---|:---|
+| $$\mu$$ | mean $$\Delta d$$ | negligible | rises with $$\mu$$ |
+| $$\phi$$ | projection (19) of $$\Delta d$$ on lagged $$\Delta c$$ | rises with $$\phi$$ | falls with $$\phi$$ |
+| $$\varphi$$ | residual dividend volatility | small; mostly $$\sigma(R)$$ | weak |
+| $$\alpha$$ | residual correlation with the consumption innovation | short-run premium, priced at $$\gamma$$ | weak |
+
+The value exercise in Table II already uses both $$\mu$$ and $$\phi$$. Value’s mean monthly dividend growth is 0.0019 against growth’s 0.0009; value’s long-run leverage is 6.2 against 2.6. The premium is a $$\phi$$ fact. Value nonetheless sells cheaper, which means that in that sort $$\phi$$ dominates $$\mu$$ in the price–dividend ratio. One cannot read the premium off $$\phi$$ and ignore the estimated $$\mu$$ when the valuation ranking is part of the test.
+
+That is the reason profitability is not a relabeling of Table II. The robust leg must be allowed to have a larger $$\mu$$. If it does not, a larger $$\phi$$ will cheapen it, and the model price ranking will contradict Novy-Marx. The objects to print after `calibrate_from_data` are therefore both `.mu` and `.phi` on each leg, not `.phi` alone.
+
+What the two new sorts lead one to have in mind:
+
+**Operating profitability (RMW).** Robust firms are defined by high current earnings. The cash-flow counterpart is a higher mean dividend growth rate: one expects $$\mu_{\text{robust}}>\mu_{\text{weak}}$$. That gap is what can keep the robust claim expensive. A long-run-risk account of the *premium* still requires $$\phi_{\text{robust}}>\phi_{\text{weak}}$$. The joint implication is the demanding one. $$\phi$$ must be larger on the robust leg or the Euler equation will not produce a positive RMW. $$\mu$$ must be larger by enough to offset that $$\phi$$ in the price–dividend formula, or the model will make the high-return claim the cheap claim. If estimated $$\mu$$ is flat across the sort, profitability cannot be priced by recycling Table II. If estimated $$\phi$$ is flat or reversed, the premium is not compensation for long-run consumption risk.
+
+**Investment (CMA).** Conservative firms grow assets slowly. The sort looks like book-to-market: high return, typically lower valuation. The working hypothesis is the value hypothesis. One expects $$\phi_{\text{conservative}}>\phi_{\text{aggressive}}$$. A higher $$\mu$$ on the conservative leg is not required and would work against the cheapness of that claim. Aggressive firms may well show a higher $$\mu$$ — they are the high-investment, high-growth side — together with a smaller $$\phi$$. That pair is the growth pair of Sections 2–5.
+
+**Short-run loadings.** $$\varphi$$ and $$\alpha$$ are not the leading suspects for either premium. They matter for return volatility and for the part of the premium that is covariance with contemporaneous consumption news. A finding that $$\alpha$$ differs across legs while $$\phi$$ does not would be a short-run consumption-CAPM story, not the mechanism of this paper. I still estimate them. I do not interpret a gap in $$\varphi$$ as evidence that the model has priced RMW or CMA.
+
+Book-to-market in Table II is the case in which $$\phi$$ and $$\mu$$ move together and $$\phi$$ wins the valuation ranking. Profitability is the case in which they must move together and $$\mu$$ must win the valuation ranking. Investment is the case that should look like book-to-market. Those are the three patterns to keep in view when the estimated `DividendParams` are on the table.
+
+## 6.5 The restriction
+
+I apply equation (19) to each leg,
 
 $$
 \Delta d_t = d_0 + \tilde\phi \sum_{k=1}^{2} \Delta c_{t-k} + \varepsilon_t. \tag{19}
 $$
 
-The ranking of $$\tilde\phi$$ is the cash-flow fact. Kiku (2006) does not report these slopes. They are to be estimated, not taken from Table II.
+Kiku (2006) does not report these slopes for profitability or investment. They are estimated, not copied from Table II. Preferences and aggregate consumption remain those of Table II. The three claims the solver prices are a naming convention.
 
-Preferences and the aggregate consumption process remain those of Table II. Only `DividendParams` change. I map each sort onto the three claims the solver already prices.
-
-| Sort | Low-return claim | High-return claim |
+| Sort | Key `growth` | Key `value` |
 |:---|:---|:---|
-| Book-to-market | growth | value |
+| Book-to-market | low B/M | high B/M |
 | Operating profitability | weak | robust |
 | Investment | aggressive | conservative |
 
-The model prices the sort if three implications hold together, as they do for value in Section 5. First, the high-return leg’s estimated $$\tilde\phi$$ exceeds the low-return leg’s. Absent that gap there is no long-run cash-flow story. Second, the Euler equation, given only those cash-flow parameters, produces a premium of the same sign and of approximately the published magnitude — about three percent for RMW and about four percent for CMA over 1963–2013. Third, the model ranking of $$\log(P/D)$$ does not contradict the data. For investment that ranking is the value ranking. For profitability it is the joint restriction of a higher return and a higher valuation, which must come from $$\mu$$ as well as from $$\phi$$.
+The model prices the sort if three implications hold together. First, the high-return leg’s estimated $$\tilde\phi$$ — and therefore its monthly $$\phi$$ — exceeds the low-return leg’s. Second, the estimated $$\mu$$ ranking is the ranking the valuation identity requires: higher on robust than on weak if profitability is to stay expensive; not necessarily higher on conservative than on aggressive. Third, the Euler equation, given only those four loadings, produces a premium of the same sign and of approximately the published magnitude (about three percent for RMW and about four percent for CMA over 1963–2013) and a $$\log(P/D)$$ ranking that does not contradict the data.
 
-A reversal on the first implication means the factor is not a long-run cash-flow factor. A reversal on the second, with the first intact, means the Table II investor cannot be recycled. A reversal on the third means the single-loading mechanism that cheapens value while raising its premium is too tight for profitability.
+A reversal on $$\phi$$ means the factor is not a long-run cash-flow factor. A reversal on $$\mu$$, with $$\phi$$ intact, means the model can match the premium and will miss the price. A reversal on the premium, with both cash-flow rankings intact, means the Table II investor cannot be recycled.
 
 ```python
 from kiku_value_premium.calibration import calibrate_from_data, estimate_long_run_leverage
@@ -81,6 +108,10 @@ dividends = calibrate_from_data(
     frequency="annual",
     window=2,
 )
+for name in ("growth", "value", "market"):
+    d = dividends[name]
+    print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
+
 params = get_table_ii_params()
 params.dividends = dividends
 print_value_premium(solve_analytical(params))
@@ -90,10 +121,10 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-`dd_weak` and `dd_robust` are annual $$\Delta\log$$ dividends on the profitability legs. For investment replace them with the aggressive and conservative series. Returns do not enter. Campbell–Shiller construction of those series follows [Section 2]({% link empirical.md %}).
+The four printed numbers on each leg are the whole mapping. Compare `value.mu` to `growth.mu` before reading the premium. For investment replace `dd_weak` and `dd_robust` with the aggressive and conservative series. Returns do not enter. Campbell–Shiller construction follows [Section 2]({% link empirical.md %}).
 
 {: .package }
-`solve_analytical` and `compute_asset_pricing_moments` index claims by `growth`, `value`, and `market`. Assigning the high-return leg to `value` is a key convention. It is not a statement that profitability is book-to-market.
+`solve_analytical` and `compute_asset_pricing_moments` index claims by `growth`, `value`, and `market`. Assigning the high-return leg to `value` does not impose Table II’s $$(\mu,\phi)$$. Those come from the dividends just estimated.
 
 ## References
 
