@@ -6,23 +6,23 @@ nav_order: 2
 
 # API
 
-The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull. The market claim is the time-series object. `long` and `short` are the cross-sectional object. Value is the first pair; `value` / `growth` remain aliases of `long` / `short`.
+The import name is `lrrcs`. `kiku_value_premium` is the same package.
 
-Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument.
+`market` is the time-series claim. `long` and `short` are the two legs of a sort. `value` / `growth` remain aliases. `print_long_short_premium` prints the spread; `print_value_premium` is the old name.
 
-| Section | Import | Objects |
-|:---|:---|:---|
-| 2 | `kiku_value_premium.empirical` | `connect_wrds`, `build_annual_panel`, `table_i`, `table_vi_data`, `figure1`–`figure4`, `START`, `END` |
-| 3 | `kiku_value_premium.model` | `ModelParams`, `PreferencesParams`, `ConsumptionParams`, `DividendParams`, `get_table_ii_params`, `EpsteinZinPreferences`, `Dynamics`, `StateGrid`, `ModelSolver`, `solve_analytical`, `resolve_legs` |
-| 4 | `kiku_value_premium.calibration` | `estimate_long_run_leverage`, `calibrate_from_data`, `get_table_ii_dividends`, `simulate_cashflow_moments` |
-| 5 | `kiku_value_premium.implications` | `compute_asset_pricing_moments`, `print_asset_pricing_moments`, `figure_lr_premium`, `figure_mean_pd`, `figure5` |
+| Object | Import |
+|:---|:---|
+| Book-to-market panel, 1930–2003 | `lrrcs.empirical` |
+| IMRS, dynamics, solver | `lrrcs.model` |
+| Cash-flow loadings | `lrrcs.calibration` |
+| Prices and returns | `lrrcs.implications` |
 
-`START, END = 1930, 2003`.
+`calibrate_from_data(dc, long=..., short=..., market=..., frequency="annual", window=2)` takes consumption growth and the two legs. No argument for returns.
 
-`calibrate_from_data(dc, long=dd_high, short=dd_low, market=dd_mkt, frequency="annual", window=2)` takes consumption growth and the two legs of the sort. A dict of named series is still accepted. There is no argument for returns or premia.
+```python
+from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
 
-Extras: `[fast]` (numba), `[data]` (wrds, python-dotenv, matplotlib), `[dev]` (pytest, matplotlib, numba).
+print_long_short_premium(solve_analytical(get_table_ii_params()))
+```
 
-`connect_wrds()` raises `EmpiricalDataError` if `[data]` is missing or `.env` keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
-
-[The replica]({% link replica.md %}) · [Cross section]({% link cross-section.md %}) · [Section 2]({% link empirical.md %}) · [Section 5]({% link implications.md %})
+`connect_wrds()` raises if `[data]` or `.env` is missing. `model`, `calibration`, and `implications` do not import `wrds`.

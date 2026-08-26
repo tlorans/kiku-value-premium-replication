@@ -7,7 +7,7 @@ has_toc: false
 
 # Package
 
-`market` is the time-series claim. `long` and `short` are the cross-sectional pair. `value` / `growth` remain aliases.
+Import `lrrcs`. `market` is the time-series claim. `long` and `short` are the cross-sectional pair. `value` / `growth` remain aliases. `print_long_short_premium` prints the spread.
 
 - [Installation]({{ '/installation.html' | relative_url }})
 - [API]({{ '/api.html' | relative_url }})
