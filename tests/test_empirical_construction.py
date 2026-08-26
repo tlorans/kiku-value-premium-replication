@@ -1,6 +1,11 @@
 import numpy as np
 import pandas as pd
-from kiku_value_premium.empirical.construction import book_equity, nyse_quintile_labels
+from kiku_value_premium.empirical.construction import (
+    apply_delisting_returns,
+    book_equity,
+    nyse_quintile_labels,
+    value_weight_monthly,
+)
 from kiku_value_premium.empirical.dividends import campbell_shiller_annual
 from kiku_value_premium.empirical.goldens import (
     END,
@@ -53,6 +58,55 @@ def test_nyse_breakpoints_assign_extremes():
     labels = nyse_quintile_labels(all_bm, nyse)
     assert labels[0] == 1  # growth
     assert labels[2] == 5  # value
+
+
+def test_missing_retx_is_not_filled_with_ret():
+    idx = pd.to_datetime(["2000-06-30", "2000-07-31"])
+    msf = pd.DataFrame(
+        {
+            "permno": [1, 1],
+            "date": idx,
+            "ret": [0.02, 0.10],
+            "retx": [0.01, np.nan],
+            "prc": [10.0, 10.5],
+            "shrout": [1000.0, 1000.0],
+            "exchcd": [1, 1],
+        }
+    )
+    asg = pd.DataFrame(
+        {"permno": [1], "sort_year": [2000], "quintile": [5], "me_june": [10.0]}
+    )
+    out = value_weight_monthly(msf, asg)
+    july = out[out["date"] == idx[1]].iloc[0]
+    assert july["ret"] == 0.10
+    assert abs(july["retx"] - 0.05) < 1e-12
+    assert abs((july["ret"] - july["retx"]) - 0.05) < 1e-12
+
+
+def test_delisting_compounds_ret_and_retx_separately():
+    msf = pd.DataFrame(
+        {
+            "permno": [1],
+            "date": [pd.Timestamp("2000-03-31")],
+            "ret": [0.10],
+            "retx": [0.08],
+            "prc": [10.0],
+            "shrout": [1000.0],
+            "exchcd": [1],
+        }
+    )
+    dl = pd.DataFrame(
+        {
+            "permno": [1],
+            "dlstdt": [pd.Timestamp("2000-03-15")],
+            "dlstcd": [231],
+            "dlret": [-0.04],
+            "dlretx": [-0.05],
+        }
+    )
+    out = apply_delisting_returns(msf, dl)
+    assert abs(float(out["ret"].iloc[0]) - ((1.10 * 0.96) - 1.0)) < 1e-12
+    assert abs(float(out["retx"].iloc[0]) - ((1.08 * 0.95) - 1.0)) < 1e-12
 
 
 def test_campbell_shiller_v0_is_100():

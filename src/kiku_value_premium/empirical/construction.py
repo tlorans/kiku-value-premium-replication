@@ -3,6 +3,95 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+_CRSP_BAD = (-66.0, -77.0, -88.0, -99.0)
+
+
+def crsp_return(s) -> pd.Series:
+    """Numeric CRSP return; letter/sentinel missing codes become NaN."""
+    x = pd.to_numeric(s, errors="coerce")
+    return x.mask(x.isin(_CRSP_BAD))
+
+
+def _compound_delist(ret: pd.Series, dlret: pd.Series) -> pd.Series:
+    both = ret.notna() & dlret.notna()
+    only = ret.isna() & dlret.notna()
+    out = ret.copy()
+    out.loc[both] = (1.0 + ret.loc[both]) * (1.0 + dlret.loc[both]) - 1.0
+    out.loc[only] = dlret.loc[only]
+    return out
+
+
+def apply_delisting_returns(msf: pd.DataFrame, delist: pd.DataFrame) -> pd.DataFrame:
+    """Compound CRSP monthly ret/retx with the delisting increment (Fama–French).
+
+    Never substitutes ``ret`` for missing ``retx`` / ``dlretx``. Performance-related
+    delists (codes 400–599) with no CRSP delisting return get −30% on both sides.
+    """
+    out = msf.copy()
+    out["date"] = pd.to_datetime(out["date"])
+    out["permno"] = pd.to_numeric(out["permno"], errors="coerce")
+    out["ret"] = crsp_return(out["ret"])
+    out["retx"] = crsp_return(out["retx"])
+    out["month"] = out["date"].dt.to_period("M")
+    dl = delist.copy()
+    dl["permno"] = pd.to_numeric(dl["permno"], errors="coerce")
+    dl["dlstdt"] = pd.to_datetime(dl["dlstdt"])
+    dl["dlret"] = crsp_return(dl["dlret"])
+    if "dlretx" in dl.columns:
+        dl["dlretx"] = crsp_return(dl["dlretx"])
+    else:
+        dl["dlretx"] = np.nan
+    dl["dlstcd"] = pd.to_numeric(dl["dlstcd"], errors="coerce") if "dlstcd" in dl.columns else np.nan
+    dl["month"] = dl["dlstdt"].dt.to_period("M")
+    dl = dl.sort_values("dlstdt").drop_duplicates(["permno", "month"], keep="last")
+    m = out.merge(
+        dl[["permno", "month", "dlret", "dlretx", "dlstcd"]],
+        on=["permno", "month"],
+        how="left",
+    )
+    m["ret"] = _compound_delist(m["ret"], m["dlret"])
+    m["retx"] = _compound_delist(m["retx"], m["dlretx"])
+    perf = m["dlstcd"].between(400, 599)
+    m.loc[perf & m["ret"].isna(), "ret"] = -0.30
+    m.loc[perf & m["retx"].isna(), "retx"] = -0.30
+
+    matched = set(zip(m["permno"], m["month"]))
+    last = out.sort_values("date").groupby("permno", sort=False).tail(1)
+    last_map = last.set_index("permno")
+    extras = []
+    for rec in dl.itertuples(index=False):
+        if (rec.permno, rec.month) in matched or rec.permno not in last_map.index:
+            continue
+        stcd = rec.dlstcd
+        ret = rec.dlret if np.isfinite(rec.dlret) else (
+            -0.30 if np.isfinite(stcd) and 400 <= stcd <= 599 else np.nan
+        )
+        retx = rec.dlretx if np.isfinite(rec.dlretx) else (
+            -0.30 if np.isfinite(stcd) and 400 <= stcd <= 599 else np.nan
+        )
+        if not np.isfinite(ret) and not np.isfinite(retx):
+            continue
+        prev = last_map.loc[rec.permno]
+        extras.append(
+            {
+                "permno": rec.permno,
+                "date": rec.month.to_timestamp(how="end").normalize(),
+                "ret": ret,
+                "retx": retx,
+                "prc": prev["prc"],
+                "shrout": prev["shrout"],
+                "exchcd": prev["exchcd"] if "exchcd" in last_map.columns else np.nan,
+            }
+        )
+    m = m.drop(columns=["month", "dlret", "dlretx", "dlstcd"], errors="ignore")
+    if extras:
+        extra = pd.DataFrame(extras)
+        for col in m.columns:
+            if col not in extra.columns:
+                extra[col] = np.nan
+        m = pd.concat([m, extra[list(m.columns)]], ignore_index=True)
+    return m
+
 
 def book_equity(seq, txditc, pstkrv, pstkl, pstk) -> float:
     preferred = 0.0
@@ -87,8 +176,14 @@ def value_weight_monthly(msf: pd.DataFrame, assignments: pd.DataFrame) -> pd.Dat
     )
     work = work.sort_values(["permno", "date"])
     work["lag_me"] = work.groupby("permno", sort=False)["me"].shift(1)
-    work["ret"] = pd.to_numeric(work["ret"], errors="coerce")
-    work["retx"] = pd.to_numeric(work["retx"], errors="coerce")
+    work["lag_prc"] = work.groupby("permno", sort=False)["prc"].shift(1)
+    work["ret"] = crsp_return(work["ret"])
+    work["retx"] = crsp_return(work["retx"])
+    # Missing retx: infer capital gain from prices. Never fill retx with ret
+    # (that would force Campbell–Shiller d = (ret-retx)*v to zero).
+    need = work["retx"].isna() & work["ret"].notna()
+    cg = work["prc"].abs() / work["lag_prc"].abs() - 1.0
+    work["retx"] = work["retx"].where(~need, cg)
     port = work.merge(assignments, on=["permno", "sort_year"], how="inner")
     port["w"] = port["lag_me"].where(port["lag_me"] > 0, port["me_june"])
     port = port[
