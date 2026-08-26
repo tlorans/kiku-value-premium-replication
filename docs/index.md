@@ -6,8 +6,7 @@ permalink: /
 
 # Long-run risks and the cross section
 
-Companion package `kiku_value_premium`  
-Kiku (2006) is the first cross-sectional column. The same investor is asked of other premia.
+Companion package `kiku_value_premium`
 
 [Time series]({{ '/time-series.html' | relative_url }}) · [Cross section]({{ '/cross-section.html' | relative_url }}) · [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) · [Climate]({{ '/climate.html' | relative_url }})  
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [Other portfolios]({{ '/generalization.html' | relative_url }})  
@@ -15,15 +14,21 @@ Kiku (2006) is the first cross-sectional column. The same investor is asked of o
 
 ## Introduction
 
-Macro-finance studies the link between asset prices and economic fluctuations (Cochrane 2017). The facts that organized the field are time-series facts about the market. Stocks earn more than bonds by more than power utility over aggregate consumption can justify (Mehra and Prescott 1985). The risk-free rate is too low. Prices move more than dividends (Shiller 1981). The discount factor implied by returns is more volatile than consumption growth raised to a modest power — the Hansen and Jagannathan (1991) bound. Cochrane’s survey is explicit about the common mechanism that later models share: the market’s ability to bear risk varies over time, with the business cycle. The frameworks differ. Habits (Campbell and Cochrane 1999) put that variation in surplus consumption. Rare disasters put it in a tail. Long-run risks put it in a small persistent component of consumption growth, priced by recursive utility.
+Asset prices should equal expected discounted cash flows. If discount rates were constant, prices would move when cash-flow news arrives and not otherwise. They do not. Prices are too volatile. Returns are forecastable. Stocks earn far more than bonds. That is the field (Cochrane 2017).
 
-Bansal and Yaron (2004) is the long-run risks model as a *time-series* resolution. Consumption and dividends contain a slowly moving expected-growth factor $$x_t$$ and fluctuating uncertainty. Preferences are Epstein and Zin (1989): risk aversion is no longer the reciprocal of the elasticity of intertemporal substitution, so news about $$x_t$$ is priced. The objects the paper is asked to match are the equity premium, the risk-free rate, the volatility of the market return and of $$\log(P/D)$$, and the predictability of market returns by the dividend yield. Bansal, Kiku, and Yaron (2012) take the same objects to estimation. That is how the model is usually judged. Cochrane (2017) lists long-run risks in that sampling — recursive utility, Bansal and Yaron, Bansal, Kiku, and Yaron — next to habits and disasters, as competing accounts of the *market*.
+The facts that started it are time-series facts about the market. The equity premium is 4 to 8 percent. Even 4 percent is large. Power utility over aggregate consumption cannot produce it without absurd risk aversion (Mehra and Prescott 1985). The risk-free rate is too smooth and too low. Prices move more than dividends (Shiller 1981). Hansen and Jagannathan (1991) said the same thing with a bound: the discount factor has to be more volatile than $$C^{-\gamma}$$ at any sensible $$\gamma$$.
 
-The same IMRS implies a cross-section. A claim whose dividends load more on $$x_t$$ covaries more with the priced long-run shock. The Euler equation requires a higher expected return and a lower price–dividend ratio. That implication is often overlooked. Evaluations of long-run risks stop at the market column. Book-to-market, profitability, investment, and size are treated as a different literature, to be priced by factors rather than by consumption. I show that the overlooked column is not a separate theory. It is the same investor, applied to claims that differ only in cash-flow loadings.
+The models that followed share one idea. The market’s ability to bear risk is higher in good times and lower in bad times. They differ in the mechanism. Habits put the variation in surplus consumption (Campbell and Cochrane 1999). Disasters put it in a tail. Long-run risks put it in a small, persistent component of consumption growth, priced by recursive utility (Bansal and Yaron 2004; Bansal, Kiku, and Yaron 2012).
 
-The first such pair is value versus growth. Over 1930–2003 the high book-to-market quintile earned 13.88 percent a year and the low book-to-market quintile 7.81 percent. Market betas of both portfolios sit near one. A model that prices only covariance with the market cannot justify the gap. Value dividends move with the slow part of consumption; growth dividends barely do. Kiku (2006) introduces those two claims into the Bansal–Yaron economy, chooses their loadings from consumption and dividends, and reads premia and valuations off the Euler equation. Average returns do not enter the cash-flow step. The model produces about 5.3 percent of value premium against about 6 percent in that sample, and it accommodates the time-series behavior of the market.
+Look at what those papers are asked to match. The equity premium. The risk-free rate. The volatility of the market return and of $$\log(P/D)$$. Predictability by the dividend yield. That is a time-series test of one claim — the market. It is still how the model is usually judged.
 
-Two ingredients do the work, and both are necessary. Consumption growth is not i.i.d. Preferences are recursive. Under power utility the price of long-run news is zero, and a gap in long-run leverage does not generate a large premium.
+The same discount factor implies a cross section. If claim A’s dividends load more on the persistent component $$x_t$$ than claim B’s, A covaries more with the shock the investor cares about. Then A must earn more, and A must sell cheaper relative to current dividends. That is not a separate theory. It is the Euler equation applied twice.
+
+That column is often overlooked. Book-to-market, profitability, investment, and size live in a factor literature. They are priced by returns on other portfolios, not by consumption. I show the overlooked column is the same investor, applied to claims that differ only in cash-flow loadings.
+
+The first pair is value versus growth. 1930–2003: high book-to-market earned 13.88 percent a year, low book-to-market 7.81 percent. Both CAPM betas sit near one. Covariance with the market cannot be the story. Value dividends move with the slow part of consumption. Growth dividends barely do. Kiku (2006) measures that gap in cash flows, not in returns, and reads prices off the Euler equation. About 5.3 percent of value premium against about 6 percent in the sample. The market column still matches.
+
+Two ingredients, both required. Consumption growth is not i.i.d. Preferences are recursive. Under power utility the price of long-run news is zero. Then a gap in leverage does nothing.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, solve_analytical, print_value_premium
@@ -31,7 +36,7 @@ from kiku_value_premium.model import get_table_ii_params, solve_analytical, prin
 print_value_premium(solve_analytical(get_table_ii_params()))
 ```
 
-[Time series]({{ '/time-series.html' | relative_url }}) is the standard test: the model, the market claim, and the moments Bansal and Yaron were written to match. [Cross section]({{ '/cross-section.html' | relative_url }}) is the overlooked test: value versus growth under that investor. [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) asks whether the same mapping extends to size, profitability, and investment (Fama and French 2015). [Climate]({{ '/climate.html' | relative_url }}) asks it of transition and physical sorts after Melin and Zhang (2026) put climate into consumption — still a time-series statement about the market until the loadings are allowed to differ across firms.
+[Time series]({{ '/time-series.html' | relative_url }}) is the usual test. [Cross section]({{ '/cross-section.html' | relative_url }}) is the overlooked one. [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) asks the same question of size, profitability, and investment. [Climate]({{ '/climate.html' | relative_url }}) asks it after climate is put into consumption. A 20 percent rise in the *market* premium is still a time-series statement. It does not rank firms.
 
 ## References
 

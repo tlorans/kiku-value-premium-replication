@@ -9,9 +9,11 @@ nav_order: 2
 1. TOC
 {:toc}
 
-Long-run risks entered macro-finance as an account of the *market*. Cochrane (2017) places Bansal and Yaron (2004) and Bansal, Kiku, and Yaron (2012) in a sampling with habits and disasters: competing mechanisms for a discount factor volatile enough to price the equity premium, with risk-bearing capacity that varies over time. The objects those papers are asked to match are time-series objects — the equity premium, the risk-free rate, the volatility of the market return and of $$\log(P/D)$$, predictability by the dividend yield. That is still how the model is usually judged.
+The question this page asks is the usual one. Can the model price the market?
 
-I specify an Epstein–Zin investor and a consumption process with a small persistent component $$x_t$$, calibrate those laws to aggregate consumption and market dividends, and ask the Euler equation for those same moments. Average market returns are not used to choose the parameters. I record the check in Kiku (2006). It does not rank firms.
+Equity premium, risk-free rate, volatility of returns and of $$\log(P/D)$$, predictability by the dividend yield. Those are the objects Bansal and Yaron (2004) and Bansal, Kiku, and Yaron (2012) were written to match. Cochrane (2017) puts long-run risks in a list with habits and disasters for that reason. One claim. Time-series moments. That is not a ranking of firms.
+
+Average market returns do not choose the parameters. Consumption and market dividends do. Then the Euler equation is asked for prices.
 
 ## Preferences and the IMRS
 
@@ -23,19 +25,19 @@ V_t=\left[(1-\delta)C_t^{\frac{1-\gamma}{\theta}}+\delta\left(\mathrm{E}_t[V_{t+
 \theta=\frac{1-\gamma}{1-1/\psi}.
 $$
 
-The intertemporal marginal rate of substitution — equation (3) — is
+The discount factor — equation (3) — is
 
 $$
-M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
+M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1}.
 $$
 
-or in logs, equation (5),
+In logs, equation (5),
 
 $$
 m_{t+1}=\theta\log\delta-\frac{\theta}{\psi}\Delta c_{t+1}+(\theta-1)r_{c,t+1}.
 $$
 
-When $$\gamma=1/\psi$$, $$\theta=1$$ and the wealth-return term drops: power utility. Then only contemporaneous consumption news is priced. With $$\gamma\neq 1/\psi$$, news that revises the outlook for wealth — including news in $$x_t$$ — is priced as well. Any asset satisfies $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$.
+If $$\gamma=1/\psi$$, $$\theta=1$$. The wealth-return term drops. That is power utility. Only today’s consumption news is priced. If $$\gamma\neq 1/\psi$$, news that revises the outlook for wealth is priced too — including news in $$x_t$$. Every asset satisfies $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. That is the whole theory.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, EpsteinZinPreferences
@@ -46,7 +48,7 @@ ez = EpsteinZinPreferences(params.prefs)
 
 ## Aggregate cash flows
 
-Consumption growth has a small persistent expected-growth component $$x_t$$ and a stochastic variance $$\sigma_t^2$$. Market dividends are levered consumption. Equation (6) restricted to the market claim:
+Consumption growth is not white noise. It has a small persistent expected-growth piece $$x_t$$ and a stochastic variance. Market dividends are levered consumption.
 
 $$
 \begin{aligned}
@@ -57,15 +59,13 @@ x_{t+1}&=\rho x_t+\varphi_x\sigma_t\epsilon_{t+1},\\
 \end{aligned}
 $$
 
-Table II: $$\phi_m=2.8$$, $$\mu_m=0.0012$$, $$\rho=0.98$$. The persistence of $$x_t$$ is what makes long-run news valuable. Under power utility $$\Lambda_\epsilon=0$$ and the same $$\phi_m$$ does not generate a large equity premium.
-
-The price of long-run news, equations (13)–(14), is
+Table II: $$\phi_m=2.8$$, $$\rho=0.98$$. Persistence is the whole point. The price of long-run news is
 
 $$
 \Lambda_\epsilon=\left(\gamma-\frac{1}{\psi}\right)\frac{\kappa_{c,1}\varphi_x}{1-\kappa_{c,1}\rho}.
 $$
 
-With $$\gamma=10$$ and $$\psi=1.5$$, $$\Lambda_\epsilon\neq 0$$.
+Power utility sets $$\Lambda_\epsilon=0$$. Then $$\phi_m=2.8$$ does not produce an equity premium worth talking about. With $$\gamma=10$$ and $$\psi=1.5$$, $$\Lambda_\epsilon\neq 0$$.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, Dynamics
@@ -76,9 +76,7 @@ params.cons.rho                 # 0.98
 
 ## Calibration of the market
 
-I choose preference and cash-flow parameters so that consumption and *market* dividend dynamics match the 1930–2003 sample. The equity premium is not a target.
-
-Matched: mean and persistence of consumption growth, persistence of $$x_t$$, market dividend volatility, and the loading of market dividends on slow consumption. Not matched: mean market return, the Sharpe ratio, or the CAPM beta of the market.
+Match consumption and *market* dividends, 1930–2003. Do not match the equity premium.
 
 |  |  | Meaning |
 |:---|---:|:---|
@@ -92,7 +90,7 @@ Matched: mean and persistence of consumption growth, persistence of $$x_t$$, mar
 
 Market dividends: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$.
 
-Simulated consumption over 1000 samples of 74 years: mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; AC(1) 0.43 against 0.44. If those moments failed, the equity-premium prediction would not be to be trusted.
+Simulated consumption, 1000 samples of 74 years: mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; AC(1) 0.43 against 0.44. If those fail, stop. The premium prediction is then a free parameter in disguise.
 
 ```python
 from kiku_value_premium.calibration import simulate_cashflow_moments
@@ -102,14 +100,14 @@ print(simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=get_table_ii
 
 ## Market moments
 
-Cash-flow parameters locked, the Euler equation is asked for prices. Table VII, market row and the risk-free rate:
+Parameters locked. Ask the Euler equation.
 
 |  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
 |:---|---:|---:|---:|---:|
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Market return volatility: 20.1 percent in the data and in the model. The same investor produces a risk-free rate that is too high by about seventy basis points and an equity premium that is a little short of the sample. That is the time-series record. It is close enough that the investor can be asked a second question.
+Market return volatility: 20.1 percent in both. The risk-free rate is about seventy basis points too high. The equity premium is a little short. That is the time-series record. Close enough to ask a second question.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, ModelSolver, solve_analytical, print_value_premium
@@ -122,8 +120,10 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-The printed market column is this page. The value and growth columns on the same printout belong to the [cross section]({% link cross-section.md %}).
+The market column on that printout is this page. Value and growth are not. They are the [cross section]({{ '/cross-section.html' | relative_url }}).
 
-## What this object does not settle
+## What this does not settle
 
-Matching the market does not explain why two claims with market betas near one earn different average returns. Evaluations of long-run risks that stop here leave that column empty. Melin and Zhang (2026) keep this object and put climate into consumption: at $$3^{\circ}$$C the *market* equity premium is about twenty percent higher than in a no-climate counterfactual. That is still a time-series statement. It does not rank brown against green.
+Two claims can have market betas near one and different average returns. Matching the market does not explain that. Stop here and the cross-sectional column is empty.
+
+Melin and Zhang (2026) keep this object and put climate into consumption. At $$3^{\circ}$$C the *market* equity premium is about twenty percent higher than in a no-climate counterfactual. Still one claim. Still not a ranking of brown against green.
