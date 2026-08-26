@@ -1,19 +1,11 @@
 """
 Section 5 of Kiku (2006) – Asset pricing implications
-=====================================================
-
-Computes the asset-pricing moments reported in Tables VII–X of the paper:
-expected returns, risk-free rate, risk premia, volatilities, Sharpe ratios,
-CAPM betas, and the ranking of price–dividend ratios.
-
-Uses the stationary distribution of the Markov chain together with an
-additional short-run Gauss–Hermite integral so that both long-run and
-short-run risks enter the moments.
 """
 from __future__ import annotations
 import numpy as np
 from ..model.solver import ModelSolver, HAS_NUMBA, njit
 from ..model.params import get_default_params
+from ..model.legs import resolve_legs
 
 
 @njit(cache=True)
@@ -89,34 +81,37 @@ def _accumulate_moments(
             E_Rg2, E_Rv2, E_Rm2, E_Rg_Rm, E_Rv_Rm)
 
 
-def compute_asset_pricing_moments(solver: ModelSolver):
-    """
-    Compute the full set of asset-pricing moments from a solved ModelSolver.
-
-    Returns a dictionary with annualised means, volatilities, Sharpe ratios,
-    CAPM betas, mean log price–dividend ratios, and the value premium.
-    """
+def compute_asset_pricing_moments(
+    solver: ModelSolver,
+    long: str | None = None,
+    short: str | None = None,
+    market: str | None = None,
+):
+    """Moments for the long, short, and market claims of a solved model."""
     if not solver.converged or solver.z_c is None:
         raise RuntimeError("Call solver.solve() before computing moments.")
 
     p = solver.p
-    # Require the classic three portfolios for the moment calculation
-    for name in ("growth", "value", "market"):
-        if name not in solver.z:
-            raise KeyError(f"Equity claim '{name}' has not been solved.")
+    long_key, short_key, market_key = resolve_legs(
+        solver.z, long=long, short=short, market=market
+    )
+    if market_key is None:
+        raise KeyError(
+            "No market claim. Pass market='...' or include a series named 'market'."
+        )
 
     z_c = np.ascontiguousarray(solver.z_c, dtype=np.float64)
-    z_g = np.ascontiguousarray(solver.z["growth"], dtype=np.float64)
-    z_v = np.ascontiguousarray(solver.z["value"], dtype=np.float64)
-    z_m = np.ascontiguousarray(solver.z["market"], dtype=np.float64)
+    z_g = np.ascontiguousarray(solver.z[short_key], dtype=np.float64)
+    z_v = np.ascontiguousarray(solver.z[long_key], dtype=np.float64)
+    z_m = np.ascontiguousarray(solver.z[market_key], dtype=np.float64)
     Pi = np.ascontiguousarray(solver.grid.Pi, dtype=np.float64)
     x = np.ascontiguousarray(solver.grid.x_grid, dtype=np.float64)
     sig = np.ascontiguousarray(np.sqrt(solver.grid.s2_grid), dtype=np.float64)
     pi = solver.stationary
 
-    dg = p.dividends["growth"]
-    dv = p.dividends["value"]
-    dm = p.dividends["market"]
+    dg = p.dividends[short_key]
+    dv = p.dividends[long_key]
+    dm = p.dividends[market_key]
 
     (E_Rf_inv, E_Rg, E_Rv, E_Rm,
      E_Rg2, E_Rv2, E_Rm2, E_Rg_Rm, E_Rv_Rm) = _accumulate_moments(
@@ -129,27 +124,22 @@ def compute_asset_pricing_moments(solver: ModelSolver):
         solver.eta_nodes, solver.eta_weights
     )
 
-    # Unconditional moments via the stationary distribution
     e_rf_inv = float(np.dot(pi, E_Rf_inv))
     Rf = 1.0 / e_rf_inv if e_rf_inv > 1e-18 else np.inf
     Rg = np.dot(pi, E_Rg)
     Rv = np.dot(pi, E_Rv)
     Rm = np.dot(pi, E_Rm)
 
-    # Annualise (monthly → annual)
     mean_Rg = (Rg ** 12 - 1) * 100
     mean_Rv = (Rv ** 12 - 1) * 100
     mean_Rm = (Rm ** 12 - 1) * 100
     mean_Rf = (Rf ** 12 - 1) * 100
-
     value_premium = mean_Rv - mean_Rg
 
-    # Approximate volatilities and betas (simplified)
     vol_g = np.sqrt(max(np.dot(pi, E_Rg2) - Rg**2, 0)) * np.sqrt(12) * 100
     vol_v = np.sqrt(max(np.dot(pi, E_Rv2) - Rv**2, 0)) * np.sqrt(12) * 100
     vol_m = np.sqrt(max(np.dot(pi, E_Rm2) - Rm**2, 0)) * np.sqrt(12) * 100
 
-    # CAPM betas (cov / var)
     cov_gm = np.dot(pi, E_Rg_Rm) - Rg * Rm
     cov_vm = np.dot(pi, E_Rv_Rm) - Rv * Rm
     var_m = max(np.dot(pi, E_Rm2) - Rm**2, 1e-12)
@@ -157,43 +147,56 @@ def compute_asset_pricing_moments(solver: ModelSolver):
     beta_v = cov_vm / var_m
 
     mean_pd = {
-        "growth": float(np.dot(pi, z_g)),
-        "value":  float(np.dot(pi, z_v)),
-        "market": float(np.dot(pi, z_m)),
+        short_key: float(np.dot(pi, z_g)),
+        long_key: float(np.dot(pi, z_v)),
+        market_key: float(np.dot(pi, z_m)),
     }
 
     return {
-        "mean_return": {"growth": mean_Rg, "value": mean_Rv, "market": mean_Rm},
+        "mean_return": {short_key: mean_Rg, long_key: mean_Rv, market_key: mean_Rm},
         "mean_rf": mean_Rf,
         "value_premium": value_premium,
-        "volatility": {"growth": vol_g, "value": vol_v, "market": vol_m},
+        "long_short_premium": value_premium,
+        "long": long_key,
+        "short": short_key,
+        "market": market_key,
+        "volatility": {short_key: vol_g, long_key: vol_v, market_key: vol_m},
         "sharpe": {
-            "growth": (mean_Rg - mean_Rf) / vol_g if vol_g > 0 else np.nan,
-            "value":  (mean_Rv - mean_Rf) / vol_v if vol_v > 0 else np.nan,
-            "market": (mean_Rm - mean_Rf) / vol_m if vol_m > 0 else np.nan,
+            short_key: (mean_Rg - mean_Rf) / vol_g if vol_g > 0 else np.nan,
+            long_key: (mean_Rv - mean_Rf) / vol_v if vol_v > 0 else np.nan,
+            market_key: (mean_Rm - mean_Rf) / vol_m if vol_m > 0 else np.nan,
         },
-        "capm_beta": {"growth": beta_g, "value": beta_v},
+        "capm_beta": {short_key: beta_g, long_key: beta_v},
         "mean_log_pd": mean_pd,
-        "log_pd_value_minus_growth": mean_pd["value"] - mean_pd["growth"],
+        "log_pd_value_minus_growth": mean_pd[long_key] - mean_pd[short_key],
+        "log_pd_long_minus_short": mean_pd[long_key] - mean_pd[short_key],
     }
 
 
 def print_asset_pricing_moments(moments: dict) -> None:
     """Pretty-print the asset-pricing moments in the style of Tables VII–X."""
+    long_key = moments.get("long", "value")
+    short_key = moments.get("short", "growth")
+    market_key = moments.get("market", "market")
     print("=" * 60)
     print("Asset-pricing moments (annualised)")
     print("=" * 60)
     print(f"Risk-free rate          : {moments['mean_rf']:6.2f} %")
-    print(f"Value premium           : {moments['value_premium']:6.2f} %")
+    prem_label = (
+        "Value premium"
+        if {long_key, short_key} <= {"value", "growth"}
+        else "Long-short premium"
+    )
+    print(f"{prem_label:23s}: {moments['value_premium']:6.2f} %")
     print()
     print(f"{'Portfolio':12s} {'E[R] %':>8s} {'Vol %':>8s} {'Sharpe':>8s} {'CAPM β':>8s} {'log(P/D)':>9s}")
     print("-" * 60)
-    for name in ("growth", "value", "market"):
+    for name in (short_key, long_key, market_key):
         er = moments["mean_return"][name]
         vol = moments["volatility"][name]
         sh = moments["sharpe"][name]
-        beta = moments["capm_beta"].get(name, np.nan)
+        beta = moments["capm_beta"].get(name, float("nan"))
         pd = moments["mean_log_pd"][name]
         print(f"{name:12s} {er:8.2f} {vol:8.2f} {sh:8.2f} {beta:8.2f} {pd:9.2f}")
     print()
-    print(f"log(P/D) Value − Growth : {moments['log_pd_value_minus_growth']:6.2f}")
+    print(f"log(P/D) {long_key} − {short_key} : {moments['log_pd_value_minus_growth']:6.2f}")
