@@ -10,9 +10,9 @@ Dana Kiku
 Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
-[Time series]({% link time-series.md %}) · [Cross section]({% link cross-section.md %}) · [Other risk premia]({% link further.md %}) · [Climate]({% link climate.md %})  
-[Package]({% link package.md %}) · [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})  
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Value]({% link value.md %})
+[Time series]({{ '/time-series.html' | relative_url }}) · [Cross section]({{ '/cross-section.html' | relative_url }}) · [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) · [Climate]({{ '/climate.html' | relative_url }})  
+[Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [Other portfolios]({{ '/generalization.html' | relative_url }})  
+[Section 2]({{ '/empirical.html' | relative_url }}) · [Section 3]({{ '/model.html' | relative_url }}) · [Section 4]({{ '/calibration.html' | relative_url }}) · [Section 5]({{ '/implications.html' | relative_url }}) · [Value]({{ '/value.html' | relative_url }}) · [further.html]({{ '/further.html' | relative_url }})
 
 ## Abstract
 
@@ -40,7 +40,7 @@ The first such pair is value versus growth. Over 1930–2003 the high book-to-ma
 
 Two ingredients do the work, and both are necessary. Consumption growth is not i.i.d. Preferences are recursive. Under power utility the price of long-run news is zero, and a gap in long-run leverage does not generate a large premium.
 
-[Time series]({% link time-series.md %}) is the standard test: the model, the market claim, and the moments Bansal and Yaron were written to match. [Cross section]({% link cross-section.md %}) is the overlooked test: value versus growth under that investor. [Other risk premia]({% link further.md %}) asks whether the same mapping extends to size, profitability, and investment (Fama and French 2015). [Climate]({% link climate.md %}) asks it of transition and physical sorts after Melin and Zhang (2026) put climate into consumption — still a time-series statement about the market until the loadings are allowed to differ across firms.
+[Time series]({{ '/time-series.html' | relative_url }}) is the standard test: the model, the market claim, and the moments Bansal and Yaron were written to match. [Cross section]({{ '/cross-section.html' | relative_url }}) is the overlooked test: value versus growth under that investor. [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) asks whether the same mapping extends to size, profitability, and investment (Fama and French 2015). [Climate]({{ '/climate.html' | relative_url }}) asks it of transition and physical sorts after Melin and Zhang (2026) put climate into consumption — still a time-series statement about the market until the loadings are allowed to differ across firms.
 
 ## References
 
