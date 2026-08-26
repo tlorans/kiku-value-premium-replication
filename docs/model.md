@@ -1,6 +1,7 @@
 ---
 title: 3. The Long-Run Risks Model
-nav_order: 4
+parent: The replica
+nav_order: 2
 ---
 
 # 3. The Long-Run Risks Model
