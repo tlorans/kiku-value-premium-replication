@@ -14,7 +14,6 @@ from .leverage import estimate_long_run_leverage
 def _consumption_innovation(dc: np.ndarray) -> np.ndarray:
     """Rough proxy for the short-run consumption innovation."""
     dc = np.asarray(dc, dtype=float).ravel()
-    # residual from an AR(1)
     if len(dc) < 3:
         return dc - dc.mean()
     if float(np.std(dc)) < 1e-15:
@@ -30,54 +29,46 @@ def _consumption_innovation(dc: np.ndarray) -> np.ndarray:
 
 def calibrate_from_data(
     dc: np.ndarray,
-    dd_dict: Dict[str, np.ndarray],
+    dd_dict: Dict[str, np.ndarray] | None = None,
     frequency: str = "annual",
     window: int = 2,
     default_phi_sigma: float = 7.5,
+    *,
+    long: np.ndarray | None = None,
+    short: np.ndarray | None = None,
+    market: np.ndarray | None = None,
 ) -> Dict[str, DividendParams]:
     """
     Full data-driven calibration of DividendParams for an arbitrary set of portfolios.
 
-    Implements the exact recipe of Step 3:
-
-    1. μ   = mean(dd)   (converted to monthly if frequency="annual")
-    2. φ   = long-run leverage via equation (19)
-    3. α   ≈ correlation of residual with consumption innovation
-    4. φ_σ = std(eq. 19 residual) / std(consumption innovation)
-           (falls back to default_phi_sigma if that scale is degenerate)
-
-    Parameters
-    ----------
-    dc : array
-        Consumption growth series.
-    dd_dict : dict
-        Mapping portfolio name → dividend-growth series (same length/frequency as dc).
-    frequency : {"annual", "monthly"}
-        Frequency of the supplied series.
-    window : int
-        Window for the moving average in equation (19). Paper uses 2.
-
-    Returns
-    -------
-    dict of DividendParams, one entry per portfolio.
+    Pass the high-return leg as ``long=`` and the low-return leg as ``short=``.
+    Paper names ``value`` / ``growth`` in ``dd_dict`` remain valid aliases.
     """
+    series: Dict[str, np.ndarray] = dict(dd_dict or {})
+    if long is not None:
+        series["long"] = long
+    if short is not None:
+        series["short"] = short
+    if market is not None:
+        series["market"] = market
+    if not series:
+        raise ValueError(
+            "Provide dd_dict or at least one of long=, short=, market=."
+        )
+
     dc = np.asarray(dc, dtype=float).ravel()
     innov = _consumption_innovation(dc)
     scale = 12.0 if frequency == "annual" else 1.0
 
     out: Dict[str, DividendParams] = {}
-    for name, dd in dd_dict.items():
+    for name, dd in series.items():
         dd = np.asarray(dd, dtype=float).ravel()
         if len(dd) != len(dc):
             raise ValueError(f"Length mismatch for portfolio '{name}'")
 
-        # 1. mean growth → monthly μ
         mu = float(np.mean(dd)) / scale
-
-        # 2. long-run leverage via eq. 19
         phi = estimate_long_run_leverage(dc, dd, window=window)
 
-        # 3. residual correlation with consumption innovation
         ma = np.full(len(dc), np.nan)
         for t in range(window, len(dc)):
             ma[t] = np.mean(dc[t - window : t])
@@ -91,7 +82,6 @@ def calibrate_from_data(
             alpha = float(np.corrcoef(dd, dc)[0, 1]) if np.std(dd) > 0 else 0.0
             alpha = float(np.clip(alpha, -0.99, 0.99))
 
-        # 4. φ_σ so residual vol matches consumption-innovation vol
         sigma_resid = float(np.std(resid))
         sigma_innov = float(np.std(innov_m))
         if sigma_innov > 1e-12 and np.isfinite(sigma_resid):
