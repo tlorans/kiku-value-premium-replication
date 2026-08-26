@@ -1,24 +1,19 @@
 ---
-title: Calibration
+title: 4. Calibration
 nav_order: 5
 ---
 
 # 4. Calibration
 {: .no_toc }
 
-{: .here }
-Section 4 of Kiku (2006). I choose preference and cash-flow parameters so that consumption and dividend *dynamics* match the 1930–2003 sample. Average returns are not targets.
-
-**In a nutshell.** Table II is the default used throughout the package. Monthly $$\phi$$ is chosen so that the model, simulated and time-aggregated as the data are, reproduces the annual projection (19). The OLS slope $$\tilde\phi$$ is never passed to the solver.
-
-{: .idea }
-Match the cash-flow process, then ask the Euler equation what returns must be. Matching returns by hand assumes the puzzle away.
-
-{: .why }
-If $$\phi_V$$ is chosen so that the model mean value return equals 13.88 percent, Section 5 is a restatement of the target, not a test.
-
 1. TOC
 {:toc}
+
+I choose preference and cash-flow parameters so that consumption and dividend dynamics match the 1930–2003 sample. Average returns are not targets.
+
+Table II is the default used throughout the package. Monthly $$\phi$$ is chosen so that the model, simulated and time-aggregated as the data are, reproduces the annual projection (19). The OLS slope $$\tilde\phi$$ is never passed to the solver.
+
+If $$\phi_V$$ is chosen so that the model mean value return equals 13.88 percent, [Section 5]({% link implications.md %}) is a restatement of the target, not a test.
 
 ## 4.1 What is chosen, and what is not
 
@@ -69,7 +64,7 @@ $$
 
 Printed $$\tilde\phi$$: growth $$-0.38$$ (1.34), value $$2.16$$ (1.44), market $$0.66$$ (1.20). Value’s slope is larger. That coefficient is a check, not the monthly input.
 
-I pick monthly $$\phi$$ so that, when the model is simulated monthly and time-averaged as the data are, the *simulated* (19) matches the data check. Table II’s 6.2 / 2.6 / 2.8 are those monthly numbers. The package never puts OLS $$\tilde\phi$$ into `ModelSolver`; it puts the Table II values.
+I pick monthly $$\phi$$ so that, when the model is simulated monthly and time-averaged as the data are, the simulated (19) matches the data check. Table II’s 6.2 / 2.6 / 2.8 are those monthly numbers. The package never puts OLS $$\tilde\phi$$ into `ModelSolver`; it puts the Table II values.
 
 `calibrate_from_data` on a new cross-section is a first-pass helper. It does four cash-flow steps and nothing else:
 

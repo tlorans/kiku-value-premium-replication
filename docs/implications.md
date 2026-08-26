@@ -1,24 +1,21 @@
 ---
-title: Asset Pricing Implications
+title: 5. Asset Pricing Implications
 nav_order: 6
 ---
 
 # 5. Asset Pricing Implications
 {: .no_toc }
 
-{: .here }
-Section 5 of Kiku (2006). Cash-flow parameters are locked. I ask the Euler equation what returns and price–dividend ratios must be. I do not retune $$\phi$$ if the premium comes out wrong.
-
-**In a nutshell.** The model produces a value premium of about 5.3 percent against about 6 percent in the data, a lower price–dividend ratio on value than on growth, and CAPM betas that continue to fail.
-
-{: .idea }
-Success is three facts together: (i) value’s expected return exceeds growth’s by about the right amount; (ii) value’s price–dividend ratio is lower; (iii) value’s CAPM beta is not larger than growth’s. The risk being priced is exposure to $$x_t$$, which is not covariance with the market portfolio.
-
-{: .why }
-Section 4 never saw mean returns. If Table VII’s model column is close to the data, the premium is coming from differential $$\phi$$ and the Epstein–Zin price of long-run news.
-
 1. TOC
 {:toc}
+
+Cash-flow parameters are locked. I ask the Euler equation what returns and price–dividend ratios must be. I do not retune $$\phi$$ if the premium comes out wrong.
+
+The model produces a value premium of about 5.3 percent against about 6 percent in the data, a lower price–dividend ratio on value than on growth, and CAPM betas that continue to fail.
+
+Success is three facts together. Value’s expected return exceeds growth’s by about the right amount. Value’s price–dividend ratio is lower. Value’s CAPM beta is not larger than growth’s. The risk being priced is exposure to $$x_t$$, which is not covariance with the market portfolio.
+
+[Section 4]({% link calibration.md %}) never saw mean returns. If Table VII’s model column is close to the data, the premium is coming from differential $$\phi$$ and the Epstein–Zin price of long-run news.
 
 ## 5.1 What would count as failure
 
@@ -73,7 +70,7 @@ The model-implied ratio of value to growth CAPM betas is 0.92; for consumption b
 
 Printed: GV 0.75 (0.05), GM 0.95 (0.01), VM 0.87 (0.04). Model: 0.44, 0.82, 0.60. The model undershoots the value–growth return correlation. Table X is return predictability on $$\log(P/D)$$ at one- and five-year horizons.
 
-## 5.6 The long-run channel, isolated
+## 5.6 The long-run channel
 
 Before trusting the 30×4 grid, I look at the linearization. Value’s larger $$\phi$$ raises $$A_1$$ in (11) and therefore compensation for $$\epsilon$$-news in (14). That is the mechanism, stripped of short-run noise.
 
