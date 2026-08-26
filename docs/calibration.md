@@ -1,6 +1,7 @@
 ---
 title: 4. Calibration
-nav_order: 5
+parent: The replica
+nav_order: 3
 ---
 
 # 4. Calibration
