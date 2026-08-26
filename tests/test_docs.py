@@ -11,6 +11,9 @@ SECTIONS = (
     "generalization.md",
     "further.md",
     "climate.md",
+    "replica.md",
+    "cross-section.md",
+    "package.md",
 )
 
 
@@ -43,6 +46,16 @@ def test_index_links_recipe_pages():
     text = (ROOT / "index.md").read_text(encoding="utf-8")
     for name in SECTIONS:
         assert name in text
+
+
+def test_architecture_hubs_exist():
+    for name in ("replica.md", "cross-section.md", "package.md"):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "time-series" in text.lower() or "cross-sectional" in text.lower() or "cross section" in text.lower()
+    replica = (ROOT / "replica.md").read_text(encoding="utf-8")
+    assert "empirical.md" in replica and "implications.md" in replica
+    xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
+    assert "further.md" in xs and "climate.md" in xs
 
 
 def test_mathjax_and_sidebar_theme():

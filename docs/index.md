@@ -10,8 +10,11 @@ Dana Kiku
 Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
+[The replica]({% link replica.md %}) · [Cross section]({% link cross-section.md %}) · [Package]({% link package.md %})  
 [Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %}) · [Section 7]({% link climate.md %})  
 [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})
+
+Once cash flows are calibrated to consumption and dividends, the model is asked to account for both time-series and cross-sectional properties of assets’ prices and returns. The [replica]({% link replica.md %}) is that argument for the market and for value. The [cross section]({% link cross-section.md %}) keeps the same investor and changes the characteristic.
 
 ## Abstract
 
@@ -50,7 +53,7 @@ If the premium appears in step 4, it is a prediction. Feeding the premium into s
 
 Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Persistence of expected consumption growth is $$\rho=0.98$$. With those numbers the model produces about 5.3 percent of value premium, a lower mean $$\log(P/D)$$ on value than on growth, and a value-to-growth CAPM-beta ratio below one. The same calibration accommodates the time-series behavior of the market.
 
-Fama and French (2015) isolate further CAPM failures — profitability, investment, and size. [Section 6]({% link further.md %}) records those facts and states the same cross-sectional test. Melin and Zhang (2026) put climate into the consumption process and price the market. [Section 7]({% link climate.md %}) writes the corresponding test for transition and physical sorts. Those premia are not calibration targets either. Value remains the first argument. The later sections ask whether the same IMRS still has cross-sectional pricing power once the characteristic is no longer book-to-market.
+Fama and French (2015) isolate further CAPM failures — profitability, investment, and size. [Section 6]({% link further.md %}) records those facts and states the same cross-sectional test. Melin and Zhang (2026) put climate into the consumption process and price the market. [Section 7]({% link climate.md %}) writes the corresponding test for transition and physical sorts. Those premia are not calibration targets either. Value remains the first argument. The later sections ask whether the same IMRS still accounts for cross-sectional properties of prices and returns once the characteristic is no longer book-to-market.
 
 The companion package follows the same order. Four subpackages implement Sections 2–5. Core installation solves the model at the Table II calibration with no data credentials. Reconstructing Table I from CRSP and Compustat requires the optional `[data]` extra and a WRDS login; see [Installation]({% link installation.md %}).
 
