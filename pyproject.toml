@@ -20,11 +20,12 @@ dependencies = [
 
 [project.optional-dependencies]
 fast = ["numba>=0.56"]
-data = ["wrds", "python-dotenv", "matplotlib"]
+data = ["wrds", "python-dotenv", "matplotlib", "pyarrow"]
 dev = ["pytest", "matplotlib", "numba>=0.56"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = ["-m", "not wrds"]
 markers = [
     "wrds: live WRDS reconstruction (needs repo-root .env)",
 ]
