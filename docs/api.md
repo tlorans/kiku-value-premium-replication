@@ -5,7 +5,7 @@ nav_order: 7
 
 # API
 
-The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull.
+The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull. The market claim is the time-series object. `long` and `short` are the cross-sectional object. Value is the first pair; `value` / `growth` remain aliases of `long` / `short`.
 
 Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument.
 
@@ -18,10 +18,10 @@ Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simu
 
 `START, END = 1930, 2003`.
 
-`calibrate_from_data(dc, long=dd_high, short=dd_low, market=dd_mkt, frequency="annual", window=2)` takes consumption growth and the two legs of the sort. A dict of named series is still accepted. `value` / `growth` are aliases of `long` / `short`. There is no argument for returns or premia.
+`calibrate_from_data(dc, long=dd_high, short=dd_low, market=dd_mkt, frequency="annual", window=2)` takes consumption growth and the two legs of the sort. A dict of named series is still accepted. There is no argument for returns or premia.
 
 Extras: `[fast]` (numba), `[data]` (wrds, python-dotenv, matplotlib), `[dev]` (pytest, matplotlib, numba).
 
 `connect_wrds()` raises `EmpiricalDataError` if `[data]` is missing or `.env` keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
 
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %})
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %}) · [Section 7]({% link climate.md %})
