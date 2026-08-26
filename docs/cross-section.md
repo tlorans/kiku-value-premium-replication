@@ -9,9 +9,9 @@ nav_order: 3
 1. TOC
 {:toc}
 
-The cross-sectional object is a pair of claims that differ only in cash-flow loadings. Value and growth have market betas near one. They do not have the same loading $$\phi$$ on $$x_t$$. I measure that gap in dividends, not in returns, give the [time-series]({% link time-series.md %}) investor those two claims, and read expected returns and price–dividend ratios off the Euler equation.
+Evaluations of long-run risks usually stop at the market. Cochrane (2017) lists the model among competing accounts of the equity premium and of time-varying risk-bearing capacity. The same IMRS implies a ranking across claims. A dividend stream that loads more on $$x_t$$ covaries more with the priced long-run shock. That column is often overlooked. Book-to-market is treated as a factor literature, not as heterogeneous cash-flow leverage in the Bansal–Yaron investor.
 
-The six-percent premium is a fact to be explained. It is not a calibration target. If it appears after the cash-flow step, it is a prediction. Feeding it into the cash-flow step would assume the puzzle away.
+The first pair is value versus growth. They have market betas near one. They do not have the same loading $$\phi$$ on $$x_t$$. I measure that gap in dividends, not in returns, give the [time-series]({% link time-series.md %}) investor those two claims, and read expected returns and price–dividend ratios off the Euler equation. The six-percent premium is a fact to be explained. It is not a calibration target. If it appears after the cash-flow step, it is a prediction.
 
 ## Facts, 1930–2003
 
@@ -59,7 +59,7 @@ $$
 \Delta d_{t+1}=\mu+\phi x_t+\varphi\sigma_t u_{t+1},\qquad \alpha=\mathrm{Corr}(\eta,u).
 $$
 
-Table II: $$\phi_V=6.2$$, $$\phi_G=2.6$$; $$\mu_V=0.0019$$, $$\mu_G=0.0009$$. I give value the larger $$\phi$$ because Section 2 found a larger annual $$\tilde\phi$$, not because value had a larger average return. Monthly $$\phi$$ is chosen so that the model, simulated and time-aggregated as the data are, reproduces the ranking in (19). The OLS slope is never passed to the solver.
+Table II: $$\phi_V=6.2$$, $$\phi_G=2.6$$; $$\mu_V=0.0019$$, $$\mu_G=0.0009$$. I give value the larger $$\phi$$ because the annual slope in (19) is larger, not because value had a larger average return. Monthly $$\phi$$ is chosen so that the model, simulated and time-aggregated as the data are, reproduces that ranking. The OLS slope is never passed to the solver.
 
 $$\phi$$ raises the long-run premium and lowers $$\log(P/D)$$. $$\mu$$ raises $$\log(P/D)$$ and barely moves the premium. In this sort both loadings are larger on value, and $$\phi$$ wins the valuation ranking: value is still the cheap claim.
 
