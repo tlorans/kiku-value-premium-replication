@@ -1,13 +1,14 @@
 # Is the Value Premium a Puzzle?
 
-Python replica of Dana Kiku (2006). The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences. The claim is hers: the value premium is rational compensation for differential exposure to long-run consumption risk.
+Companion package to Dana Kiku (2006), Job Market Paper. The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences. The claim of the paper is that the value premium is rational compensation for differential exposure to long-run consumption risk.
 
-In the 1930–2003 sample, as in the model, value cash flows load more on the persistent component of consumption growth than growth cash flows do. That leverage gap, amplified by $\rho = 0.98$, produces a model value premium of about 5.3 percent against about 6 percent in the data. CAPM betas do not explain the spread.
+In the 1930–2003 sample, as in the model, value cash flows load more on the persistent component of consumption growth than growth cash flows do. That leverage gap, amplified by $$\rho = 0.98$$, produces a model value premium of about 5.3 percent against about 6 percent in the data. CAPM betas do not explain the spread.
 
-**Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)  
-Documentation: equations, Printed vs Package tables, and her section order.
+**Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
-| Her section | Site | Package |
+The site is the paper in paper order, with the code that implements each equation.
+
+| Paper | Site | Package |
 |---|---|---|
 | 2. Empirical evidence | [Empirical](https://tlorans.github.io/kiku-value-premium-replication/empirical.html) | `kiku_value_premium.empirical` |
 | 3. The long-run risks model | [Model](https://tlorans.github.io/kiku-value-premium-replication/model.html) | `kiku_value_premium.model` |
@@ -26,7 +27,7 @@ uv pip install -e ".[fast]"   # Numba on the Euler loops
 uv pip install -e ".[data]"   # WRDS + figures
 ```
 
-Core install (numpy, scipy, pandas) solves her Table II calibration with no secrets.
+Core install (numpy, scipy, pandas) solves the Table II calibration with no secrets.
 
 Section 2 (Table I, Figures 1–4) needs `[data]` and a repo-root `.env`:
 
@@ -43,7 +44,7 @@ See `.env.example`. The file is gitignored. `connect_wrds()` raises if the extra
 uv run python examples/run_paper.py
 ```
 
-Walks her order. Without WRDS it skips Section 2, prints why, and continues from Table II. The example uses `n_x=15` so it finishes; her grid is `n_x=30`.
+Walks the paper order. Without WRDS it skips Section 2, prints why, and continues from Table II. The example uses `n_x=15` so it finishes; the paper grid is `n_x=30`.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, solve_analytical, print_value_premium
@@ -51,7 +52,7 @@ from kiku_value_premium.model import get_table_ii_params, solve_analytical, prin
 print_value_premium(solve_analytical(get_table_ii_params()))
 ```
 
-Value’s long-run leverage is $\phi = 6.2$ against growth’s $2.6$. Calibration uses cash-flow moments only; return premia never enter.
+Value’s long-run leverage is $$\phi = 6.2$$ against growth’s $$2.6$$. Calibration uses cash-flow moments only; return premia never enter.
 
 ## Citation
 
