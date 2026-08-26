@@ -75,3 +75,11 @@ print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
 Value’s long-run leverage is 6.2 against growth’s 2.6. The analytical solution ranks the long-run risk premium value > growth, and the numerical ranking of expected returns is value > market > growth.
+
+## Paper-order recipe
+
+- [Empirical Evidence](empirical.html) — Section 2, Table I, Figures 1–4
+- [Model](model.html) — Section 3, IMRS, solver, analytical §3.4
+- [Calibration](calibration.html) — Section 4, eq. (19), Tables II–V
+- [Asset Pricing Implications](implications.html) — Section 5, Tables VII–X, Figure 5
+- [API](api.html) — public names by subpackage

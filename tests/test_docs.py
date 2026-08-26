@@ -15,3 +15,16 @@ def test_pages_nav_is_paper_order():
 def test_readme_does_not_host_six_step_recipe():
     text = (ROOT.parent / "README.md").read_text(encoding="utf-8")
     assert "6-step" not in text.lower() and "six-step" not in text.lower()
+
+
+def test_index_links_recipe_pages():
+    text = (ROOT / "index.md").read_text(encoding="utf-8")
+    for href in (
+        "installation.html",
+        "empirical.html",
+        "model.html",
+        "calibration.html",
+        "implications.html",
+        "api.html",
+    ):
+        assert href in text

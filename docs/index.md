@@ -15,12 +15,12 @@ The public API and this site follow her paper order. Each section is still a rec
 
 | Section | Paper | Package |
 |---------|-------|---------|
-| **2. Empirical Evidence** | 1930–2003 BM portfolios, Table I, Figures 1–4 | `kiku_value_premium.empirical` |
-| **3. Model** | Epstein–Zin IMRS, Bansal–Yaron process, Tauchen–Hussey, analytical §3.4 | `kiku_value_premium.model` |
-| **4. Calibration** | Equation (19), Table II, cash-flow moments III–V | `kiku_value_premium.calibration` |
-| **5. Asset Pricing Implications** | Tables VII–X, mechanism figures, Figure 5 | `kiku_value_premium.implications` |
+| [**2. Empirical Evidence**](empirical.html) | 1930–2003 BM portfolios, Table I, Figures 1–4 | `kiku_value_premium.empirical` |
+| [**3. Model**](model.html) | Epstein–Zin IMRS, Bansal–Yaron process, Tauchen–Hussey, analytical §3.4 | `kiku_value_premium.model` |
+| [**4. Calibration**](calibration.html) | Equation (19), Table II, cash-flow moments III–V | `kiku_value_premium.calibration` |
+| [**5. Asset Pricing Implications**](implications.html) | Tables VII–X, mechanism figures, Figure 5 | `kiku_value_premium.implications` |
 
-Start here: **[Installation & Quick Start](installation.html)**.
+Start here: **[Installation & Quick Start](installation.html)**. Public names: **[API](api.html)**. Other portfolios: **[Generalizing the Recipe](generalization.html)**.
 
 Without WRDS you can still solve Table II. Section 2 needs the `[data]` extra and a repo-root `.env`.
 
