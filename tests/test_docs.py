@@ -14,7 +14,6 @@ SECTIONS = (
     "cross-section.md",
     "package.md",
     "time-series.md",
-    "value.md",
     "other-risk-premia.md",
 )
 
@@ -22,6 +21,7 @@ SECTIONS = (
 def test_pages_nav_is_paper_order():
     cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
     assert "just-the-docs" in cfg
+    assert "Long-run risks and the cross section" in cfg
     for gone in ("KIKU_RECIPE.md", "results.md", "examples.md"):
         assert gone not in cfg
         assert not (ROOT / gone).exists()
@@ -38,6 +38,7 @@ def test_pages_nav_is_paper_order():
 def test_readme_does_not_host_six_step_recipe():
     text = (ROOT.parent / "README.md").read_text(encoding="utf-8")
     assert "6-step" not in text.lower() and "six-step" not in text.lower()
+    assert "Long-run risks and the cross section" in text
 
 
 def test_index_links_recipe_pages():
@@ -54,7 +55,8 @@ def test_introduction_is_macro_finance():
     assert "Mehra" in index or "Prescott" in index
     assert "Bansal" in index and "Yaron" in index
     assert "overlooked" in index.lower()
-    assert "I consider" in index or "I show" in index or "I introduce" in index
+    assert "I show" in index
+    assert "## Abstract" not in index
 
 
 def test_other_risk_premia_nav_page():
@@ -104,9 +106,8 @@ def test_mathjax_and_sidebar_theme():
 
 def test_site_is_the_paper_not_a_tutorial():
     index = (ROOT / "index.md").read_text(encoding="utf-8")
-    assert "# Is the Value Premium a Puzzle?" in index
-    assert "## Abstract" in index
-    assert "## 1. Introduction" in index
+    assert "# Long-run risks and the cross section" in index
+    assert "## Introduction" in index
     banned = (
         "landlord",
         "shiny new building",
