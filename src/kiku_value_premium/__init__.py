@@ -51,9 +51,10 @@ from .calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
     get_table_ii_dividends,
+    simulate_cashflow_moments,
+    print_moments,
 )
 from .moments import compute_asset_pricing_moments, print_asset_pricing_moments
-from .simulation import simulate_moments, print_moments
 
 __all__ = [
     # Step 1–2
@@ -77,6 +78,6 @@ __all__ = [
     "print_value_premium",
     "compute_asset_pricing_moments",
     "print_asset_pricing_moments",
-    "simulate_moments",
+    "simulate_cashflow_moments",
     "print_moments",
 ]

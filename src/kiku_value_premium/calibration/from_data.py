@@ -1,82 +1,14 @@
 """
-Step 3 of Kiku’s recipe – Calibrate cash-flow dynamics *only* to time-series moments
-====================================================================================
+Calibrate cash-flow dynamics *only* to time-series moments.
 
 Critical discipline of the paper: never target cross-sectional return premia.
-Only match the observed time-series properties of consumption and of the
-portfolios’ cash flows (especially the differential exposure to the long-run
-risk factor).
-
-The key object estimated here is the long-run leverage φ (equation 19 of the paper):
-
-    Δd_t = d₀ + φ̃ · MA(Δc, window=2) + ε_t
-
-`calibrate_from_data` implements the full recipe for any set of portfolios
-(industries, climate-sorted portfolios, quality factors, …).
+`calibrate_from_data` implements the recipe for any set of portfolios.
 """
 from __future__ import annotations
 import numpy as np
-from typing import Dict, Optional, Union
-from .model.params import DividendParams, ModelParams, get_default_params
-
-
-# Exact values from Table II (bottom panel)
-TABLE_II_DIVIDENDS = {
-    "growth": dict(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
-    "value":  dict(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
-    "market": dict(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
-}
-
-RESIDUAL_CORRELATIONS = {
-    ("growth", "value"): 0.20,
-    ("growth", "market"): 0.80,
-    ("value", "market"): 0.45,
-}
-
-
-def get_table_ii_dividends() -> Dict[str, DividendParams]:
-    """Return the exact DividendParams used in the paper (Table II)."""
-    return {name: DividendParams(**kwargs) for name, kwargs in TABLE_II_DIVIDENDS.items()}
-
-
-def estimate_long_run_leverage(
-    dc: np.ndarray,
-    dd: np.ndarray,
-    window: int = 2,
-) -> float:
-    """
-    Estimate the long-run leverage coefficient φ̃ exactly as in the paper’s
-    equation (19):
-
-        Δd_t = d0 + φ̃ * MA(Δc, window) + ε_t
-
-    Parameters
-    ----------
-    dc, dd : 1-d arrays of consumption and dividend growth (same frequency).
-    window : number of lags to average (paper uses 2 years).
-
-    Returns
-    -------
-    The OLS coefficient φ̃ on the moving average of lagged consumption growth.
-    """
-    dc = np.asarray(dc, dtype=float).ravel()
-    dd = np.asarray(dd, dtype=float).ravel()
-    n = len(dc)
-    if n <= window:
-        raise ValueError("Series too short for the requested window")
-
-    ma = np.full(n, np.nan)
-    for t in range(window, n):
-        ma[t] = np.mean(dc[t - window : t])
-
-    mask = ~np.isnan(ma)
-    y = dd[mask]
-    x = ma[mask]
-    # simple OLS with intercept
-    x_demean = x - x.mean()
-    y_demean = y - y.mean()
-    phi = float(np.dot(x_demean, y_demean) / np.dot(x_demean, x_demean))
-    return phi
+from typing import Dict
+from ..model.params import DividendParams
+from .leverage import estimate_long_run_leverage
 
 
 def _consumption_innovation(dc: np.ndarray) -> np.ndarray:

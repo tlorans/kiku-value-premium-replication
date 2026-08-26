@@ -4,8 +4,8 @@ Monte-Carlo simulation and annual aggregation for moment matching
 """
 from __future__ import annotations
 import numpy as np
-from .model.params import ModelParams, get_default_params
-from .model.dynamics import Dynamics
+from ..model.params import ModelParams, get_default_params
+from ..model.dynamics import Dynamics
 
 
 def annualize(monthly: np.ndarray) -> np.ndarray:
@@ -15,8 +15,12 @@ def annualize(monthly: np.ndarray) -> np.ndarray:
     return monthly[: n_years * 12].reshape(n_years, 12).sum(axis=1)
 
 
-def simulate_moments(n_sims: int = 200, years: int = 74, seed: int = 42,
-                     params: ModelParams | None = None) -> dict:
+def simulate_cashflow_moments(
+    n_sims: int = 200,
+    years: int = 74,
+    seed: int = 42,
+    params: ModelParams | None = None,
+) -> dict:
     """
     Run n_sims paths of length years*12, aggregate to annual, return average
     moments that can be compared with Tables III–V.
