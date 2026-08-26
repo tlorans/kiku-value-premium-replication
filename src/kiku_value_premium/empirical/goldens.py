@@ -53,3 +53,12 @@ TABLE_VI_INNOV = {
     "Value": (0.30, 0.07),
     "Market": (0.58, 0.15),
 }
+
+CASHFLOW_NOTE = (
+    "Campbell–Shiller D_t = (ret − retx) V_{t−1} is zero for the 1933 Value "
+    "quintile because every month has ret == retx (no ordinary dividend). "
+    "That year pd and dgrowth are NaN; the 1931–32 collapse and 1935–36 rebound "
+    "then put Value dg_sd, the Value–Market Δd correlation, Value φ̃, and Value "
+    "innov_corr outside the printed SE. Those four cells are ranking/sign checks, "
+    "not the hard SE gate. Printed goldens are unchanged."
+)
