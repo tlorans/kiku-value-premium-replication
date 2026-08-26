@@ -9,6 +9,7 @@ SECTIONS = (
     "installation.md",
     "api.md",
     "generalization.md",
+    "further.md",
 )
 
 
@@ -89,3 +90,13 @@ def test_section_pages_carry_her_equations():
         text = (ROOT / name).read_text(encoding="utf-8")
         assert "```python" in text
         assert "I " in text
+
+
+def test_further_applications_page():
+    text = (ROOT / "further.md").read_text(encoding="utf-8")
+    assert "# 6." in text
+    assert "RMW" in text and "CMA" in text
+    assert "Fama" in text
+    assert "19" in text
+    assert "```python" in text
+    assert "calibrate_from_data" in text

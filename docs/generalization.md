@@ -1,11 +1,13 @@
 ---
 title: Other portfolios
-nav_order: 8
+nav_order: 9
 ---
 
 # Other portfolios
 
 The same investor and the same consumption process can price another sort — industries, quality, profitability, countries — without seeing that sort’s average returns. Only the dividend loadings change.
+
+[Section 6]({% link further.md %}) states the case for the Fama and French (2015) profitability and investment sorts, including why RMW is not a relabeling of value.
 
 Keep Table II aggregate consumption and Epstein–Zin preferences. Only `DividendParams` change. `calibrate_from_data` estimates $$\mu$$, $$\tilde\phi$$ from equation (19), $$\alpha$$ from residual/consumption-innovation correlation, and $$\varphi_\sigma$$ as residual vol over consumption-innovation vol (fallback 7.5). It never sees return premia.
 
