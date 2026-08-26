@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kiku-value-premium"
-version = "0.3.0"
-description = "Long-run risks model that accounts for time-series and cross-sectional properties of asset prices and returns (Kiku 2006)."
+name = "lrrcs"
+version = "0.4.0"
+description = "Long-run risks in the time series and the cross section."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}

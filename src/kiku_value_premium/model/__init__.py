@@ -11,7 +11,12 @@ from .preferences import EpsteinZinPreferences
 from .dynamics import Dynamics
 from .discretization import StateGrid
 from .solver import ModelSolver
-from .analytical import AnalyticalSolution, print_value_premium, solve_analytical
+from .analytical import (
+    AnalyticalSolution,
+    print_long_short_premium,
+    print_value_premium,
+    solve_analytical,
+)
 
 __all__ = [
     "ROLE_ALIASES",
@@ -28,5 +33,6 @@ __all__ = [
     "ModelSolver",
     "AnalyticalSolution",
     "solve_analytical",
+    "print_long_short_premium",
     "print_value_premium",
 ]
