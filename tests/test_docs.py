@@ -50,18 +50,37 @@ def test_index_links_recipe_pages():
         assert name in text
 
 
+def test_time_series_page_is_the_market():
+    text = (ROOT / "time-series.md").read_text(encoding="utf-8")
+    assert "# Time series" in text
+    assert "8.56" in text
+    assert "7.53" in text
+    assert "M_{t+1}" in text or "m_{t+1}" in text
+    assert "2.8" in text
+    assert "```python" in text
+    assert "I " in text
+    assert "market" in text.lower()
+
+
+def test_cross_section_page_is_value():
+    text = (ROOT / "cross-section.md").read_text(encoding="utf-8")
+    assert "# Cross section" in text
+    assert "7.81" in text and "13.88" in text
+    assert "5.3" in text
+    assert "6.2" in text and "2.6" in text
+    assert "19" in text
+    assert "```python" in text
+    assert "calibrate_from_data" in text
+    assert "I " in text
+
+
 def test_architecture_hubs_exist():
-    for name in ("replica.md", "cross-section.md", "package.md", "time-series.md", "value.md"):
-        text = (ROOT / name).read_text(encoding="utf-8")
-        assert "time-series" in text.lower() or "cross-sectional" in text.lower() or "cross section" in text.lower()
     replica = (ROOT / "replica.md").read_text(encoding="utf-8")
     assert "empirical.md" in replica and "implications.md" in replica
-    xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
-    assert "further.md" in xs and "climate.md" in xs and "value.md" in xs
     ts = (ROOT / "time-series.md").read_text(encoding="utf-8")
     assert "market" in ts.lower()
-    val = (ROOT / "value.md").read_text(encoding="utf-8")
-    assert "phi" in val.lower() or "\\phi" in val
+    xs = (ROOT / "cross-section.md").read_text(encoding="utf-8")
+    assert "further.md" in xs and "value" in xs.lower()
 
 
 def test_nav_is_by_object():
@@ -72,9 +91,9 @@ def test_nav_is_by_object():
         return None
     assert parent_of("empirical.md") == "The replica"
     assert parent_of("implications.md") == "The replica"
-    assert parent_of("value.md") == "Cross section"
-    assert parent_of("climate.md") == "Cross section"
     assert parent_of("installation.md") == "Package"
+    assert parent_of("time-series.md") is None
+    assert parent_of("cross-section.md") is None
 
 
 def test_mathjax_and_sidebar_theme():
