@@ -6,6 +6,9 @@ The paper shows that the value premium is rational compensation for differential
 
 **Repository:** https://github.com/tlorans/kiku-value-premium-replication
 
+> **Start here if you want to understand or extend the method:**  
+> **[docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md)** – the exact 6-step methodology of the paper mapped to every public API of this package.
+
 ## Installation
 
 ```bash
@@ -16,7 +19,7 @@ pip install -e .
 pip install -e ".[fast]"
 ```
 
-## Quick start
+## Quick start (original value/growth replication)
 
 ```python
 from kiku_value_premium.analytical import solve_analytical, print_value_premium
@@ -24,7 +27,7 @@ from kiku_value_premium.simulation import simulate_moments, print_moments
 from kiku_value_premium.solver import ModelSolver
 from kiku_value_premium.moments import compute_asset_pricing_moments, print_asset_pricing_moments
 
-# 1. Analytical mechanism (Section 3.4)
+# 1. Analytical mechanism (Section 3.4) – isolates the long-run risk channel
 sol = solve_analytical()
 print_value_premium(sol)
 
@@ -41,7 +44,45 @@ moments = compute_asset_pricing_moments(solver)
 print_asset_pricing_moments(moments)
 ```
 
-## Results
+## Following Kiku’s Exact Recipe (API map)
+
+| Step | Kiku’s methodology | Package API |
+|------|--------------------|-------------|
+| **1** | Aggregate LRR consumption process (persistent \(x_t\) + stochastic vol) | `params.ConsumptionParams`, `dynamics.Dynamics` |
+| **2** | Heterogeneous cash-flow processes (value has high long-run leverage) | `params.DividendParams` (`phi` = long-run exposure) |
+| **3** | Calibrate **only** to time-series cash-flow moments (never to returns) | `calibration.calibrate_from_data`, `get_table_ii_dividends` |
+| **4** | Epstein–Zin preferences | `params.PreferencesParams`, `preferences.EpsteinZinPreferences` |
+| **5** | Numerical solution (Tauchen–Hussey + Euler) | `discretization.StateGrid`, `solver.ModelSolver` |
+| **6** | Evaluate time-series **and** cross-section | `moments.compute_asset_pricing_moments`, `analytical.solve_analytical` |
+
+Full walkthrough with code for every step → **[docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md)**
+
+## Generalizing to any portfolios (industries, climate, …)
+
+The same recipe works for any cross-section. Supply consumption growth and the cash-flow series of your portfolios; the package estimates the long-run leverages and prices them under Epstein–Zin preferences:
+
+```python
+from kiku_value_premium.calibration import calibrate_from_data
+from kiku_value_premium.params import ModelParams, get_default_params
+from kiku_value_premium.solver import ModelSolver
+from kiku_value_premium.moments import compute_asset_pricing_moments
+
+# 1–3. Calibrate long-run leverages from your data (Kiku eq. 19)
+dividends = calibrate_from_data(dc, {"industry_A": dd_a, "industry_B": dd_b}, frequency="annual")
+
+# 4. Keep aggregate consumption + Epstein–Zin preferences
+params = get_default_params()
+params.dividends = dividends
+
+# 5–6. Solve and read off the industry risk premia / valuations
+solver = ModelSolver(params)
+solver.solve()
+moments = compute_asset_pricing_moments(solver)
+```
+
+See `examples/calibrate_any_portfolio.py` and `examples/calibrate_from_real_data.py`.
+
+## Results (original value/growth replication)
 
 ### 1. Analytical long-run risk premia (the paper’s central mechanism)
 
@@ -65,20 +106,19 @@ Value firms have a lower price–dividend ratio than growth firms (paper Table V
 | log-PD Value – Growth           | ≈ –0.55       | numerical differential |
 | CAPM β_Value / β_Growth         | ≈ 0.92        | model reproduces CAPM failure |
 
-After running the numerical solver + moments calculator the printed summary is aligned with the columns of Table VII (mean returns, volatilities, Sharpe ratios, CAPM betas, and the log-PD differential).
-
 ## Package modules
 
-| Module | Role |
-|--------|------|
-| `params.py` | Exact Table II calibration |
-| `preferences.py` | Epstein–Zin IMRS |
-| `analytical.py` | Log-linear solutions & risk-price decomposition |
-| `dynamics.py` | Continuous-state simulator |
-| `simulation.py` | Monte-Carlo annual cash-flow moments |
-| `discretization.py` | Product grid (x, σ²) + transition matrix (Appendix) |
-| `solver.py` | High-accuracy Euler solver (30×4 + short-run GH, Numba-accelerated) |
-| `moments.py` | Returns, RF, premia, vols, Sharpe ratios, CAPM betas from the solved grid |
+| Module | Role in the recipe |
+|--------|--------------------|
+| `params.py` | Step 1 & 2 – Table II calibration (consumption + heterogeneous dividends) |
+| `preferences.py` | Step 4 – Epstein–Zin IMRS |
+| `calibration.py` | Step 3 – data-driven estimation of long-run leverage (eq. 19) for any portfolios |
+| `dynamics.py` | Steps 1–2 – continuous-state simulator of the joint processes |
+| `simulation.py` | Step 3 – Monte-Carlo annual cash-flow moments (Tables III–V) |
+| `discretization.py` | Step 5 – product grid (x, σ²) + transition matrix (Appendix) |
+| `solver.py` | Step 5 – high-accuracy Euler solver (30×4 + short-run GH, Numba-accelerated) |
+| `analytical.py` | Step 6a – log-linear solutions & risk-price decomposition (isolates the long-run channel) |
+| `moments.py` | Step 6b – returns, RF, premia, vols, Sharpe ratios, CAPM betas (Tables VII–X) |
 
 ## Numerical solution notes
 
