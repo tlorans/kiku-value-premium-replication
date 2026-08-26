@@ -4,10 +4,20 @@ Python package that replicates Dana Kiku’s 2006 Job Market Paper using the Ban
 
 The paper shows that the value premium is rational compensation for differential exposure to long-run consumption risk.
 
-**Repository:** https://github.com/tlorans/kiku-value-premium-replication
+**Repository:** https://github.com/tlorans/kiku-value-premium-replication  
+**Documentation (GitHub Pages):** https://tlorans.github.io/kiku-value-premium-replication/
 
-> **Start here if you want to understand or extend the method:**  
-> **[docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md)** – the exact 6-step methodology of the paper mapped to every public API of this package.
+> **Start here:**  
+> **[The Exact 6-Step Recipe → Package API](https://tlorans.github.io/kiku-value-premium-replication/KIKU_RECIPE.html)**  
+> (or the source Markdown: [docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md))
+
+## Enable the documentation site (one-time)
+
+If the Pages site is not yet live, the repository owner should go to:
+
+**Settings → Pages → Source = “Deploy from a branch” → Branch = `main` → Folder = `/docs` → Save**
+
+GitHub will then publish the site at the URL above.
 
 ## Installation
 
@@ -55,7 +65,7 @@ print_asset_pricing_moments(moments)
 | **5** | Numerical solution (Tauchen–Hussey + Euler) | `discretization.StateGrid`, `solver.ModelSolver` |
 | **6** | Evaluate time-series **and** cross-section | `moments.compute_asset_pricing_moments`, `analytical.solve_analytical` |
 
-Full walkthrough with code for every step → **[docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md)**
+Full walkthrough with code for every step → **[Documentation site](https://tlorans.github.io/kiku-value-premium-replication/KIKU_RECIPE.html)** or [docs/KIKU_RECIPE.md](docs/KIKU_RECIPE.md)
 
 ## Generalizing to any portfolios (industries, climate, …)
 
