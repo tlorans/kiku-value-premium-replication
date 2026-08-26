@@ -7,44 +7,71 @@ title: Installation & Quick Start
 
 ## Install the package
 
+Use `uv` from the repository root:
+
 ```bash
 git clone https://github.com/tlorans/kiku-value-premium-replication.git
 cd kiku-value-premium-replication
-pip install -e .
+uv pip install -e .
 
-# Optional: Numba acceleration for the 30×4 numerical solver (highly recommended)
-pip install -e ".[fast]"
+# Optional: Numba acceleration for the numerical solver
+uv pip install -e ".[fast]"
+
+# Optional: WRDS empirical pipeline (Table I, Figures 1–4)
+uv pip install -e ".[data]"
 ```
 
-## Minimal quick-start (original value/growth replication)
+Core install is numpy, scipy, and pandas. It solves the model from Table II with no secrets.
+
+## WRDS credentials (Section 2 only)
+
+Replication of Table I needs a repo-root `.env`:
+
+```
+WRDS_USERNAME=...
+WRDS_PASSWORD=...
+```
+
+See `.env.example`. The file is gitignored. Importing `empirical` without the `[data]` extra, or with empty keys, raises `EmpiricalDataError` that names the extra and the two keys.
+
+**Without WRDS you can still solve Table II.** `model`, `calibration`, and `implications` do not import `wrds`.
+
+## Run the paper in order
+
+```bash
+uv run python examples/run_paper.py
+```
+
+If `[data]` or `.env` is missing, the script skips Section 2, prints why, and continues from Table II. The example uses `n_x=15` so it finishes; the paper default is `n_x=30`.
+
+Shorter demos that never touch WRDS:
+
+- [`examples/demo.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/demo.py) — analytical long-run premia and simulated cash-flow moments
+- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py) — `calibrate_from_data` on a synthetic cross-section
+
+## What you should see without WRDS
 
 ```python
-from kiku_value_premium.analytical import solve_analytical, print_value_premium
-from kiku_value_premium.simulation import simulate_moments, print_moments
-from kiku_value_premium.solver import ModelSolver
-from kiku_value_premium.moments import compute_asset_pricing_moments, print_asset_pricing_moments
+from kiku_value_premium.model import (
+    get_table_ii_params,
+    solve_analytical,
+    ModelSolver,
+    print_value_premium,
+)
+from kiku_value_premium.calibration import simulate_cashflow_moments
+from kiku_value_premium.implications import (
+    compute_asset_pricing_moments,
+    print_asset_pricing_moments,
+)
 
-# 1. Analytical mechanism – isolates the long-run risk channel
-sol = solve_analytical()
-print_value_premium(sol)
+params = get_table_ii_params()
+print_value_premium(solve_analytical(params))
+print(simulate_cashflow_moments(n_sims=20, years=74, seed=1))
 
-# 2. Cash-flow moments (compare to paper Tables III–V)
-mom = simulate_moments(n_sims=100, years=74)
-print_moments(mom)
-
-# 3. Full numerical solution (paper resolution: 30 × 4 grid)
-solver = ModelSolver(n_x=30, n_s=4, n_quad=7)
+# Paper default is n_x=30; 15 is faster for a first run.
+solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
-
-# 4. Asset-pricing moments (Tables VII–X)
-moments = compute_asset_pricing_moments(solver)
-print_asset_pricing_moments(moments)
+print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-## What you should see
-
-- Analytical value–growth long-run risk premium spread driven by φ_V = 6.2 vs φ_G = 2.6
-- Numerical mean log(P/D) ranking: Value < Market < Growth
-- Value premium ≈ 5.3 % and CAPM failure (model betas do not explain the premium)
-
-For the full economic interpretation of each step, see the **[Recipe page](KIKU_RECIPE.html)**.
+Value’s long-run leverage is 6.2 against growth’s 2.6. The analytical solution ranks the long-run risk premium value > growth, and the numerical ranking of expected returns is value > market > growth.

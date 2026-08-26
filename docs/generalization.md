@@ -3,53 +3,37 @@ layout: default
 title: Generalizing the Recipe
 ---
 
-# Generalizing the Recipe beyond Value / Growth
+# Generalizing beyond value / growth
 
-Kiku’s methodology is deliberately modular. The same six steps work for **any** cross-section once you supply the cash-flow series.
+The same cash-flow-only recipe prices any cross-section once you supply consumption growth and the portfolios’ dividend-growth series. Typical use: industry portfolios, quality, profitability, investment, or country sorts.
 
-## Typical use cases
+`calibrate_from_data` estimates \(\mu\), \(\tilde\phi\) from equation (19), \(\alpha\) from residual/consumption-innovation correlation, and \(\varphi_\sigma\) so residual volatility matches. It never sees return premia. Keep Table II aggregate consumption and Epstein–Zin preferences; only the `DividendParams` change.
 
-- Industry portfolios
-- Climate-exposure sorts (temperature, transition, physical risk)
-- Quality, profitability, investment, or any characteristic-sorted portfolios
-- Country or regional equity portfolios
+## What you call
 
-## Exact workflow
+```python
+from kiku_value_premium.calibration import calibrate_from_data
+from kiku_value_premium.model import ModelParams, get_table_ii_params, ModelSolver
+from kiku_value_premium.implications import compute_asset_pricing_moments
 
-1. **Obtain data**  
-   Aggregate consumption growth `dc` and a dictionary of portfolio cash-flow growth series `{name: dd}`.
+dividends = calibrate_from_data(
+    dc,
+    {"industry_A": dd_a, "industry_B": dd_b},
+    frequency="annual",
+    window=2,
+)
 
-2. **Calibrate long-run leverages only** (never use return premia)
-   ```python
-   from kiku_value_premium.calibration import calibrate_from_data
-   dividends = calibrate_from_data(dc, dd_dict, frequency="annual", window=2)
-   ```
-   This implements Kiku’s equation (19) – the OLS of dividend growth on a moving average of lagged consumption growth. The resulting `phi` is the long-run leverage of each portfolio.
+params = get_table_ii_params()
+params.dividends = dividends
 
-3. **Keep the aggregate consumption process and Epstein–Zin preferences**
-   ```python
-   from kiku_value_premium.params import get_default_params
-   params = get_default_params()
-   params.dividends = dividends
-   ```
+solver = ModelSolver(params)
+solver.solve()
+moments = compute_asset_pricing_moments(solver)
+```
 
-4. **Solve**
-   ```python
-   from kiku_value_premium.solver import ModelSolver
-   solver = ModelSolver(params)
-   solver.solve()
-   ```
+The ranking of estimated \(\phi\) becomes the ranking of long-run risk premia. Portfolios with higher long-run leverage command higher expected returns and lower price–dividend ratios — exactly as value stocks do in the original paper.
 
-5. **Read the cross-sectional risk premia and valuations**
-   ```python
-   from kiku_value_premium.moments import compute_asset_pricing_moments
-   moments = compute_asset_pricing_moments(solver)
-   ```
+Ready-to-run starting points:
 
-The ranking of the estimated `phi`s becomes the ranking of long-run risk premia. Portfolios with higher long-run leverage command higher expected returns and lower price–dividend ratios – exactly as value stocks do in the original paper.
-
-## Climate / industry application notes
-
-When the underlying model is extended with additional state variables (e.g. temperature anomaly, policy intensity), the same cash-flow projection / long-run leverage logic can be applied to those extra states. The package already isolates the pure consumption long-run risk channel; the extra climate states can be added later by extending the state grid and the Euler equations while re-using the calibrated `DividendParams`.
-
-See `examples/calibrate_any_portfolio.py` and `examples/calibrate_from_real_data.py` for concrete starting points.
+- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py) — synthetic series, full workflow
+- [`examples/calibrate_from_real_data.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_from_real_data.py) — template for your own \(\Delta d\) arrays

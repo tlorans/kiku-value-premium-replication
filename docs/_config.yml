@@ -1,5 +1,5 @@
 title: Kiku Value Premium Replication
-description: Exact 6-step methodology of Kiku (2006) mapped to a transparent Python package
+description: Transparent replica of Kiku (2006) in paper order — empirical, model, calibration, implications
 theme: jekyll-theme-cayman
 markdown: kramdown
 kramdown:
@@ -8,9 +8,10 @@ kramdown:
 
 header_pages:
   - index.md
-  - KIKU_RECIPE.md
   - installation.md
+  - empirical.md
+  - model.md
+  - calibration.md
+  - implications.md
   - api.md
-  - examples.md
   - generalization.md
-  - results.md
