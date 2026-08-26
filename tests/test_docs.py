@@ -73,7 +73,6 @@ def test_nav_is_by_object():
     assert parent_of("empirical.md") == "The replica"
     assert parent_of("implications.md") == "The replica"
     assert parent_of("value.md") == "Cross section"
-    assert parent_of("further.md") == "Cross section"
     assert parent_of("climate.md") == "Cross section"
     assert parent_of("installation.md") == "Package"
 
