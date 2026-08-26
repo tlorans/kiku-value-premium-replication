@@ -25,6 +25,7 @@ class AnalyticalSolution:
     A1: Dict[str, float]
     A2: Dict[str, float]
     premium_lr: Dict[str, float]  # annualized long-run risk premium component
+    mean_log_pd: Dict[str, float]  # Section 3.4 Campbell–Shiller linearization points
 
 
 def solve_analytical(params: ModelParams | None = None,
@@ -90,6 +91,7 @@ def solve_analytical(params: ModelParams | None = None,
         A1=A1,
         A2=A2,
         premium_lr=premium_lr,
+        mean_log_pd=dict(mean_zs),
     )
 
 
