@@ -24,7 +24,7 @@ $$
 D_{t+1}=y_{t+1}V_t,\qquad V_{t+1}=h_{t+1}V_t,\qquad V_0=100.
 $$
 
-Monthly returns and dividends are time-aggregated to calendar years and converted to real with the personal consumption deflator. Dividend growth is $\Delta\log D$. $\log(P/D)$ is end-of-year price over that year’s cumulative dividend. The real risk-free rate is the 90-day T-bill minus a 12-month moving average of inflation (CRSP). Consumption is real per-capita nondurables plus services (NIPA).
+Monthly returns and dividends are time-aggregated to calendar years and converted to real with the personal consumption deflator. Dividend growth is $$\Delta\log D$$. $$\log(P/D)$$ is end-of-year price over that year’s cumulative dividend. The real risk-free rate is the 90-day T-bill minus a 12-month moving average of inflation (CRSP). Consumption is real per-capita nondurables plus services (NIPA).
 
 Table I uses Newey–West **8** lags. Table VI data-column standard errors use **4** lags. Figure 2 is **1952–2003**, as in her caption.
 
@@ -55,7 +55,7 @@ Growth on average offers about 8 percent; value delivers about 14 percent. The C
 | Value | 13.88 (1.74) | 13.67 | 29.9 (4.34) | 29.7 | 3.25 (0.12) | 3.34 |
 | Market | 8.56 (1.79) | 8.52 | 20.1 (2.23) | 20.1 | 3.34 (0.13) | 3.33 |
 
-Printed cells are Newey–West 8-lag standard errors. Package returns and $\log(P/D)$ sit inside those bands.
+Printed cells are Newey–West 8-lag standard errors. Package returns and $$\log(P/D)$$ sit inside those bands.
 
 Return correlations (printed, then package): GV 0.75 (0.05) / 0.72; GM 0.95 (0.01) / 0.95; VM 0.87 (0.04) / 0.86.
 
@@ -66,7 +66,7 @@ Return correlations (printed, then package): GV 0.75 (0.05) / 0.72; GM 0.95 (0.0
 ## 2.3 Other phenomena of value and growth
 
 {: .paper }
-Value usually sells at prices that are low relative to current dividends: mean $\log(P/D)$ 3.25 versus 3.61 for growth (levels about 27.6 versus 43.2). Dividend-growth volatility is about 14 percent for growth and 18 percent for value. The correlation of dividend growth between the two is about 0.32, against 0.75 for returns.
+Value usually sells at prices that are low relative to current dividends: mean $$\log(P/D)$$ 3.25 versus 3.61 for growth (levels about 27.6 versus 43.2). Dividend-growth volatility is about 14 percent for growth and 18 percent for value. The correlation of dividend growth between the two is about 0.32, against 0.75 for returns.
 
 |  | E[Δd] % |  | σ(Δd) % |  |
 |:---|---:|---:|---:|---:|
@@ -78,7 +78,7 @@ Value usually sells at prices that are low relative to current dividends: mean $
 Δd correlations (printed / package): GV 0.32 (0.17) / 0.29; GM 0.80 (0.09) / 0.78; VM 0.53 (0.10) / <mark class="out">0.64</mark>.
 
 {: .caution }
-1933 Value is a genuine zero-dividend year: every month has `ret = retx`, so Campbell–Shiller $D_t=0$, and that year’s $P/D$ and $\Delta d$ are missing. The 1931–32 collapse and 1935–36 rebound then push Value $\sigma(\Delta d)$, the Value–Market $\Delta d$ correlation, Value $\tilde\phi$, and Value innovation correlation outside her printed SEs. Those four cells are ranking/sign checks. Printed goldens are not edited.
+1933 Value is a genuine zero-dividend year: every month has `ret = retx`, so Campbell–Shiller $$D_t=0$$, and that year’s $$P/D$$ and $$\Delta d$$ are missing. The 1931–32 collapse and 1935–36 rebound then push Value $$\sigma(\Delta d)$$, the Value–Market $$\Delta d$$ correlation, Value $$\tilde\phi$$, and Value innovation correlation outside her printed SEs. Those four cells are ranking/sign checks. Printed goldens are not edited.
 
 ## 2.4 The market and the risk-free rate
 
@@ -114,9 +114,9 @@ $$
 \Delta d_t = d_0 + \tilde\phi \sum_{k=1}^{2} \Delta c_{t-k} + \varepsilon_t.
 $$
 
-Printed $\tilde\phi$: growth $-0.38$ (1.34), value $2.16$ (1.44), market $0.66$ (1.20). Innovation exposures (correlation of those residuals with AR(1) consumption news): 0.37, 0.30, 0.58.
+Printed $$\tilde\phi$$: growth $$-0.38$$ (1.34), value $$2.16$$ (1.44), market $$0.66$$ (1.20). Innovation exposures (correlation of those residuals with AR(1) consumption news): 0.37, 0.30, 0.58.
 
-|  | $\tilde\phi$ printed | Package | Innov. printed | Package |
+|  | $$\tilde\phi$$ printed | Package | Innov. printed | Package |
 |:---|---:|---:|---:|---:|
 | Growth | −0.38 (1.34) | −0.27 | 0.37 (0.14) | 0.33 |
 | Value | 2.16 (1.44) | <mark class="out">12.13</mark> | 0.30 (0.07) | <mark class="out">0.56</mark> |

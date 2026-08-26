@@ -40,9 +40,11 @@ def test_index_links_recipe_pages():
         assert name in text
 
 
-def test_katex_and_sidebar_theme():
+def test_mathjax_and_sidebar_theme():
     head = (ROOT / "_includes" / "head_custom.html").read_text(encoding="utf-8")
-    assert "katex" in head.lower()
+    assert "mathjax" in head.lower()
+    js = (ROOT / "assets" / "js" / "mathjax-script-type.js").read_text(encoding="utf-8")
+    assert "math/tex" in js
     assert (ROOT / "_sass" / "color_schemes" / "kiku.scss").exists()
 
 

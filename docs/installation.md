@@ -38,7 +38,7 @@ WRDS_PASSWORD=...
 uv run python examples/run_paper.py
 ```
 
-If `[data]` or `.env` is missing, the script skips Section 2, prints why, and continues from Table II. The example uses $n_x=15$ so it finishes; her grid is $n_x=30$.
+If `[data]` or `.env` is missing, the script skips Section 2, prints why, and continues from Table II. The example uses $$n_x=15$$ so it finishes; her grid is $$n_x=30$$.
 
 Shorter demos that never touch WRDS:
 
@@ -69,6 +69,6 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-Value’s long-run leverage is $\phi=6.2$ against growth’s $2.6$. The analytical solution ranks the long-run risk premium value above growth; numerical expected returns rank value above market above growth.
+Value’s long-run leverage is $$\phi=6.2$$ against growth’s $$2.6$$. The analytical solution ranks the long-run risk premium value above growth; numerical expected returns rank value above market above growth.
 
 Next: [Empirical evidence]({% link empirical.md %}).

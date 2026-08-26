@@ -9,6 +9,7 @@ plugins:
   - jekyll-seo-tag
 
 color_scheme: kiku
+math: mathjax
 search_enabled: true
 search:
   heading_level: 3
@@ -40,7 +41,6 @@ callouts:
 
 markdown: kramdown
 kramdown:
-  input: GFM
   math_engine: mathjax
   syntax_highlighter: rouge
   hard_wrap: false
