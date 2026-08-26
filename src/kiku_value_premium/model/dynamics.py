@@ -21,14 +21,21 @@ class Dynamics:
         self.p = params or get_default_params()
         self.rng = np.random.default_rng(seed)
 
-        # Residual correlation matrix for the orthogonalised dividend shocks
-        # order: growth, value, market
-        self.res_corr = np.array([
-            [1.0, self.p.residual_corr_gv, self.p.residual_corr_gm],
-            [self.p.residual_corr_gv, 1.0, self.p.residual_corr_vm],
-            [self.p.residual_corr_gm, self.p.residual_corr_vm, 1.0],
-        ])
-        self.chol_v = np.linalg.cholesky(self.res_corr)
+        self.names = list(self.p.dividends)
+        n = len(self.names)
+        paper = ["growth", "value", "market"]
+        if self.names == paper:
+            self.res_corr = np.array([
+                [1.0, self.p.residual_corr_gv, self.p.residual_corr_gm],
+                [self.p.residual_corr_gv, 1.0, self.p.residual_corr_vm],
+                [self.p.residual_corr_gm, self.p.residual_corr_vm, 1.0],
+            ])
+        else:
+            self.res_corr = np.eye(max(n, 1))
+        if n:
+            self.chol_v = np.linalg.cholesky(self.res_corr)
+        else:
+            self.chol_v = np.array([[1.0]])
 
     def simulate_states(self, T: int, x0: float = 0.0, s2_0: float | None = None):
         """Simulate the long-run risk factor x_t and variance σ²_t for T periods."""
@@ -49,39 +56,25 @@ class Dynamics:
         return x, s2
 
     def simulate_cashflows(self, T: int, x0: float = 0.0, s2_0: float | None = None):
-        """
-        Full joint simulation of consumption and all portfolio dividend series.
-
-        Returns a dict with keys:
-            x, sigma2, dc, dd_growth, dd_value, dd_market
-        """
+        """Full joint simulation of consumption and all portfolio dividend series."""
         c = self.p.cons
         x, s2 = self.simulate_states(T, x0, s2_0)
 
+        names = self.names
+        n = len(names)
         eta = self.rng.standard_normal(T)
-        v = self.rng.standard_normal((T, 3)) @ self.chol_v.T
-
-        alphas = np.array([
-            self.p.dividends["growth"].alpha,
-            self.p.dividends["value"].alpha,
-            self.p.dividends["market"].alpha,
-        ])
-        scale = np.sqrt(1.0 - alphas**2)
-        u = alphas[None, :] * eta[:, None] + scale[None, :] * v
+        if n:
+            v = self.rng.standard_normal((T, n)) @ self.chol_v.T
+            alphas = np.array([self.p.dividends[name].alpha for name in names])
+            scale = np.sqrt(np.maximum(1.0 - alphas**2, 0.0))
+            u = alphas[None, :] * eta[:, None] + scale[None, :] * v
+        else:
+            u = np.zeros((T, 0))
 
         dc = c.mu + x + np.sqrt(s2) * eta
 
-        dds = {}
-        names = ["growth", "value", "market"]
+        out = {"x": x, "sigma2": s2, "dc": dc}
         for i, name in enumerate(names):
             d = self.p.dividends[name]
-            dds[name] = d.mu + d.phi * x + d.phi_sigma * np.sqrt(s2) * u[:, i]
-
-        return {
-            "x": x,
-            "sigma2": s2,
-            "dc": dc,
-            "dd_growth": dds["growth"],
-            "dd_value": dds["value"],
-            "dd_market": dds["market"],
-        }
+            out[f"dd_{name}"] = d.mu + d.phi * x + d.phi_sigma * np.sqrt(s2) * u[:, i]
+        return out

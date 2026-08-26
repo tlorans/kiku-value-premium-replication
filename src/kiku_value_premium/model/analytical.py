@@ -11,6 +11,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Dict
 from .params import ModelParams, get_default_params
+from .legs import resolve_legs
 from .preferences import EpsteinZinPreferences
 
 
@@ -24,8 +25,8 @@ class AnalyticalSolution:
     Lambda_w: float
     A1: Dict[str, float]
     A2: Dict[str, float]
-    premium_lr: Dict[str, float]  # annualized long-run risk premium component
-    mean_log_pd: Dict[str, float]  # Section 3.4 Campbell–Shiller linearization points
+    premium_lr: Dict[str, float]
+    mean_log_pd: Dict[str, float]
 
 
 def solve_analytical(params: ModelParams | None = None,
@@ -36,38 +37,41 @@ def solve_analytical(params: ModelParams | None = None,
     p = params.prefs
     c = params.cons
 
-    # Campbell-Shiller linearization constants for the consumption claim
     kappa_c1 = np.exp(mean_zc) / (1.0 + np.exp(mean_zc))
 
-    # Elasticities of log P/C (paper eq. 10)
     A_c1 = (1.0 - 1.0 / p.psi) / (1.0 - kappa_c1 * c.rho)
     ratio = kappa_c1 * c.phi_x / (1.0 - kappa_c1 * c.rho)
     term = 1.0 + ratio ** 2
     A_c2 = ((1.0 - p.gamma) * (1.0 - 1.0 / p.psi) * term
             / (2.0 * (1.0 - kappa_c1 * c.nu)))
 
-    # Risk prices (paper eq. 14)
     Lambda_eta = p.gamma
     Lambda_eps = (p.gamma - 1.0 / p.psi) * ratio
     Lambda_w = ((1.0 - p.gamma) * (p.gamma - 1.0 / p.psi)
                 * (kappa_c1 * term / (2.0 * (1.0 - kappa_c1 * c.nu))))
 
     E_sigma2 = c.sigma ** 2
-    mean_zs = {"growth": 3.65, "value": 3.10, "market": 3.24}
+    mean_zs = {
+        "growth": 3.65,
+        "value": 3.10,
+        "market": 3.24,
+        "short": 3.65,
+        "long": 3.10,
+    }
 
     A1: Dict[str, float] = {}
     A2: Dict[str, float] = {}
     premium_lr: Dict[str, float] = {}
+    used_mean_z: Dict[str, float] = {}
 
     for name, d in params.dividends.items():
-        mean_z = mean_zs[name]
+        mean_z = mean_zs.get(name, 3.30)
+        used_mean_z[name] = mean_z
         kappa1 = np.exp(mean_z) / (1.0 + np.exp(mean_z))
 
-        # Elasticity to expected growth (paper eq. 11)
         A1_i = (d.phi - 1.0 / p.psi) / (1.0 - kappa1 * c.rho)
         A1[name] = A1_i
 
-        # Simplified A2 (full expression in paper eq. 12)
         H1 = p.gamma**2 + d.phi_sigma**2 - 2.0 * p.gamma * d.phi_sigma * d.alpha
         tmp = ((p.theta - 1.0) * kappa_c1 * A_c1 + kappa1 * A1_i)
         H2 = (tmp * c.phi_x) ** 2
@@ -76,10 +80,9 @@ def solve_analytical(params: ModelParams | None = None,
                 / (1.0 - kappa1 * c.nu))
         A2[name] = A2_i
 
-        # Long-run beta and premium (dominant term)
         beta_eps = kappa1 * A1_i * c.phi_x
         prem_m = beta_eps * Lambda_eps * E_sigma2
-        premium_lr[name] = prem_m * 12.0  # annualize
+        premium_lr[name] = prem_m * 12.0
 
     return AnalyticalSolution(
         kappa_c1=kappa_c1,
@@ -91,16 +94,25 @@ def solve_analytical(params: ModelParams | None = None,
         A1=A1,
         A2=A2,
         premium_lr=premium_lr,
-        mean_log_pd=dict(mean_zs),
+        mean_log_pd=used_mean_z,
     )
 
 
-def print_value_premium(sol: AnalyticalSolution) -> None:
+def print_value_premium(
+    sol: AnalyticalSolution,
+    long: str | None = None,
+    short: str | None = None,
+) -> None:
     print("Approximate annualized long-run risk premia (paper mechanism):")
     for name, prem in sol.premium_lr.items():
         print(f"  {name:8s}: {prem:7.2%}")
-    vp = sol.premium_lr["value"] - sol.premium_lr["growth"]
-    print(f"Value-growth spread from long-run risks: {vp:.2%}")
-    print(f"A1 (PD elasticity to x): growth={sol.A1['growth']:.1f}, "
-          f"value={sol.A1['value']:.1f}")
+    long_key, short_key, _ = resolve_legs(sol.premium_lr, long=long, short=short)
+    vp = sol.premium_lr[long_key] - sol.premium_lr[short_key]
+    paper_names = {long_key, short_key} <= {"value", "growth"}
+    label = "Value-growth" if paper_names else "Long-short"
+    print(f"{label} spread from long-run risks: {vp:.2%}")
+    print(
+        f"A1 (PD elasticity to x): {short_key}={sol.A1[short_key]:.1f}, "
+        f"{long_key}={sol.A1[long_key]:.1f}"
+    )
     print(f"Price of long-run risk Lambda_eps = {sol.Lambda_eps:.2f}")
