@@ -10,7 +10,7 @@ Dana Kiku
 Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %})  
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %}) · [Section 7]({% link climate.md %})  
 [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})
 
 ## Abstract
@@ -46,7 +46,7 @@ If the premium appears in step 4, it is a prediction. Feeding the premium into s
 
 Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Persistence of expected consumption growth is $$\rho=0.98$$. With those numbers the model produces about 5.3 percent of value premium, a lower mean $$\log(P/D)$$ on value than on growth, and a value-to-growth CAPM-beta ratio below one.
 
-Fama and French (2015) later isolate two further CAPM failures, profitability and investment. [Section 6]({% link further.md %}) records those facts and states the same cash-flow test for RMW and CMA. Those premia are not calibration targets either.
+Fama and French (2015) later isolate two further CAPM failures, profitability and investment. [Section 6]({% link further.md %}) records those facts and states the same cash-flow test for RMW, CMA, and size. Melin and Zhang (2026) put climate into the same consumption process and price the market. [Section 7]({% link climate.md %}) writes the corresponding test for transition and physical sorts. Those premia are not calibration targets either.
 
 The companion package follows the same order. Four subpackages implement Sections 2–5. Core installation solves the model at the Table II calibration with no data credentials. Reconstructing Table I from CRSP and Compustat requires the optional `[data]` extra and a WRDS login; see [Installation]({% link installation.md %}).
 
@@ -61,3 +61,5 @@ Epstein, L., and S. Zin. 1989. “Substitution, Risk Aversion, and the Temporal 
 Fama, E., and K. French. 1993. “Common Risk Factors in the Returns on Stocks and Bonds.” *Journal of Financial Economics* 33 (1): 3–56.
 
 Fama, E., and K. French. 2015. “A Five-Factor Asset Pricing Model.” *Journal of Financial Economics* 116 (1): 1–22.
+
+Melin, L., and F. Zhang. 2026. “Quantifying Climate Risk Premia.” EDHEC Climate Institute.
