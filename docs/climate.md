@@ -1,6 +1,7 @@
 ---
-title: 7. Climate risk premia
-nav_order: 10
+title: Climate
+parent: Cross section
+nav_order: 3
 ---
 
 # 7. Climate risk premia
@@ -9,7 +10,7 @@ nav_order: 10
 1. TOC
 {:toc}
 
-Sections 2–5 price book-to-market claims. Section 6 maps profitability, investment, and size onto the same four loadings. Melin and Zhang (2026) put climate into the long-run risks consumption process and price a single market equity. Chronic physical damage and transition cost raise that claim’s premium by about twenty percent at three degrees of warming. I record their aggregate moments and state how a climate sort maps onto the cash-flow parameters of Section 3.
+Sections 2–5 account for time-series properties of the market claim and cross-sectional properties of book-to-market claims. Section 6 asks whether that cross-sectional property extends to profitability, investment, and size. Melin and Zhang (2026) put climate into the long-run risks consumption process and price a single market equity. Chronic physical damage and transition cost raise that claim’s premium by about twenty percent at three degrees of warming. I record their aggregate moments and state how a climate sort maps onto the cash-flow parameters of Section 3.
 
 Those parameters are still chosen from consumption and dividends. Average brown–green returns are not used. Two further loadings appear, $$\Omega^i$$ on the persistent damage signal and $$\Gamma^i$$ on policy tightening. The objects to inspect after estimation are $$(\mu,\phi,\Omega^i,\Gamma^i)$$. A climate sort that differs only in $$\phi$$ is the value mechanism under another characteristic.
 
