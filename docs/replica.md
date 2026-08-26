@@ -1,19 +1,17 @@
 ---
 title: The replica
-nav_order: 4
+nav_order: 8
 has_children: true
 has_toc: false
 ---
 
 # The replica
 
-Sections 2–5 are the paper. They produce both objects: the market row of Table VII is the time-series check; the value–growth rows are the first cross-section.
+Sections 2–5 in paper order. The argument of this site is not this order. It is [time series]({% link time-series.md %}) then [cross section]({% link cross-section.md %}).
 
 | Section | Role |
 |:---|:---|
-| [2. Empirical evidence]({% link empirical.md %}) | Measure the three claims, 1930–2003 |
+| [2. Empirical evidence]({% link empirical.md %}) | Value, growth, and the market, 1930–2003 |
 | [3. The long-run risks model]({% link model.md %}) | IMRS and heterogeneous $$\phi$$ |
 | [4. Calibration]({% link calibration.md %}) | Cash-flow moments only |
-| [5. Asset pricing implications]({% link implications.md %}) | Read prices off the Euler equation |
-
-The six-percent premium is a fact in Section 2. It is not an input to Section 4. If it appears in Section 5, it is a prediction.
+| [5. Asset pricing implications]({% link implications.md %}) | Table VII |
