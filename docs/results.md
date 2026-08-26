@@ -20,7 +20,7 @@ The log-linear solution isolates the contribution of the persistent expected-gro
 
 **Value–growth long-run risk spread** ≈ 0.40 % (this is the dominant channel; the full numerical model amplifies it to the 5.3 % value premium reported in the paper).
 
-![Long-run risk premium decomposition](../figures/lr_premium_decomposition.svg)
+![Long-run risk premium decomposition](figures/lr_premium_decomposition.svg)
 
 *Figure: Analytical long-run risk premia. The large difference in $\phi$ (value vs growth) is the economic heart of the paper.*
 
@@ -50,7 +50,7 @@ Full numerical solution on the 30 × 4 grid recovers:
 | CAPM β Value / Growth             | β_V ≲ β_G              | model reproduces CAPM failure     |
 | Sharpe ratios                     | Value > Growth         | recovered                         |
 
-![Mean log(P/D) ranking](../figures/mean_log_pd.svg)
+![Mean log(P/D) ranking](figures/mean_log_pd.svg)
 
 *Figure: Mean log price–dividend ratios under the stationary distribution. Value firms are cheaper precisely because they carry more long-run risk.*
 
