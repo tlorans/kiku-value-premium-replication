@@ -1,9 +1,14 @@
 """
-Kiku (2006) Value Premium Puzzle – Replication Package
-=====================================================
+Time-series and cross-sectional properties of prices and returns
+===============================================================
 
-This package is a transparent replica of Dana Kiku’s Job Market Paper
-“Is the Value Premium a Puzzle?”. The public API follows her paper order.
+Replica of Dana Kiku (2006), “Is the Value Premium a Puzzle?”
+
+Once cash-flow dynamics are calibrated to consumption and dividends, the
+model is asked to account for both time-series and cross-sectional
+properties of assets’ prices and returns. The time-series object is the
+market claim. The first cross-sectional object is value versus growth.
+Sections 6–7 ask the same question of other premia.
 
 2. Empirical Evidence
    → `empirical.START`, `empirical.END`
