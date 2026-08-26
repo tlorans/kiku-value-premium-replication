@@ -12,7 +12,7 @@ This package is a transparent replica of Dana Kiku’s Job Market Paper
    → `model.ModelParams`, `model.PreferencesParams`, `model.ConsumptionParams`,
      `model.DividendParams`, `model.get_table_ii_params`,
      `model.EpsteinZinPreferences`, `model.Dynamics`, `model.StateGrid`,
-     `model.ModelSolver`, `model.solve_analytical`
+     `model.ModelSolver`, `model.solve_analytical`, `model.resolve_legs`
 
 4. Calibration
    → `calibration.estimate_long_run_leverage`, `calibration.calibrate_from_data`,
@@ -41,6 +41,7 @@ from .model import (
     StateGrid,
     ModelSolver,
     solve_analytical,
+    resolve_legs,
 )
 from .calibration import (
     estimate_long_run_leverage,
@@ -57,10 +58,8 @@ from .implications import (
 )
 
 __all__ = [
-    # Section 2 – Empirical Evidence
     "START",
     "END",
-    # Section 3 – Model
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
@@ -71,12 +70,11 @@ __all__ = [
     "StateGrid",
     "ModelSolver",
     "solve_analytical",
-    # Section 4 – Calibration
+    "resolve_legs",
     "estimate_long_run_leverage",
     "calibrate_from_data",
     "get_table_ii_dividends",
     "simulate_cashflow_moments",
-    # Section 5 – Asset Pricing Implications
     "compute_asset_pricing_moments",
     "print_asset_pricing_moments",
     "figure_lr_premium",

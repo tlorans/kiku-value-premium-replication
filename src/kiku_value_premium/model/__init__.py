@@ -1,3 +1,4 @@
+from .legs import ROLE_ALIASES, resolve_legs
 from .params import (
     ConsumptionParams,
     DividendParams,
@@ -13,6 +14,8 @@ from .solver import ModelSolver
 from .analytical import AnalyticalSolution, print_value_premium, solve_analytical
 
 __all__ = [
+    "ROLE_ALIASES",
+    "resolve_legs",
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
