@@ -20,6 +20,22 @@ def test_table_vi_schema():
     assert {"claim", "phi_tilde", "phi_se", "innov_corr"} <= set(out.columns)
 
 
+def test_table_vi_ignores_dc_outside_window():
+    bm = pd.read_csv(FIX / "tiny_panel.csv")
+    dc = pd.read_csv(FIX / "tiny_dc.csv").set_index("year")["dc"]
+    long_dc = pd.concat(
+        [pd.Series({1998: 0.99, 1999: -0.50, 2004: 0.80, 2005: -0.40}), dc]
+    ).sort_index()
+    wide = table_vi_data(bm, long_dc, 2000, 2003).set_index("claim")
+    sliced = table_vi_data(bm, dc.loc[2000:2003], 2000, 2003).set_index("claim")
+    for claim in ("Growth", "Value", "Market"):
+        for col in ("phi_tilde", "innov_corr"):
+            a, b = wide.loc[claim, col], sliced.loc[claim, col]
+            if pd.isna(a) and pd.isna(b):
+                continue
+            assert a == b, (claim, col, a, b)
+
+
 def test_figures_write_files(tmp_path):
     bm = pd.read_csv(FIX / "tiny_panel.csv")
     dc = pd.read_csv(FIX / "tiny_dc.csv").set_index("year")["dc"]

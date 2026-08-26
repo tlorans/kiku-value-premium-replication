@@ -44,6 +44,11 @@ def _slice_window(bm: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
     return bm[(bm["year"] >= start) & (bm["year"] <= end)].copy()
 
 
+def _slice_dc(dc: pd.Series, start: int, end: int) -> pd.Series:
+    s = pd.Series(dc).astype(float)
+    return s[(s.index >= start) & (s.index <= end)]
+
+
 def newey_west_ols_se(y: np.ndarray, x: np.ndarray, lags: int = 4) -> float:
     """Newey–West HAC SE of the slope in y = a + b x."""
     y = np.asarray(y, dtype=float).ravel()
@@ -169,7 +174,7 @@ def table_vi_data(
 ) -> pd.DataFrame:
     """Table VI data column: eq. (19) φ̃ (NW 4 lags) and innovation correlations."""
     sub = _slice_window(bm, start, end)
-    dc_s = pd.Series(dc).astype(float)
+    dc_s = _slice_dc(dc, start, end)
     eta = _ar1_residual(dc_s)
     rows = []
     for claim in CLAIMS:
