@@ -9,9 +9,9 @@ nav_order: 2
 1. TOC
 {:toc}
 
-The time-series object is the market claim. I specify an Epstein–Zin investor and a consumption process with a small persistent component $$x_t$$, calibrate those laws to aggregate consumption and market dividends, and ask the Euler equation for the equity premium, the risk-free rate, market return volatility, and market $$\log(P/D)$$. Average market returns are not used to choose the parameters.
+Long-run risks entered macro-finance as an account of the *market*. Cochrane (2017) places Bansal and Yaron (2004) and Bansal, Kiku, and Yaron (2012) in a sampling with habits and disasters: competing mechanisms for a discount factor volatile enough to price the equity premium, with risk-bearing capacity that varies over time. The objects those papers are asked to match are time-series objects — the equity premium, the risk-free rate, the volatility of the market return and of $$\log(P/D)$$, predictability by the dividend yield. That is still how the model is usually judged.
 
-That is the usual test of a consumption-based model. Bansal and Yaron (2004) already showed that this investor can accommodate the time-series behavior of the aggregate equity market. I record the same check in Kiku (2006). It does not rank firms. The [cross section]({% link cross-section.md %}) is a different object.
+I specify an Epstein–Zin investor and a consumption process with a small persistent component $$x_t$$, calibrate those laws to aggregate consumption and market dividends, and ask the Euler equation for those same moments. Average market returns are not used to choose the parameters. I record the check in Kiku (2006). It does not rank firms.
 
 ## Preferences and the IMRS
 
@@ -109,7 +109,7 @@ Cash-flow parameters locked, the Euler equation is asked for prices. Table VII, 
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Market return volatility: 20.1 percent in the data and in the model. The same investor produces a risk-free rate that is too high by about seventy basis points and an equity premium that is a little short of the sample. That is the time-series record of the paper. It is close enough that the investor can be asked a second question.
+Market return volatility: 20.1 percent in the data and in the model. The same investor produces a risk-free rate that is too high by about seventy basis points and an equity premium that is a little short of the sample. That is the time-series record. It is close enough that the investor can be asked a second question.
 
 ```python
 from kiku_value_premium.model import get_table_ii_params, ModelSolver, solve_analytical, print_value_premium
@@ -122,10 +122,8 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-The printed market column is the time-series check. The value and growth columns on the same printout are not. They belong to the [cross section]({% link cross-section.md %}).
+The printed market column is this page. The value and growth columns on the same printout belong to the [cross section]({% link cross-section.md %}).
 
 ## What this object does not settle
 
-Matching the market does not explain why two claims with market betas near one earn different average returns. Melin and Zhang (2026) keep this object and put climate into consumption: at $$3^{\circ}$$C the *market* equity premium is about twenty percent higher than in a no-climate counterfactual. That is still a time-series statement. It does not rank brown against green.
-
-[The replica]({% link replica.md %}) keeps Sections 2–5 of the paper in her order.
+Matching the market does not explain why two claims with market betas near one earn different average returns. Evaluations of long-run risks that stop here leave that column empty. Melin and Zhang (2026) keep this object and put climate into consumption: at $$3^{\circ}$$C the *market* equity premium is about twenty percent higher than in a no-climate counterfactual. That is still a time-series statement. It does not rank brown against green.
