@@ -25,6 +25,11 @@ th, td {
   white-space: nowrap;
 }
 
+td:last-child,
+th:last-child {
+  white-space: normal;
+}
+
 td.wrap, th.wrap {
   white-space: normal;
 }

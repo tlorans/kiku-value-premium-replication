@@ -7,7 +7,10 @@ nav_order: 2
 
 {: .fs-6 .fw-300 }
 
-Core install solves Table II with no secrets. Section 2 needs WRDS.
+**In a nutshell.** Core install solves the model at Table II with no secrets. That is enough to see *why* a larger $$\phi$$ produces a value premium. Rebuilding Table I from CRSP/Compustat needs WRDS, and only if you want the 1930–2003 facts from scratch.
+
+{: .why }
+The argument has a data half and a model half. You do not need Wall Street credentials to understand the machine. You need them only to rebuild Section 2’s tables from the original tapes.
 
 ## Package
 

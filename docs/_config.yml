@@ -38,6 +38,15 @@ callouts:
   caution:
     title: Construction
     color: yellow
+  why:
+    title: Why
+    color: green
+  here:
+    title: You are here
+    color: grey
+  idea:
+    title: The idea
+    color: purple
 
 markdown: kramdown
 kramdown:

@@ -5,7 +5,12 @@ nav_order: 7
 
 # API
 
-Version 0.3.0 names follow Sections 2–5. The 0.2.0 modules `params`, `solver`, `moments`, `simulation`, and `analytical` were removed.
+**In a nutshell.** The four import paths are the four paper sections. If you know which question you are asking — facts, machine, cash-flow numbers, or predicted prices — you know which module to import.
+
+{: .why }
+Version 0.3.0 dropped the old names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument. A function that prices assets does not live next to the WRDS pull.
+
+Version 0.3.0 names follow Sections 2–5.
 
 | Section | Import | Objects |
 |:---|:---|:---|

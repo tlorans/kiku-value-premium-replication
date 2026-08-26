@@ -58,3 +58,20 @@ def test_section_pages_carry_her_equations():
     emp = (ROOT / "empirical.md").read_text(encoding="utf-8")
     assert "7.81" in emp and "13.88" in emp
     assert "Figure 1" in emp
+    assert "In a nutshell" in (ROOT / "index.md").read_text(encoding="utf-8")
+    for name in (
+        "empirical.md",
+        "model.md",
+        "calibration.md",
+        "implications.md",
+        "installation.md",
+        "api.md",
+        "generalization.md",
+    ):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "**In a nutshell.**" in text
+    for name in ("empirical.md", "model.md", "calibration.md", "implications.md"):
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "{: .why }" in text
+        assert "{: .idea }" in text
+        assert "{: .here }" in text
