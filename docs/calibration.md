@@ -6,7 +6,7 @@ nav_order: 5
 # Calibration of the Model
 {: .no_toc }
 
-Kiku’s Section 4. The discipline is the whole paper: match time-series cash-flow moments, then *read* returns and valuations off the model. Premia never enter the calibration.
+Section 4 matches time-series cash-flow moments, then reads returns and valuations from the solved model. Premia never enter the calibration.
 
 1. TOC
 {:toc}
@@ -92,6 +92,4 @@ She reports means and cross-simulation standard deviations across 1000 samples o
 Dividend-growth model column (Table IV): value mean growth higher than growth’s, value more volatile, market more correlated with $$\Delta c$$ (0.57) than value (0.38) or growth (0.33). Table V model Δd correlations: GV 0.31, GM 0.80, VM 0.50.
 
 {: .package }
-`simulate_cashflow_moments` returns `consumption["E[dc]"]`, `"sigma(dc)"`, `"AC1"`, and `dividends[name]["E[dd]"]` / `"sigma(dd)"` / `"AC1"` / `"corr(dc,dd)"`. The default in examples is 20 simulations so a laptop finishes; her table is 1000. Tests only require simulated E[Δc] in a 1–3 percent annual range. Those are model-column rankings, not the empirical SE gate.
-
-Next: [Asset pricing implications]({% link implications.md %}).
+`simulate_cashflow_moments` returns `consumption["E[dc]"]`, `"sigma(dc)"`, `"AC1"`, and `dividends[name]["E[dd]"]` / `"sigma(dd)"` / `"AC1"` / `"corr(dc,dd)"`. Examples use 20 simulations; Table III uses 1000. Tests require simulated mean consumption growth between 1 and 3 percent per year. That check is the model column, not the empirical SE gate.

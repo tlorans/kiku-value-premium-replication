@@ -5,7 +5,7 @@ nav_order: 7
 
 # API
 
-Public names follow her sections 2–5. Version 0.3.0. The 0.2.0 modules `params`, `solver`, `moments`, `simulation`, and `analytical` are gone; there is no shim.
+Version 0.3.0 names follow Sections 2–5. The 0.2.0 modules `params`, `solver`, `moments`, `simulation`, and `analytical` were removed.
 
 | Section | Import | Objects |
 |:---|:---|:---|

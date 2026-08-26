@@ -5,7 +5,7 @@ nav_order: 8
 
 # Other portfolios
 
-The same cash-flow-only recipe prices any cross-section once you supply consumption growth and dividend-growth series — industries, quality, profitability, investment, countries.
+The same cash-flow-only procedure prices any cross-section given consumption growth and dividend-growth series (industries, quality, profitability, investment, countries).
 
 Keep Table II aggregate consumption and Epstein–Zin preferences. Only `DividendParams` change. `calibrate_from_data` estimates $$\mu$$, $$\tilde\phi$$ from equation (19), $$\alpha$$ from residual/consumption-innovation correlation, and $$\varphi_\sigma$$ as residual vol over consumption-innovation vol (fallback 7.5). It never sees return premia.
 
@@ -29,7 +29,7 @@ solver.solve()
 moments = compute_asset_pricing_moments(solver)
 ```
 
-Higher estimated $$\phi$$ means higher long-run risk premia and lower price–dividend ratios — the same ranking value has in her paper.
+A higher estimated $$\phi$$ implies a higher long-run risk premium and a lower price–dividend ratio, the ranking value has in Kiku (2006).
 
 - [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py)
 - [`examples/calibrate_from_real_data.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_from_real_data.py)

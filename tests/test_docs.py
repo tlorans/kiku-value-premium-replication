@@ -19,6 +19,9 @@ def test_pages_nav_is_paper_order():
     for gone in ("KIKU_RECIPE.md", "results.md", "examples.md"):
         assert gone not in cfg
         assert not (ROOT / gone).exists()
+    assert not (ROOT / "superpowers").exists()
+    cfg_l = cfg.lower()
+    assert "package revamp" not in cfg_l
     orders = []
     for name in ("empirical.md", "model.md", "calibration.md", "implications.md"):
         text = (ROOT / name).read_text(encoding="utf-8")

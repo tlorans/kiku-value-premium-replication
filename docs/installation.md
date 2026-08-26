@@ -42,8 +42,8 @@ If `[data]` or `.env` is missing, the script skips Section 2, prints why, and co
 
 Shorter demos that never touch WRDS:
 
-- [`examples/demo.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/demo.py) — analytical long-run premia and simulated cash-flow moments
-- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py) — `calibrate_from_data` on a synthetic cross-section
+- [`examples/demo.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/demo.py): analytical long-run premia and simulated cash-flow moments
+- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py): `calibrate_from_data` on a synthetic cross-section
 
 ## First run without WRDS
 
@@ -71,4 +71,4 @@ print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 
 Value’s long-run leverage is $$\phi=6.2$$ against growth’s $$2.6$$. The analytical solution ranks the long-run risk premium value above growth; numerical expected returns rank value above market above growth.
 
-Next: [Empirical evidence]({% link empirical.md %}).
+[Empirical evidence]({% link empirical.md %}) builds Table I from the WRDS panel.

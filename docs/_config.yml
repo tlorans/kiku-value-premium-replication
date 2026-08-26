@@ -45,6 +45,10 @@ kramdown:
   syntax_highlighter: rouge
   hard_wrap: false
 
+exclude:
+  - superpowers
+  - superpowers/**
+
 compress_html:
   ignore:
     envs: all

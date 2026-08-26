@@ -5,7 +5,7 @@ Python replica of Dana Kiku (2006). The model is Bansal and Yaron (2004) long-ru
 In the 1930–2003 sample, as in the model, value cash flows load more on the persistent component of consumption growth than growth cash flows do. That leverage gap, amplified by $\rho = 0.98$, produces a model value premium of about 5.3 percent against about 6 percent in the data. CAPM betas do not explain the spread.
 
 **Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)  
-The site follows her paper (sidebar, equations, Printed vs Package tables). This README is the GitHub landing page.
+Documentation: equations, Printed vs Package tables, and her section order.
 
 | Her section | Site | Package |
 |---|---|---|

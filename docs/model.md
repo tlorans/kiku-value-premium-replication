@@ -6,7 +6,7 @@ nav_order: 4
 # The Long-Run Risks Model
 {: .no_toc }
 
-Kiku’s Section 3. She adopts Bansal and Yaron (2004). Two ingredients matter equally: a small persistent component in cash-flow growth, and Epstein–Zin preferences that break the link between risk aversion and the IES.
+Section 3 of Kiku (2006) uses Bansal and Yaron (2004). Cash-flow growth contains a small persistent component $$x_t$$. Epstein–Zin preferences price that component separately from short-run consumption news because risk aversion $$\gamma$$ need not equal $$1/\psi$$.
 
 1. TOC
 {:toc}
@@ -58,7 +58,7 @@ x_{t+1}&=\rho x_t+\varphi_x\sigma_t\epsilon_{t+1},\\
 \end{aligned}
 $$
 
-Shocks are Gaussian. $$\alpha=\mathrm{Corr}(\eta_t,u_t)$$ is the only allowed contemporaneous correlation. $$\phi$$ is long-run leverage on expected consumption growth — the cross-sectional object that will produce the value premium. $$\varphi$$ loads dividends on volatility and short-run consumption news.
+Shocks are Gaussian. $$\alpha=\mathrm{Corr}(\eta_t,u_t)$$ is the only contemporaneous correlation she allows. $$\phi$$ is long-run leverage on expected consumption growth. Value and growth differ in $$\phi$$; that difference is the value premium. $$\varphi$$ loads dividends on volatility and short-run consumption news.
 
 Table II (monthly): $$\rho=0.98$$, $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$, $$\phi_{\text{market}}=2.8$$.
 
@@ -121,6 +121,4 @@ from kiku_value_premium.model import solve_analytical, print_value_premium, get_
 print_value_premium(solve_analytical(get_table_ii_params()))
 ```
 
-`solve_analytical` ranks the long-run risk premium value > growth and uses linearization points $$\log(P/D)$$ of 3.65 / 3.10 / 3.24 (growth / value / market).
-
-Next: [Calibration]({% link calibration.md %}).
+`solve_analytical` ranks the long-run risk premium of value above growth. The Campbell–Shiller points for $$\log(P/D)$$ are 3.65 (growth), 3.10 (value), and 3.24 (market).

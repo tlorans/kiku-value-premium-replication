@@ -6,7 +6,7 @@ nav_order: 3
 # Empirical Evidence: Value / Growth / Market
 {: .no_toc }
 
-Kiku’s Section 2. Sample 1930–2003. Growth is the bottom book-to-market quintile, value the top, market the CRSP value-weighted market.
+Section 2 of Kiku (2006) uses annual value-weighted real returns and dividends, 1930–2003. Growth is the bottom book-to-market quintile, value the top, and the market the CRSP value-weighted market.
 
 {: .paper }
 “One of the most robust features of financial data is the finding that value firms, on average, have higher returns than growth firms.” Over 74 years the value strategy delivered superior returns about 70 percent of the time. Growth offers about 8 percent, value about 14 percent; the value premium is about 6 percent.
@@ -132,4 +132,4 @@ Ranking is preserved: value’s long-run loading exceeds growth’s.
 
 <p class="caption">Figure 4. Three-year moving average of dividend growth versus rescaled consumption growth. Her correlations: 0.25 (growth) and 0.52 (value).</p>
 
-Next: [The long-run risks model]({% link model.md %}).
+[The long-run risks model]({% link model.md %}) prices these cash-flow loadings.
