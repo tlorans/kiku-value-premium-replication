@@ -14,6 +14,7 @@ The site is the paper in paper order, with the code that implements each equatio
 | 3. The long-run risks model | [Model](https://tlorans.github.io/kiku-value-premium-replication/model.html) | `kiku_value_premium.model` |
 | 4. Calibration | [Calibration](https://tlorans.github.io/kiku-value-premium-replication/calibration.html) | `kiku_value_premium.calibration` |
 | 5. Asset pricing implications | [Implications](https://tlorans.github.io/kiku-value-premium-replication/implications.html) | `kiku_value_premium.implications` |
+| 6. Further applications | [RMW and CMA](https://tlorans.github.io/kiku-value-premium-replication/further.html) | same calibration path |
 
 [Installation](https://tlorans.github.io/kiku-value-premium-replication/installation.html) · [API](https://tlorans.github.io/kiku-value-premium-replication/api.html) · [Other portfolios](https://tlorans.github.io/kiku-value-premium-replication/generalization.html)
 
@@ -59,6 +60,8 @@ Value’s long-run leverage is $$\phi = 6.2$$ against growth’s $$2.6$$. Calibr
 Kiku, D. (2006). *Is the Value Premium a Puzzle?* Job Market Paper, Duke University / Wharton.
 
 Bansal, R., and A. Yaron. (2004). “Risks for the Long Run.” *Journal of Finance*.
+
+Fama, E., and K. French. (2015). “A Five-Factor Asset Pricing Model.” *Journal of Financial Economics*.
 
 ## License
 
