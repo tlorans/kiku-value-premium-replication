@@ -5,12 +5,9 @@ nav_order: 7
 
 # API
 
-**In a nutshell.** The four import paths are the four paper sections. If you know which question you are asking — facts, machine, cash-flow numbers, or predicted prices — you know which module to import.
+**In a nutshell.** The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull.
 
-{: .why }
-Version 0.3.0 dropped the old names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument. A function that prices assets does not live next to the WRDS pull.
-
-Version 0.3.0 names follow Sections 2–5.
+Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument.
 
 | Section | Import | Objects |
 |:---|:---|:---|

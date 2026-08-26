@@ -5,12 +5,10 @@ nav_order: 2
 
 # Installation
 
-{: .fs-6 .fw-300 }
-
-**In a nutshell.** Core install solves the model at Table II with no secrets. That is enough to see *why* a larger $$\phi$$ produces a value premium. Rebuilding Table I from CRSP/Compustat needs WRDS, and only if you want the 1930–2003 facts from scratch.
+**In a nutshell.** The core install solves the model at the Table II calibration. Reconstructing Section 2 from the CRSP and Compustat tapes is optional and requires WRDS.
 
 {: .why }
-The argument has a data half and a model half. You do not need Wall Street credentials to understand the machine. You need them only to rebuild Section 2’s tables from the original tapes.
+The pricing argument does not depend on a data vendor. Only the reconstruction of Table I does.
 
 ## Package
 
@@ -22,7 +20,7 @@ uv pip install -e ".[fast]"   # Numba on the Euler loops
 uv pip install -e ".[data]"   # WRDS + figures
 ```
 
-Core dependencies are numpy, scipy, and pandas.
+Core dependencies are numpy, scipy, and pandas. The decision interval in the model is one month. The published grid is $$n_x=30$$ points on $$x$$ and $$n_s=4$$ points on $$\sigma^2$$, with a 7-point Gauss–Hermite rule on the short-run innovation $$\eta$$.
 
 ## WRDS credentials (Section 2 only)
 
@@ -35,18 +33,18 @@ WRDS_PASSWORD=...
 
 `connect_wrds()` raises `EmpiricalDataError` if the `[data]` extra is missing or the keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
 
-## Run her paper in order
+## Walk the paper in order
 
 ```bash
 uv run python examples/run_paper.py
 ```
 
-If `[data]` or `.env` is missing, the script skips Section 2, prints why, and continues from Table II. The example uses $$n_x=15$$ so it finishes; her grid is $$n_x=30$$.
+If `[data]` or `.env` is missing, the script skips Section 2, prints the reason, and continues from Table II. The example uses $$n_x=15$$ so a laptop finishes; the paper grid is $$n_x=30$$.
 
-Shorter demos that never touch WRDS:
+Demos that never touch WRDS:
 
-- [`examples/demo.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/demo.py): analytical long-run premia and simulated cash-flow moments
-- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py): `calibrate_from_data` on a synthetic cross-section
+- [`examples/demo.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/demo.py) — Section 3.4 premia and simulated cash-flow moments
+- [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py) — `calibrate_from_data` on a synthetic cross-section
 
 ## First run without WRDS
 
@@ -72,6 +70,6 @@ solver.solve()
 print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 ```
 
-Value’s long-run leverage is $$\phi=6.2$$ against growth’s $$2.6$$. The analytical solution ranks the long-run risk premium value above growth; numerical expected returns rank value above market above growth.
+Value’s long-run leverage is $$\phi=6.2$$ against growth’s $$2.6$$. The analytical solution ranks the long-run risk premium on value above that on growth. Numerical expected returns rank value above market above growth.
 
-[Empirical evidence]({% link empirical.md %}) builds Table I from the WRDS panel.
+[Section 2]({% link empirical.md %}) builds Table I from the committed annual panel, or from WRDS if `refresh=True`.
