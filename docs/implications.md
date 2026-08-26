@@ -11,11 +11,13 @@ nav_order: 6
 
 Cash-flow parameters are locked. I ask the Euler equation what returns and price–dividend ratios must be. I do not retune $$\phi$$ if the premium comes out wrong.
 
-The model produces a value premium of about 5.3 percent against about 6 percent in the data, a lower price–dividend ratio on value than on growth, and CAPM betas that continue to fail.
+Table VII has two objects. The market row is the time-series property of the aggregate equity claim — the usual check that a consumption-based model can accommodate the equity premium, the risk-free rate, and market $$\log(P/D)$$. The value and growth rows are the cross-sectional property. Matching the market alone would not resolve the puzzle.
 
-Success is three facts together. Value’s expected return exceeds growth’s by about the right amount. Value’s price–dividend ratio is lower. Value’s CAPM beta is not larger than growth’s. The risk being priced is exposure to $$x_t$$, which is not covariance with the market portfolio.
+The model produces a value premium of about 5.3 percent against about 6 percent in the data, a lower price–dividend ratio on value than on growth, and CAPM betas that continue to fail. The same calibration accommodates the time-series behavior of the market.
 
-[Section 4]({% link calibration.md %}) never saw mean returns. If Table VII’s model column is close to the data, the premium is coming from differential $$\phi$$ and the Epstein–Zin price of long-run news.
+Success is three cross-sectional facts together. Value’s expected return exceeds growth’s by about the right amount. Value’s price–dividend ratio is lower. Value’s CAPM beta is not larger than growth’s. The risk being priced is exposure to $$x_t$$, which is not covariance with the market portfolio.
+
+[Section 4]({% link calibration.md %}) never saw mean returns. If Table VII’s model column is close to the data, the premium is coming from differential $$\phi$$ and the Epstein–Zin price of long-run news. [Section 6]({% link further.md %}) and [Section 7]({% link climate.md %}) ask whether that cross-sectional pricing power survives when the characteristic is no longer book-to-market.
 
 ## 5.1 What would count as failure
 
@@ -58,7 +60,7 @@ print_asset_pricing_moments(compute_asset_pricing_moments(solver))
 
 Return volatilities: data 20.2 / 29.9 / 20.1; model 21.5 / 29.0 / 20.1. The package recovers the ranking: expected returns value above market above growth, and $$\log(P/D)$$ value below market below growth.
 
-Value is both the high-return claim and the low price–dividend claim. That pair is what leverage on $$x_t$$ is supposed to deliver.
+Value is both the high-return claim and the low price–dividend claim. That pair is what leverage on $$x_t$$ is supposed to deliver. The market row is the time-series check that the same investor still prices the aggregate claim.
 
 ## 5.4 CAPM and C-CAPM (Table VIII)
 
