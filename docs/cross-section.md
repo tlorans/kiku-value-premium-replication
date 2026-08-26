@@ -1,8 +1,6 @@
 ---
 title: Cross section
 nav_order: 8
-has_children: true
-has_toc: false
 ---
 
 # Cross-sectional properties of prices and returns
