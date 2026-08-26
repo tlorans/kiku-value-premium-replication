@@ -5,10 +5,7 @@ nav_order: 2
 
 # Installation
 
-**In a nutshell.** The core install solves the model at the Table II calibration. Reconstructing Section 2 from the CRSP and Compustat tapes is optional and requires WRDS.
-
-{: .why }
-The pricing argument does not depend on a data vendor. Only the reconstruction of Table I does.
+The core install solves the model at the Table II calibration. Reconstructing Section 2 from the CRSP and Compustat tapes is optional and requires WRDS. The pricing argument does not depend on a data vendor. Only the reconstruction of Table I does.
 
 ## Package
 

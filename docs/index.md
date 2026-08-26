@@ -6,20 +6,11 @@ permalink: /
 
 # Is the Value Premium a Puzzle?
 
-Dana Kiku — Job Market Paper, January 17, 2006  
+Dana Kiku  
+Job Market Paper — January 17, 2006  
 Companion package `kiku_value_premium` 0.3.0
 
-**In a nutshell.** Value firms earn a higher average return than growth firms, sell at a lower price–dividend ratio, and load more heavily on the persistent component of consumption growth. I show that this dispersion in long-run cash-flow risk, priced by Epstein–Zin preferences, accounts for the historical value premium and for the failure of the CAPM.
-
-This site is the paper, in paper order, with the code that implements each equation. The four sections map onto four subpackages.
-
-| Paper | Site | Package |
-|:---|:---|:---|
-| 2. Empirical evidence | [Empirical]({% link empirical.md %}) | `kiku_value_premium.empirical` |
-| 3. The long-run risks model | [Model]({% link model.md %}) | `kiku_value_premium.model` |
-| 4. Calibration | [Calibration]({% link calibration.md %}) | `kiku_value_premium.calibration` |
-| 5. Asset pricing implications | [Implications]({% link implications.md %}) | `kiku_value_premium.implications` |
-
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %})  
 [Installation]({% link installation.md %}) · [API]({% link api.md %}) · [Other portfolios]({% link generalization.md %})
 
 ## Abstract
@@ -36,39 +27,33 @@ from kiku_value_premium.model import get_table_ii_params, solve_analytical, prin
 print_value_premium(solve_analytical(get_table_ii_params()))
 ```
 
-Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Calibration uses cash-flow moments only. Expected returns never enter.
-
 ## 1. Introduction
 
-One of the most robust features of financial data is the finding that value firms, on average, have higher returns than growth firms. Over 1930–2003 the high book-to-market quintile earned 13.88 percent a year and the low book-to-market quintile 7.81 percent. Market betas of both portfolios sit near one. A model that prices only covariance with the market cannot justify a six-percent gap.
+One of the most robust features of financial data is the finding that value firms, on average, have higher returns than growth firms. Over 1930–2003 the high book-to-market quintile earned 13.88 percent a year and the low book-to-market quintile 7.81 percent. Market betas of both portfolios sit near one. A model that prices only covariance with the market cannot justify a six-percent gap. That is the value premium puzzle.
 
-I introduce value, growth, and market portfolios into a general equilibrium model that features long-run consumption risks, in the sense of Bansal and Yaron (2004), and show that the model accounts for the differences in their expected returns, valuations, and the failure of the CAPM and C-CAPM.
+I introduce value, growth, and market portfolios into a general equilibrium model that features long-run consumption risks, in the sense of Bansal and Yaron (2004), and show that the model accounts for the differences in their expected returns, valuations, return volatilities, and the failure of the CAPM and C-CAPM.
 
-The argument has four steps, and only four.
+Two ingredients do the work, and both are necessary. Consumption and dividend growth contain a small persistent component $$x_t$$. An Epstein–Zin investor with risk aversion not equal to the reciprocal of the intertemporal elasticity of substitution prices news about that component. Dividend claims differ by their loading $$\phi$$ on $$x_t$$. Value’s loading is larger. The Euler equation then requires a higher expected return on value and a lower price–dividend ratio, even when market betas are essentially the same.
 
-1. Measure cash flows and returns of book-to-market portfolios, without treating the six-percent premium as a calibration target ([Section 2]({% link empirical.md %})).
-2. Write preferences and cash-flow laws in which dividend claims differ by their loading $$\phi$$ on the persistent expected-growth factor $$x_t$$ ([Section 3]({% link model.md %})).
+The argument has four steps.
+
+1. Measure cash flows and returns of book-to-market portfolios. The six-percent premium is a fact to be explained. It is not a calibration target ([Section 2]({% link empirical.md %})).
+2. Write preferences and cash-flow laws in which the three claims differ only by $$(\mu,\phi,\varphi,\alpha)$$ ([Section 3]({% link model.md %})).
 3. Choose those loadings, and the remaining cash-flow parameters, from consumption and dividend moments only ([Section 4]({% link calibration.md %})).
 4. Read expected returns and price–dividend ratios off the Euler equation ([Section 5]({% link implications.md %})).
 
 If the premium appears in step 4, it is a prediction. Feeding the premium into step 3 would assume the puzzle away.
 
-The companion package follows the same order. Core installation solves the model at the Table II calibration with no data credentials. Reconstructing Table I from CRSP/Compustat requires the optional `[data]` extra and a WRDS login; see [Installation]({% link installation.md %}).
+Table II long-run leverages are $$\phi_V=6.2$$ and $$\phi_G=2.6$$. Persistence of expected consumption growth is $$\rho=0.98$$. With those numbers the model produces about 5.3 percent of value premium, a lower mean $$\log(P/D)$$ on value than on growth, and a value-to-growth CAPM-beta ratio below one.
 
-## Notation used throughout
-
-| Symbol | Meaning |
-|:---|:---|
-| Value / Growth | Top / bottom NYSE book-to-market quintile, June sort, 1930–2003. |
-| Market | CRSP value-weighted portfolio of ordinary shares. |
-| $$x_t$$ | Persistent expected-growth component of consumption. |
-| $$\phi$$ | Loading of dividend growth on $$x_t$$ (long-run leverage). |
-| $$\tilde\phi$$ | Slope in the annual projection (19); a check, not the monthly input. |
-| $$\gamma,\psi,\delta$$ | Risk aversion, IES, and time discount of the Epstein–Zin investor. |
-| $$M_{t+1}$$ | Intertemporal marginal rate of substitution. |
+The companion package follows the same order. Four subpackages implement the four sections. Core installation solves the model at the Table II calibration with no data credentials. Reconstructing Table I from CRSP and Compustat requires the optional `[data]` extra and a WRDS login; see [Installation]({% link installation.md %}).
 
 ## References
 
 Kiku, D. 2006. “Is the Value Premium a Puzzle?” Job Market Paper, Duke University / Wharton.
 
 Bansal, R., and A. Yaron. 2004. “Risks for the Long Run: A Potential Resolution of Asset Pricing Puzzles.” *Journal of Finance* 59 (4): 1481–1509.
+
+Epstein, L., and S. Zin. 1989. “Substitution, Risk Aversion, and the Temporal Behavior of Consumption and Asset Returns.” *Econometrica* 57 (4): 937–969.
+
+Fama, E., and K. French. 1993. “Common Risk Factors in the Returns on Stocks and Bonds.” *Journal of Financial Economics* 33 (1): 3–56.

@@ -5,7 +5,7 @@ nav_order: 7
 
 # API
 
-**In a nutshell.** The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull.
+The four import paths are Sections 2–5 of the paper. A function that prices assets does not live next to the WRDS pull.
 
 Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simulation`, `analytical`) so the code layout cannot drift from the argument.
 
@@ -24,4 +24,4 @@ Extras: `[fast]` (numba), `[data]` (wrds, python-dotenv, matplotlib), `[dev]` (p
 
 `connect_wrds()` raises `EmpiricalDataError` if `[data]` is missing or `.env` keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
 
-Recipes: [Empirical]({% link empirical.md %}), [Model]({% link model.md %}), [Calibration]({% link calibration.md %}), [Implications]({% link implications.md %}).
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %})

@@ -5,7 +5,7 @@ nav_order: 8
 
 # Other portfolios
 
-**In a nutshell.** The same investor and the same consumption process can price another sort — industries, quality, profitability, countries — without seeing that sort’s average returns. Only the dividend loadings change.
+The same investor and the same consumption process can price another sort — industries, quality, profitability, countries — without seeing that sort’s average returns. Only the dividend loadings change.
 
 Keep Table II aggregate consumption and Epstein–Zin preferences. Only `DividendParams` change. `calibrate_from_data` estimates $$\mu$$, $$\tilde\phi$$ from equation (19), $$\alpha$$ from residual/consumption-innovation correlation, and $$\varphi_\sigma$$ as residual vol over consumption-innovation vol (fallback 7.5). It never sees return premia.
 
