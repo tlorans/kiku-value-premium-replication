@@ -17,7 +17,7 @@ The key object estimated here is the long-run leverage φ (equation 19 of the pa
 from __future__ import annotations
 import numpy as np
 from typing import Dict, Optional, Union
-from .params import DividendParams, ModelParams, get_default_params
+from .model.params import DividendParams, ModelParams, get_default_params
 
 
 # Exact values from Table II (bottom panel)

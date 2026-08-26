@@ -4,8 +4,8 @@ Monte-Carlo simulation and annual aggregation for moment matching
 """
 from __future__ import annotations
 import numpy as np
-from .params import ModelParams, get_default_params
-from .dynamics import Dynamics
+from .model.params import ModelParams, get_default_params
+from .model.dynamics import Dynamics
 
 
 def annualize(monthly: np.ndarray) -> np.ndarray:

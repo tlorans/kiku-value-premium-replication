@@ -12,8 +12,8 @@ short-run risks enter the moments.
 """
 from __future__ import annotations
 import numpy as np
-from .solver import ModelSolver, HAS_NUMBA, njit
-from .params import get_default_params
+from .model.solver import ModelSolver, HAS_NUMBA, njit
+from .model.params import get_default_params
 
 
 @njit(cache=True)

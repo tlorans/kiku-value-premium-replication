@@ -106,6 +106,10 @@ class ModelParams:
             }
 
 
-def get_default_params() -> ModelParams:
-    """Return the exact Table II calibration used in the paper."""
+def get_table_ii_params() -> ModelParams:
+    """Exact Table II calibration."""
     return ModelParams()
+
+
+def get_default_params() -> ModelParams:
+    return get_table_ii_params()

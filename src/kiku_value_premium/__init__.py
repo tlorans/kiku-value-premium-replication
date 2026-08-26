@@ -34,32 +34,24 @@ __version__ = "0.3.0"
 # Public API organised around Kiku’s 6-step recipe
 # ------------------------------------------------------------------
 
-# Step 1 & 2 – parameters and dynamics
-from .params import (
+from .model import (
     ModelParams,
     PreferencesParams,
     ConsumptionParams,
     DividendParams,
     get_default_params,
+    Dynamics,
+    EpsteinZinPreferences,
+    StateGrid,
+    ModelSolver,
+    solve_analytical,
+    print_value_premium,
 )
-from .dynamics import Dynamics
-
-# Step 3 – calibration (cash-flow moments only)
 from .calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
     get_table_ii_dividends,
 )
-
-# Step 4 – preferences
-from .preferences import EpsteinZinPreferences
-
-# Step 5 – numerical solution
-from .discretization import StateGrid
-from .solver import ModelSolver
-
-# Step 6 – evaluation
-from .analytical import solve_analytical, print_value_premium
 from .moments import compute_asset_pricing_moments, print_asset_pricing_moments
 from .simulation import simulate_moments, print_moments
 
