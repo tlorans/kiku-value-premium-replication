@@ -11,7 +11,7 @@ The same investor and the same consumption process can price another sort — in
 
 Keep Table II aggregate consumption and Epstein–Zin preferences. `calibrate_from_data` estimates $$\mu$$ from mean $$\Delta d$$, $$\tilde\phi$$ from equation (19), $$\alpha$$ from residual/consumption-innovation correlation, and $$\varphi_\sigma$$ as residual vol over consumption-innovation vol (fallback 7.5). It never sees return premia.
 
-`solve_analytical`, `print_value_premium`, and `compute_asset_pricing_moments` look up the paper keys `growth`, `value`, and `market`. Map any other sort onto those names before pricing. The keys do not copy Table II’s $$(\mu,\phi)$$.
+`calibrate_from_data(dc, long=..., short=..., market=...)` names the legs. `value` / `growth` remain aliases. `solve_analytical` and `compute_asset_pricing_moments` resolve either pair.
 
 ```python
 from kiku_value_premium.calibration import calibrate_from_data
@@ -20,7 +20,7 @@ from kiku_value_premium.implications import compute_asset_pricing_moments
 
 dividends = calibrate_from_data(
     dc,
-    {"growth": dd_growth, "value": dd_value, "market": dd_market},
+    long=dd_value, short=dd_growth, market=dd_market,
     frequency="annual",
     window=2,
 )

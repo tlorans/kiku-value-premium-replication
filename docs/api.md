@@ -12,16 +12,16 @@ Version 0.3.0 dropped the flat 0.2.0 names (`params`, `solver`, `moments`, `simu
 | Section | Import | Objects |
 |:---|:---|:---|
 | 2 | `kiku_value_premium.empirical` | `connect_wrds`, `build_annual_panel`, `table_i`, `table_vi_data`, `figure1`–`figure4`, `START`, `END` |
-| 3 | `kiku_value_premium.model` | `ModelParams`, `PreferencesParams`, `ConsumptionParams`, `DividendParams`, `get_table_ii_params`, `EpsteinZinPreferences`, `Dynamics`, `StateGrid`, `ModelSolver`, `solve_analytical` |
+| 3 | `kiku_value_premium.model` | `ModelParams`, `PreferencesParams`, `ConsumptionParams`, `DividendParams`, `get_table_ii_params`, `EpsteinZinPreferences`, `Dynamics`, `StateGrid`, `ModelSolver`, `solve_analytical`, `resolve_legs` |
 | 4 | `kiku_value_premium.calibration` | `estimate_long_run_leverage`, `calibrate_from_data`, `get_table_ii_dividends`, `simulate_cashflow_moments` |
 | 5 | `kiku_value_premium.implications` | `compute_asset_pricing_moments`, `print_asset_pricing_moments`, `figure_lr_premium`, `figure_mean_pd`, `figure5` |
 
 `START, END = 1930, 2003`.
 
-`calibrate_from_data(dc, dd_by_name, frequency="annual", window=2)` takes consumption growth and a dict of dividend-growth series. It has no argument for returns or premia.
+`calibrate_from_data(dc, long=dd_high, short=dd_low, market=dd_mkt, frequency="annual", window=2)` takes consumption growth and the two legs of the sort. A dict of named series is still accepted. `value` / `growth` are aliases of `long` / `short`. There is no argument for returns or premia.
 
 Extras: `[fast]` (numba), `[data]` (wrds, python-dotenv, matplotlib), `[dev]` (pytest, matplotlib, numba).
 
 `connect_wrds()` raises `EmpiricalDataError` if `[data]` is missing or `.env` keys are empty. `model`, `calibration`, and `implications` do not import `wrds`.
 
-[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %})
+[Section 2]({% link empirical.md %}) · [Section 3]({% link model.md %}) · [Section 4]({% link calibration.md %}) · [Section 5]({% link implications.md %}) · [Section 6]({% link further.md %})
