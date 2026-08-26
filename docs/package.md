@@ -1,6 +1,6 @@
 ---
 title: Package
-nav_order: 9
+nav_order: 6
 has_children: true
 has_toc: false
 ---
@@ -9,6 +9,6 @@ has_toc: false
 
 `market` is the time-series claim. `long` and `short` are the cross-sectional pair. `value` / `growth` remain aliases.
 
-- [Installation]({% link installation.md %})
-- [API]({% link api.md %})
-- [Other portfolios]({% link generalization.md %})
+- [Installation]({{ '/installation.html' | relative_url }})
+- [API]({{ '/api.html' | relative_url }})
+- [Other portfolios]({{ '/generalization.html' | relative_url }})
