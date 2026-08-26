@@ -23,9 +23,8 @@ def main():
     # ------------------------------------------------------------------
     # 1. Inspect the exact Table II parameters used by the package
     # ------------------------------------------------------------------
-    print_calibration_summary()
-
     divs = get_table_ii_dividends()
+    print_calibration_summary(divs)
     print("\nget_table_ii_dividends() returns:")
     for name, d in divs.items():
         print(f"  {name:8s}: μ={d.mu:.4f}, φ={d.phi}, φ_σ={d.phi_sigma}, α={d.alpha}")

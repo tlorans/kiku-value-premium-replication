@@ -38,3 +38,33 @@ def test_simulate_cashflow_moments_keys():
     assert "AC1" in mom["consumption"]
     assert set(mom["dividends"]) == {"growth", "value", "market"}
     assert "E[dd]" in mom["dividends"]["value"]
+
+
+def test_calibrate_from_data_phi_sigma_matches_residual_vol():
+    from kiku_value_premium.calibration.from_data import _consumption_innovation
+
+    rng = np.random.default_rng(11)
+    n = 80
+    dc = rng.normal(0.02, 0.03, size=n)
+    dd = 0.01 + 0.5 * dc + rng.normal(0, 0.08, size=n)
+    out = calibrate_from_data(dc, {"growth": dd}, frequency="annual", window=2)
+
+    window = 2
+    ma = np.full(n, np.nan)
+    for t in range(window, n):
+        ma[t] = np.mean(dc[t - window : t])
+    mask = ~np.isnan(ma)
+    phi = estimate_long_run_leverage(dc, dd, window=window)
+    resid = dd[mask] - (dd[mask].mean() + phi * (ma[mask] - ma[mask].mean()))
+    innov_m = _consumption_innovation(dc)[mask]
+    expected = float(np.std(resid) / np.std(innov_m))
+    assert abs(out["growth"].phi_sigma - expected) < 1e-10
+
+
+def test_calibrate_from_data_phi_sigma_fallback_when_dc_degenerate():
+    dc = np.full(20, 0.02)
+    dd = np.full(20, 0.01)
+    out = calibrate_from_data(
+        dc, {"market": dd}, frequency="annual", default_phi_sigma=7.5
+    )
+    assert out["market"].phi_sigma == 7.5

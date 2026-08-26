@@ -28,6 +28,7 @@ import pandas as pd
 from kiku_value_premium.calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
+    get_table_ii_dividends,
     print_calibration_summary,
 )
 from kiku_value_premium.model import (
@@ -102,14 +103,16 @@ def main():
     print("  div_params = calibrate_from_data(")
     print("      dc_values,")
     print("      {")
-    print("          'BM_Low' : dd_growth_portfolio,")
-    print("          'BM_High': dd_value_portfolio,")
-    print("          'Market' : dd_market,")
-    print("          # any other portfolios …")
+    print("          'growth': dd_growth_portfolio,")
+    print("          'value' : dd_value_portfolio,")
+    print("          'market': dd_market,")
     print("      },")
     print("      frequency='annual',")
     print("      window=2,")
     print("  )")
+    print()
+    print("  Keys must be growth/value/market for solve_analytical and")
+    print("  compute_asset_pricing_moments.")
     print()
 
     # ------------------------------------------------------------------
@@ -119,7 +122,7 @@ def main():
     print("3. For illustration we now use the paper’s own calibrated parameters")
     print("   (which were estimated on real data via the same regression).")
     print("-" * 50)
-    print_calibration_summary()
+    print_calibration_summary(get_table_ii_dividends())
 
     # Show the regression on the real consumption series alone is well-defined
     print("\nSanity check on the real consumption series:")
@@ -147,9 +150,9 @@ def main():
    div_params = calibrate_from_data(
        dc_series.values,
        {
-           "MyValuePort":  my_value_dd,
-           "MyGrowthPort": my_growth_dd,
-           # …
+           "growth": my_growth_dd,
+           "value":  my_value_dd,
+           "market": my_market_dd,
        },
        frequency="annual",
        window=2,

@@ -7,7 +7,9 @@ title: Generalizing the Recipe
 
 The same cash-flow-only recipe prices any cross-section once you supply consumption growth and the portfolios’ dividend-growth series. Typical use: industry portfolios, quality, profitability, investment, or country sorts.
 
-`calibrate_from_data` estimates \(\mu\), \(\tilde\phi\) from equation (19), \(\alpha\) from residual/consumption-innovation correlation, and \(\varphi_\sigma\) so residual volatility matches. It never sees return premia. Keep Table II aggregate consumption and Epstein–Zin preferences; only the `DividendParams` change.
+`calibrate_from_data` estimates \(\mu\), \(\tilde\phi\) from equation (19), \(\alpha\) from residual/consumption-innovation correlation, and \(\varphi_\sigma\) as the ratio of equation-(19) residual volatility to consumption-innovation volatility (same frequency as the series; falls back to 7.5 if that scale is degenerate). It never sees return premia. Keep Table II aggregate consumption and Epstein–Zin preferences; only the `DividendParams` change.
+
+`solve_analytical`, `print_value_premium`, and `compute_asset_pricing_moments` look up the paper keys `growth` / `value` / `market`. Map any other cross-section onto those names before pricing.
 
 ## What you call
 
@@ -18,7 +20,7 @@ from kiku_value_premium.implications import compute_asset_pricing_moments
 
 dividends = calibrate_from_data(
     dc,
-    {"industry_A": dd_a, "industry_B": dd_b},
+    {"growth": dd_growth, "value": dd_value, "market": dd_market},
     frequency="annual",
     window=2,
 )

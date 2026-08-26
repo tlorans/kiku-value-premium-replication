@@ -9,7 +9,7 @@ title: Calibration
 
 Calibration uses **cash-flow moments only**. Return premia never enter. Table II is the default used to price claims.
 
-Equation (19) estimates long-run leverage \(\tilde\phi\) by OLS of dividend growth on a two-year moving average of lagged consumption growth. Residual correlation with the consumption innovation identifies \(\alpha\). \(\varphi_\sigma\) is set so residual volatility matches.
+Equation (19) estimates long-run leverage \(\tilde\phi\) by OLS of dividend growth on a two-year moving average of lagged consumption growth. Residual correlation with the consumption innovation identifies \(\alpha\). `calibrate_from_data` sets \(\varphi_\sigma\) to the ratio of that residual's volatility to consumption-innovation volatility (same frequency as the input series; falls back to 7.5 if the consumption innovation is degenerate).
 
 She then simulates the joint consumption–dividend process: 1000 monthly samples of \(74\times 12\) observations, time-averaged to annual, and reports means and cross-simulation SDs as in Tables III–V.
 

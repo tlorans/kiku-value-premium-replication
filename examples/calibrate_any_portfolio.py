@@ -35,9 +35,9 @@ def generate_synthetic_annual_series(n_years: int = 74, seed: int = 42):
     """
     Create synthetic annual consumption and dividend growth series that mimic
     the paper’s ranking:
-      - Value-like portfolio has high loading on the persistent component of Δc
-      - Growth-like portfolio has low loading
-      - A third “Quality” portfolio sits in between
+      - value has high loading on the persistent component of Δc
+      - growth has low loading
+      - market sits in between
     """
     rng = np.random.default_rng(seed)
 
@@ -50,15 +50,17 @@ def generate_synthetic_annual_series(n_years: int = 74, seed: int = 42):
     dc = 0.02 + x + 0.015 * rng.standard_normal(n_years)
 
     # Portfolio dividend growth = mean + φ * x + short-run shock
-    # Higher φ → stronger long-run risk exposure
+    # Higher φ → stronger long-run risk exposure.
+    # Keys must be growth/value/market: solve_analytical, print_value_premium,
+    # and compute_asset_pricing_moments look those names up.
     dd_value = 0.025 + 3.5 * x + 0.12 * rng.standard_normal(n_years)   # high φ
     dd_growth = 0.015 + 0.4 * x + 0.18 * rng.standard_normal(n_years)  # low φ
-    dd_quality = 0.020 + 1.5 * x + 0.10 * rng.standard_normal(n_years) # medium
+    dd_market = 0.020 + 1.5 * x + 0.10 * rng.standard_normal(n_years)  # medium
 
     return dc, {
-        "ValueLike": dd_value,
-        "GrowthLike": dd_growth,
-        "Quality": dd_quality,
+        "growth": dd_growth,
+        "value": dd_value,
+        "market": dd_market,
     }
 
 
@@ -87,16 +89,13 @@ def main():
     )
 
     print("\nEstimated DividendParams:")
-    print(f"{'Portfolio':12s} {'μ (mo)':>8s} {'φ (LR)':>8s} {'φ_σ':>8s} {'α':>8s}")
-    print("-" * 50)
-    for name, d in div_params.items():
-        print(f"{name:12s} {d.mu:8.4f} {d.phi:8.2f} {d.phi_sigma:8.1f} {d.alpha:8.2f}")
+    print_calibration_summary(div_params)
 
     # Also show the pure regression for one portfolio
-    phi_value = estimate_long_run_leverage(dc, dd_dict["ValueLike"], window=2)
-    phi_growth = estimate_long_run_leverage(dc, dd_dict["GrowthLike"], window=2)
-    print(f"\nDirect eq.-19 estimates:  ValueLike φ̃ = {phi_value:.2f},  "
-          f"GrowthLike φ̃ = {phi_growth:.2f}")
+    phi_value = estimate_long_run_leverage(dc, dd_dict["value"], window=2)
+    phi_growth = estimate_long_run_leverage(dc, dd_dict["growth"], window=2)
+    print(f"\nDirect eq.-19 estimates:  value φ̃ = {phi_value:.2f},  "
+          f"growth φ̃ = {phi_growth:.2f}")
 
     # ------------------------------------------------------------------
     # 3. Plug into the model
@@ -117,7 +116,7 @@ def main():
     print_value_premium(sol)
 
     print("\nInterpretation:")
-    print("  The portfolio with the highest estimated φ (ValueLike) receives")
+    print("  The portfolio with the highest estimated φ (value) receives")
     print("  the largest long-run risk premium.  That is exactly the mechanism")
     print("  that generates the value premium in Kiku (2006).")
     print("\nDone.  Swap the synthetic series for real portfolio data to analyse")

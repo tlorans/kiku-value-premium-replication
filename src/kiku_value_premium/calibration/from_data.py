@@ -17,7 +17,11 @@ def _consumption_innovation(dc: np.ndarray) -> np.ndarray:
     # residual from an AR(1)
     if len(dc) < 3:
         return dc - dc.mean()
+    if float(np.std(dc)) < 1e-15:
+        return np.zeros_like(dc)
     rho = np.corrcoef(dc[:-1], dc[1:])[0, 1]
+    if not np.isfinite(rho):
+        rho = 0.0
     innov = np.empty_like(dc)
     innov[0] = 0.0
     innov[1:] = dc[1:] - rho * dc[:-1]
@@ -39,7 +43,8 @@ def calibrate_from_data(
     1. μ   = mean(dd)   (converted to monthly if frequency="annual")
     2. φ   = long-run leverage via equation (19)
     3. α   ≈ correlation of residual with consumption innovation
-    4. φ_σ left at a sensible default (user can fine-tune)
+    4. φ_σ = std(eq. 19 residual) / std(consumption innovation)
+           (falls back to default_phi_sigma if that scale is degenerate)
 
     Parameters
     ----------
@@ -86,8 +91,13 @@ def calibrate_from_data(
             alpha = float(np.corrcoef(dd, dc)[0, 1]) if np.std(dd) > 0 else 0.0
             alpha = float(np.clip(alpha, -0.99, 0.99))
 
-        # 4. φ_σ – sensible default (user may fine-tune)
-        phi_sigma = default_phi_sigma
+        # 4. φ_σ so residual vol matches consumption-innovation vol
+        sigma_resid = float(np.std(resid))
+        sigma_innov = float(np.std(innov_m))
+        if sigma_innov > 1e-12 and np.isfinite(sigma_resid):
+            phi_sigma = sigma_resid / sigma_innov
+        else:
+            phi_sigma = default_phi_sigma
 
         out[name] = DividendParams(
             mu=mu,
