@@ -1,24 +1,19 @@
 ---
-title: The Long-Run Risks Model
+title: 3. The Long-Run Risks Model
 nav_order: 4
 ---
 
 # 3. The Long-Run Risks Model
 {: .no_toc }
 
-{: .here }
-Section 3 of Kiku (2006). I specify preferences, consumption, and the three dividend claims, and I state the Euler equation that determines prices. The six-percent premium is still not an input.
-
-**In a nutshell.** An Epstein–Zin investor prices news about the persistent expected-growth factor $$x_t$$. Dividend claims differ by their loading $$\phi$$ on that factor. Value’s larger $$\phi$$ raises its risk premium and lowers its price–dividend ratio.
-
-{: .idea }
-Two ingredients do the work: a small persistent component in cash-flow growth, and recursive utility with $$\gamma\neq 1/\psi$$. Neither is sufficient on its own. Under power utility the price of long-run news is zero, and a gap in $$\phi$$ does not generate a large premium.
-
-{: .why }
-Section 2 established that value *cash flows* load more on slow consumption. That is not yet a risk premium. This section is the mapping from a cash-flow loading to a required return.
-
 1. TOC
 {:toc}
+
+I specify preferences, consumption, and the three dividend claims, and I state the Euler equation that determines prices. The six-percent premium is still not an input.
+
+An Epstein–Zin investor prices news about the persistent expected-growth factor $$x_t$$. Dividend claims differ by their loading $$\phi$$ on that factor. Value’s larger $$\phi$$ raises its risk premium and lowers its price–dividend ratio. Under power utility the price of long-run news is zero, and a gap in $$\phi$$ does not generate a large premium.
+
+[Section 2]({% link empirical.md %}) established that value cash flows load more on slow consumption. That is not yet a risk premium. This section is the mapping from a cash-flow loading to a required return.
 
 ## 3.1 Preferences
 
@@ -30,7 +25,7 @@ V_t=\left[(1-\delta)C_t^{\frac{1-\gamma}{\theta}}+\delta\left(\mathrm{E}_t[V_{t+
 \theta=\frac{1-\gamma}{1-1/\psi}.
 $$
 
-Wealth tomorrow is what is not consumed, grown at the return on the wealth portfolio: $$W_{t+1}=(W_t-C_t)R_{c,t+1}$$. The intertemporal marginal rate of substitution — equation (3) of the paper — is
+Wealth tomorrow is what is not consumed, grown at the return on the wealth portfolio: $$W_{t+1}=(W_t-C_t)R_{c,t+1}$$. The intertemporal marginal rate of substitution — equation (3) — is
 
 $$
 M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
@@ -116,10 +111,7 @@ $$
 
 With Table II ($$\gamma=10$$, $$\psi=1.5$$), $$\Lambda_\epsilon\neq 0$$. Under power utility it is zero.
 
-Two consequences follow from the same gap in $$\phi$$:
-
-- Value’s dividends fall harder when the outlook turns bad, which is when $$M_{t+1}$$ is high. The Euler equation then requires a higher average return.
-- The investor pays less today per unit of current dividend, so value’s price–dividend ratio is lower.
+Two consequences follow from the same gap in $$\phi$$. Value’s dividends fall harder when the outlook turns bad, which is when $$M_{t+1}$$ is high, so the Euler equation requires a higher average return. The investor pays less today per unit of current dividend, so value’s price–dividend ratio is lower.
 
 ```python
 from kiku_value_premium.model import solve_analytical, print_value_premium, get_table_ii_params

@@ -1,30 +1,25 @@
 ---
-title: Empirical Evidence
+title: 2. Empirical Evidence
 nav_order: 3
 ---
 
 # 2. Empirical Evidence
 {: .no_toc }
 
-{: .here }
-Section 2 of Kiku (2006). I construct value, growth, and market claims and document their returns, valuations, and cash-flow exposure to consumption. The six-percent premium is a fact to be explained, not a parameter.
-
-**In a nutshell.** Over 1930–2003 value earned about six percent more than growth, sold at a lower price–dividend ratio, and its dividends comoved more with slow consumption growth. Market betas of both portfolios are near one.
-
-{: .idea }
-The object of this section is a cash-flow fact: value dividends load more on low-frequency consumption than growth dividends do. That fact is admissible as a calibration target. The average-return gap is not.
-
-{: .why }
-If the six-percent premium were used to choose $$\phi$$, Section 5 would cease to be a test. I therefore record returns here and leave them unused until the Euler equation is solved.
-
 1. TOC
 {:toc}
+
+I construct value, growth, and market claims and document their returns, valuations, and cash-flow exposure to consumption over 1930–2003. The six-percent premium is a fact to be explained. It is not a parameter of the model that follows.
+
+Three facts organize the section. Value earned about six percent more per year than growth. Value sold at a lower price–dividend ratio. Value dividends comoved more with low-frequency consumption growth than growth dividends did. Market betas of both portfolios are near one, so the first fact is not a CAPM fact.
+
+The second and third facts are admissible as calibration targets. The first is not. If the six-percent premium were used to choose $$\phi$$, [Section 5]({% link implications.md %}) would cease to be a test.
 
 ## 2.1 Portfolio construction
 
 I form five book-to-market quintiles at the end of June each year, following Fama and French (1993). Breakpoints are NYSE. The universe is NYSE, AMEX, and NASDAQ ordinary shares (`shrcd` in $$\{10,11\}$$). Growth is the bottom quintile, value the top quintile. The market is the CRSP value-weighted portfolio of ordinary shares.
 
-Book-to-market is book equity at the last fiscal year-end of the prior calendar year divided by December market equity of the prior year. Compustat book equity does not reach 1930; through 1962 I use the Davis–Fama–French / Moody’s historical book-equity file.
+Book-to-market is book equity at the last fiscal year-end of the prior calendar year divided by December market equity of the prior year. Compustat book equity does not reach 1930. Through 1962 I use the Davis–Fama–French / Moody’s historical book-equity file.
 
 Dividends are not Compustat cash items. CRSP reports a with-dividend return $$R$$ (`ret`) and a capital-gain return $$H$$ (`retx`). Campbell and Shiller (1988) and Bansal, Dittmar, and Lundblad (2005) convert that gap into a per-share dividend on a synthetic price index $$V$$:
 
@@ -63,15 +58,15 @@ print(table_vi_data(bm, dc, START, END))
 | Value | 13.88 (1.74) | 13.67 | 29.9 (4.34) | 29.7 | 3.25 (0.12) | 3.34 |
 | Market | 8.56 (1.79) | 8.52 | 20.1 (2.23) | 20.1 | 3.34 (0.13) | 3.33 |
 
-Printed cells are Newey–West eight-lag standard errors. Package returns and $$\log(P/D)$$ sit inside those bands. In this sample both CAPM betas are about 1.03, so volatility of returns does not rescue the CAPM.
+Printed cells are Newey–West eight-lag standard errors. Package returns and $$\log(P/D)$$ sit inside those bands. In this sample both CAPM betas are about 1.03. Volatility of returns does not rescue the CAPM.
 
 Return correlations (printed / package): GV 0.75 (0.05) / 0.72; GM 0.95 (0.01) / 0.95; VM 0.87 (0.04) / 0.86.
 
 ![Figure 1](figures/figure1.svg)
 
-<p class="caption">Figure 1. Realized value minus growth, 1930–2003. The bars are positive in most years. The premium is a time-series object, not only a sample mean.</p>
+<p class="caption">Figure 1. Realized value minus growth, 1930–2003. The bars are positive in most years.</p>
 
-## 2.3 Prices, dividend growth, and a tension
+## 2.3 Prices and dividend growth
 
 Value pays a higher average return and nonetheless sells cheaper relative to current dividends (mean $$\log(P/D)$$ 3.25 versus 3.61). That pair is consistent with value cash flows being riskier in a way the investor prices, or with lower expected growth. I measure the cash-flow side next.
 
@@ -89,7 +84,7 @@ Value pays a higher average return and nonetheless sells cheaper relative to cur
 
 ## 2.4 The market, the T-bill, and consumption
 
-The market earned about 8.5 percent; the real T-bill about 0.9 percent. Consumption growth is the quantity to which both the equity premium and the value premium must eventually be tied.
+The market earned about 8.5 percent; the real T-bill about 0.9 percent. Consumption growth is the quantity to which both the equity premium and the value premium must be tied.
 
 |  | Printed | Package |
 |:---|---:|---:|
@@ -102,13 +97,13 @@ Autocorrelation of consumption is not zero. A persistent expected-growth factor 
 
 ## 2.5 Expected value premium and consumption uncertainty
 
-If the extra return on value compensates for risk that worsens when consumption is harder to forecast, the *expected* value premium should rise with consumption uncertainty. I project realized value-minus-growth on lagged price–dividend ratios and dividend growth of the two portfolios, and plot the fitted series against a three-year average of squared AR(1) consumption residuals, rescaled to the premium’s mean and standard deviation. The window is 1952–2003. Post-war correlation is about forty percent.
+If the extra return on value compensates for risk that worsens when consumption is harder to forecast, the expected value premium should rise with consumption uncertainty. I project realized value-minus-growth on lagged price–dividend ratios and dividend growth of the two portfolios, and plot the fitted series against a three-year average of squared AR(1) consumption residuals, rescaled to the premium’s mean and standard deviation. The window is 1952–2003. Post-war correlation is about forty percent.
 
 ![Figure 2](figures/figure2.svg)
 
 <p class="caption">Figure 2. Expected value premium (solid) against consumption uncertainty (dashed), 1952–2003.</p>
 
-## 2.6 Do value dividends track long-run consumption?
+## 2.6 Long-run consumption exposure
 
 If consumption growth were i.i.d., its spectrum would be flat. Figure 3 is not flat: mass sits near frequency zero.
 
@@ -126,7 +121,7 @@ $$\tilde\phi$$ is not the monthly $$\phi$$ that later enters the solver. It is a
 | Value | 2.16 (1.44) | <mark class="out">12.13</mark> | 0.30 (0.07) | <mark class="out">0.56</mark> |
 | Market | 0.66 (1.20) | 0.72 | 0.58 (0.15) | 0.58 |
 
-The ranking is what the model needs: value’s long-run loading exceeds growth’s. Section 4 converts that ranking into the monthly leverages of Table II. It does not put the OLS slope into the Euler loop.
+The ranking is what the model needs: value’s long-run loading exceeds growth’s. [Section 4]({% link calibration.md %}) converts that ranking into the monthly leverages of Table II. It does not put the OLS slope into the Euler loop.
 
 ![Figure 3](figures/figure3.svg)
 
@@ -136,4 +131,4 @@ The ranking is what the model needs: value’s long-run loading exceeds growth�
 
 <p class="caption">Figure 4. Three-year average dividend growth versus consumption. Value tracks consumption more closely (paper correlation 0.52) than growth (0.25).</p>
 
-[Section 3]({% link model.md %}) turns these loadings into prices.
+[Section 3]({% link model.md %}) maps these loadings into prices.
