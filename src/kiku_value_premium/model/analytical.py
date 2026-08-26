@@ -1,10 +1,8 @@
 """
 Approximate analytical solutions (Kiku 2006, Section 3.4).
 
-Implements the log-linear solutions for price-dividend elasticities A1, A2,
-risk prices Lambda, asset betas and the long-run component of risk premia.
-This already demonstrates the paper's central result: the value premium is
-primarily compensation for differential long-run consumption risk exposure.
+Log-linear price-dividend elasticities and the long-run component of premia.
+The spread between two claims is compensation for differential loading on $$x_t$$.
 """
 from __future__ import annotations
 import numpy as np
@@ -98,12 +96,12 @@ def solve_analytical(params: ModelParams | None = None,
     )
 
 
-def print_value_premium(
+def print_long_short_premium(
     sol: AnalyticalSolution,
     long: str | None = None,
     short: str | None = None,
 ) -> None:
-    print("Approximate annualized long-run risk premia (paper mechanism):")
+    print("Approximate annualized long-run risk premia:")
     for name, prem in sol.premium_lr.items():
         print(f"  {name:8s}: {prem:7.2%}")
     long_key, short_key, _ = resolve_legs(sol.premium_lr, long=long, short=short)
@@ -116,3 +114,6 @@ def print_value_premium(
         f"{long_key}={sol.A1[long_key]:.1f}"
     )
     print(f"Price of long-run risk Lambda_eps = {sol.Lambda_eps:.2f}")
+
+
+print_value_premium = print_long_short_premium
