@@ -6,7 +6,6 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
 
-# Simple navigation for the multi-page site
 header_pages:
   - index.md
   - KIKU_RECIPE.md
@@ -14,3 +13,4 @@ header_pages:
   - api.md
   - examples.md
   - generalization.md
+  - results.md

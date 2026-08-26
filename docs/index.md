@@ -18,6 +18,7 @@ This multi-page site documents the exact methodology and maps every step of Kiku
 - **[API / Modules Reference](api.html)**  
 - **[Examples](examples.html)**  
 - **[Generalizing the Recipe](generalization.html)** (industries, climate, any portfolios)  
+- **[Results – Tables & Figures](results.html)** – recovery of Kiku’s quantitative targets  
 - [GitHub Repository](https://github.com/tlorans/kiku-value-premium-replication)
 
 ## The 6-Step Recipe at a glance
@@ -31,7 +32,8 @@ This multi-page site documents the exact methodology and maps every step of Kiku
 | **5** | Numerical solution (Tauchen–Hussey) | `solver.ModelSolver` |
 | **6** | Evaluate time-series & cross-section | `moments.compute_asset_pricing_moments` + `analytical.solve_analytical` |
 
-→ Full details: **[KIKU_RECIPE](KIKU_RECIPE.html)**
+→ Full details: **[KIKU_RECIPE](KIKU_RECIPE.html)**  
+→ Quantitative recovery of the paper: **[Results](results.html)**
 
 ## Why this package?
 
