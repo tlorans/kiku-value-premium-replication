@@ -11,7 +11,7 @@ nav_order: 6
 
 Nothing about the household changes. Same preferences, same consumption process, same Euler equation as [Does the market still fit?]({{ '/time-series.html' | relative_url }}). A model that needed a new discount rate for every asset class would just be DCF with extra steps.
 
-Value stocks have out-earned growth stocks by about six percentage points a year over this sample. Why? "They're cheap" is not an answer — it restates the fact. "They have higher betas" is an answer, but a false one: their market betas sit near one. An equilibrium answer must name the *risk* the extra return pays for, measure that risk somewhere other than in the returns themselves, and then deliver both facts at once — the higher premium *and* the lower price–dividend ratio.
+Value stocks have out-earned growth stocks by about six percentage points a year over this sample. Calling them cheap restates the fact. Calling them high-beta is false, because their market betas sit near one. An equilibrium answer must name the *risk* the extra return pays for, measure that risk somewhere other than in the returns themselves, and then deliver both facts at once, the higher premium *and* the lower price-dividend ratio.
 
 Each claim brings only its cash-flow numbers. Value's dividends are levered to long-run consumption news far harder than growth's. The six-percent gap and value's cheaper valuation are facts to explain, not numbers you feed the calibrator. Average returns never enter the cash-flow step.
 
@@ -31,7 +31,7 @@ y = dc["dc"].to_numpy()
 
 ## Preparing the sample
 
-[Financial data]({{ '/financial-data.html' | relative_url }}) already formed June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). Growth is the bottom fifth. Value is the top fifth. Dividends are Campbell–Shiller from `ret` versus `retx`. Sample: 1930–2003. We do not rebuild the sort.
+[Financial data]({{ '/financial-data.html' | relative_url }}) already formed June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). Growth is the bottom fifth. Value is the top fifth. Dividends are Campbell-Shiller from `ret` versus `retx`. Sample: 1930 to 2003. We do not rebuild the sort.
 
 ```python
 wide = panel.pivot(index="year", on="claim", values="ret")
@@ -44,7 +44,7 @@ wide.head()
 {'Growth': 7.49, 'Value': 13.67, 'Market': 8.52}
 ```
 
-A note on vintages, once: our reconstruction prints 7.49 / 13.67 / 8.52, while Kiku's sample — a slightly different CRSP vintage — prints 7.81 / 13.88 / 8.56. Whenever a data column below shows her numbers, that is why. The gap is about six percent either way, and value is also *cheaper*: a lower valuation alongside a higher risk premium. Both facts, together, are the target.
+A note on vintages, once: our reconstruction prints 7.49 / 13.67 / 8.52, while Kiku's sample (a slightly different CRSP vintage) prints 7.81 / 13.88 / 8.56. Whenever a data column below shows her numbers, that is why. The gap is about six percent either way, and value is also *cheaper*: a lower valuation alongside a higher risk premium. Both facts, together, are the target.
 
 |  | E[R] % | σ(R) % | Mean log P/D |
 |:---|---:|---:|---:|
@@ -82,9 +82,9 @@ vg = panel.filter(pl.col("claim").is_in(["Growth", "Value"]))
 
 ![Realized value minus growth](figures/vg_spread.svg)
 
-<p class="caption">Realized value minus growth, 1930–2003. The bars are positive in most years.</p>
+<p class="caption">Realized value minus growth, 1930 to 2003. The bars are positive in most years.</p>
 
-![Value and growth price–dividend](figures/vg_log_pd.svg)
+![Value and growth price-dividend](figures/vg_log_pd.svg)
 
 <p class="caption">Value's $$\log(P/D)$$ sits below growth's. Both the premium and the cheaper valuation are facts to explain.</p>
 
@@ -106,7 +106,7 @@ def capm_beta(claim):
 {'Growth': 0.95, 'Value': 1.28}
 ```
 
-Value's beta is a bit above one on this reconstruction — nowhere near enough to explain six percent — and the paper's vintage has both near 1.03. The premium is not a market-beta fact. So what risk is it?
+Value's beta is a bit above one on this reconstruction (nowhere near enough to explain six percent) and the paper's vintage has both near 1.03. The premium is not a market-beta fact. So what risk is it?
 
 ## The loadings are already measured
 
@@ -185,7 +185,7 @@ params.dividends["value"].phi, params.dividends["growth"].phi
 
 ## Elasticity of price–dividend to x_t
 
-Same preferences as the market chapter — nothing re-tuned. The Euler equation and the IMRS are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). The elasticity of log $$P/D$$ to $$x_t$$ is $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$, and only $$\phi$$ differs across claims.
+Same preferences as the market chapter, nothing re-tuned. The Euler equation and the IMRS are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). The elasticity of log $$P/D$$ to $$x_t$$ is $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$, and only $$\phi$$ differs across claims.
 
 ```python
 psi, rho = 1.5, 0.98
@@ -200,7 +200,7 @@ growth 43.1
 value  88.9
 ```
 
-One gap in cash-flow leverage, two consequences. Value's price–dividend ratio is about twice as elastic to long-run consumption news. The premium and the cheap valuation are one fact seen from two sides.
+One gap in cash-flow leverage, two consequences. Value's price-dividend ratio is about twice as elastic to long-run consumption news. The premium and the cheap valuation are one fact seen from two sides.
 
 ## Solve and check rankings
 
@@ -219,7 +219,7 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-The 0.40 percent is only the long-run *piece*. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid. Kiku's Table VII (1000 samples) is the comparison. A match on the premium with the wrong price–dividend ranking is a fail.
+The 0.40 percent is only the long-run *piece*. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid. Kiku's Table VII (1000 samples) is the comparison. A match on the premium with the wrong price-dividend ranking is a fail.
 
 |  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
@@ -228,7 +228,7 @@ The 0.40 percent is only the long-run *piece*. `lrr.compute_asset_pricing_moment
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-The model gap is about 5.3 percent against about 6 in the data. The model's ratio of value to growth CAPM betas is 0.92 — value's market beta is *lower* while its premium is five points higher.
+The model gap is about 5.3 percent against about 6 in the data. The model's ratio of value to growth CAPM betas is 0.92, value's market beta is *lower* while its premium is five points higher.
 
 Equalize the only cross-sectional input and the ranking has to die.
 
@@ -266,10 +266,10 @@ A1 value / A1 growth 2.06
 - Nothing about the household changes across assets.
 - The ranking is the check: value loads hard on long-run consumption news, growth barely at all.
 - Equalize $$\phi$$ and the ranking disappears.
-- The model reproduces the CAPM anomaly itself — value's model beta is lower (ratio 0.92) while its premium is higher.
+- The model reproduces the CAPM anomaly itself, value's model beta is lower (ratio 0.92) while its premium is higher.
 
 ## Exercises
 
-1. Drop 1930–1945 from the OLS. Does value still have the larger $$\tilde\phi$$?
+1. Drop 1930 to 1945 from the OLS. Does value still have the larger $$\tilde\phi$$?
 2. Using the model's $$A_1$$ ratio 2.06, what $$\phi_{\text{value}}$$ would you need if $$\phi_{\text{growth}}$$ stayed 2.6 and you wanted the two elasticities equal?
-3. Set $$\psi=1/\gamma$$ and re-solve. Does the value–growth ranking in $$A_1$$ survive?
+3. Set $$\psi=1/\gamma$$ and re-solve. Does the value-growth ranking in $$A_1$$ survive?
