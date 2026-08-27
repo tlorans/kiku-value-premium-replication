@@ -162,3 +162,29 @@ def test_cash_flows_then_prices():
     assert "cross-section" in text
     assert "8.56" not in text
     assert "13.88" not in text
+
+
+H2S = (
+    "## Data",
+    "## Calibrate cash flows",
+    "## Solve",
+    "## Compare pricing moments",
+)
+
+
+def test_market_chapter():
+    text = _text("time-series.md")
+    assert "title: The market" in text
+    assert "# The market" in text
+    assert _parent("time-series.md") is None
+    assert _front_nav_order("time-series.md") == 4
+    positions = [text.index(h) for h in H2S]
+    assert positions == sorted(positions)
+    assert "8.56" in text and "7.53" in text
+    assert "```python" in text
+    assert "import lrrcs as lrr" in text
+    assert "build_annual_panel" in text or "get_table_ii_params" in text
+    assert "simulate_cashflow_moments" in text
+    assert "Melin" not in text
+    assert "other-risk-premia" not in text
+    assert "cross-section" in text
