@@ -77,16 +77,12 @@ def _pull_wrds() -> dict[str, pd.DataFrame]:
                 "Call tidyfinance.set_wrds_credentials()."
             ) from exc
         raise EmpiricalDataError("WRDS download failed") from exc
-    # tidyfinance v1 already keeps shrcd 10/11. Synthesize a names table
-    # so _filter_universe still runs.
+    # Derived names for the parquet cache. Monthly exchcd on msf is the
+    # universe key; do not freeze the first exchcd per permno.
     names = (
-        msf[["permno", "exchcd"]]
-        .drop_duplicates("permno")
-        .assign(
-            namedt=pd.Timestamp("1925-01-01"),
-            nameendt=pd.Timestamp("2099-12-31"),
-            shrcd=11,
-        )
+        msf.groupby(["permno", "exchcd"], as_index=False)
+        .agg(namedt=("date", "min"), nameendt=("date", "max"))
+        .assign(shrcd=11)
     )
     return {
         "msf": msf,
@@ -153,30 +149,33 @@ def _load_raw(refresh: bool) -> dict[str, pd.DataFrame]:
 
 
 def _filter_universe(msf: pd.DataFrame, names: pd.DataFrame) -> pd.DataFrame:
-    nm = names.copy()
-    nm["permno"] = pd.to_numeric(nm["permno"], errors="coerce")
-    nm["namedt"] = pd.to_datetime(nm["namedt"])
-    nm["nameendt"] = pd.to_datetime(nm["nameendt"]).fillna(pd.Timestamp("2099-12-31"))
-    nm["shrcd"] = pd.to_numeric(nm["shrcd"], errors="coerce")
-    nm["exchcd"] = pd.to_numeric(nm["exchcd"], errors="coerce")
-    nm = nm[nm["shrcd"].isin((10, 11)) & nm["exchcd"].isin((1, 2, 3))]
+    # tidyfinance v1 already restricted ordinary shares. Monthly exchcd
+    # (after 31/32/33 → 1/2/3) is the NYSE/AMEX/NASDAQ cut.
     out = msf.copy()
     out["permno"] = pd.to_numeric(out["permno"], errors="coerce")
     out["date"] = pd.to_datetime(out["date"])
-    merge_cols = ["permno", "namedt", "nameendt", "shrcd"]
     if "exchcd" not in out.columns:
-        merge_cols.append("exchcd")
-    out = out.merge(
-        nm[merge_cols],
-        on="permno",
-        how="inner",
-    )
-    out = out[(out["date"] >= out["namedt"]) & (out["date"] <= out["nameendt"])]
+        nm = names.copy()
+        nm["permno"] = pd.to_numeric(nm["permno"], errors="coerce")
+        nm["namedt"] = pd.to_datetime(nm["namedt"])
+        nm["nameendt"] = pd.to_datetime(nm["nameendt"]).fillna(
+            pd.Timestamp("2099-12-31")
+        )
+        nm["exchcd"] = pd.to_numeric(nm["exchcd"], errors="coerce")
+        out = out.merge(
+            nm[["permno", "namedt", "nameendt", "exchcd"]],
+            on="permno",
+            how="inner",
+        )
+        out = out[(out["date"] >= out["namedt"]) & (out["date"] <= out["nameendt"])]
+        out = out.drop(columns=["namedt", "nameendt"])
+    out["exchcd"] = pd.to_numeric(out["exchcd"], errors="coerce")
+    out = out[out["exchcd"].isin((1, 2, 3))]
     out = out.drop_duplicates(["permno", "date"])
     for col in ("ret", "retx", "prc", "shrout"):
         out[col] = pd.to_numeric(out[col], errors="coerce")
     out["permno"] = out["permno"].astype(int)
-    return out.drop(columns=["namedt", "nameendt", "shrcd"])
+    return out
 
 
 def _compustat_be(funda: pd.DataFrame, link: pd.DataFrame) -> pd.DataFrame:

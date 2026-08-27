@@ -163,5 +163,6 @@ def test_form_bm_quintiles_uses_assign_portfolio(monkeypatch):
     assert seen["sorting_variable"] == "bm"
     assert seen["n_portfolios"] == 5
     assert seen["exchanges"] == "NYSE"
+    assert seen["exchange_col"] == "exchange"
     assert not out.empty
     assert set(out["quintile"]) == {1}

@@ -1,7 +1,11 @@
 import pandas as pd
 import pytest
-from lrrcs.empirical.wrds import EmpiricalDataError, _wrds_connection
-from lrrcs.empirical.panel import _pull_wrds
+from lrrcs.empirical.wrds import (
+    EmpiricalDataError,
+    _normalize_crsp_monthly,
+    _wrds_connection,
+)
+from lrrcs.empirical.panel import _filter_universe, _pull_wrds
 
 
 def test_wrds_connection_without_credentials_raises(monkeypatch, tmp_path):
@@ -99,6 +103,84 @@ def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
     assert crsp_call.get("version") == "v1"
     assert "retx" in crsp_call.get("additional_columns", [])
     assert "msf" in tables and "funda" in tables and "link" in tables
+    assert set(tables["msf"]["exchcd"]) <= {1, 2, 3}
+    assert set(tables["names"]["exchcd"]) <= {1, 2, 3}
+
+
+def test_normalize_crsp_monthly_recodes_exchcd_31_32_33():
+    raw = pd.DataFrame(
+        {
+            "permno": [1, 2, 3, 4],
+            "date": [pd.Timestamp("2000-01-31")] * 4,
+            "ret": [0.01] * 4,
+            "retx": [0.0] * 4,
+            "prc": [10.0] * 4,
+            "shrout": [1000.0] * 4,
+            "exchcd": [31, 32, 33, 1],
+        }
+    )
+    out = _normalize_crsp_monthly(raw)
+    assert list(out["exchcd"]) == [1, 2, 3, 1]
+
+
+def test_normalize_crsp_monthly_missing_columns_raises():
+    raw = pd.DataFrame(
+        {
+            "permno": [1],
+            "date": [pd.Timestamp("2000-01-31")],
+            "ret": [0.01],
+            "retx": [0.0],
+            "prc": [10.0],
+            "exchcd": [1],
+        }
+    )
+    with pytest.raises(EmpiricalDataError, match="missing columns"):
+        _normalize_crsp_monthly(raw)
+
+
+def test_filter_universe_uses_monthly_exchcd_not_frozen_names():
+    msf = pd.DataFrame(
+        {
+            "permno": [1, 1, 1],
+            "date": pd.to_datetime(["2000-01-31", "2000-02-29", "2000-03-31"]),
+            "ret": [0.01, 0.01, 0.01],
+            "retx": [0.0, 0.0, 0.0],
+            "prc": [10.0, 10.0, 10.0],
+            "shrout": [1000.0, 1000.0, 1000.0],
+            "exchcd": [1, 4, 1],
+        }
+    )
+    names = pd.DataFrame(
+        {
+            "permno": [1],
+            "exchcd": [1],
+            "namedt": [pd.Timestamp("1925-01-01")],
+            "nameendt": [pd.Timestamp("2099-12-31")],
+            "shrcd": [11],
+        }
+    )
+    out = _filter_universe(msf, names)
+    assert set(pd.to_datetime(out["date"])) == {
+        pd.Timestamp("2000-01-31"),
+        pd.Timestamp("2000-03-31"),
+    }
+
+
+def test_permno_starting_on_exchcd_31_stays_in_universe():
+    raw = pd.DataFrame(
+        {
+            "permno": [1, 1],
+            "date": pd.to_datetime(["2000-01-31", "2000-02-29"]),
+            "ret": [0.01, 0.01],
+            "retx": [0.0, 0.0],
+            "prc": [10.0, 10.0],
+            "shrout": [1000.0, 1000.0],
+            "exchcd": [31, 1],
+        }
+    )
+    out = _filter_universe(_normalize_crsp_monthly(raw), pd.DataFrame())
+    assert len(out) == 2
+    assert set(out["exchcd"]) == {1}
 
 
 @pytest.mark.wrds

@@ -86,7 +86,7 @@ def _normalize_crsp_monthly(df: pd.DataFrame) -> pd.DataFrame:
     out.columns = [str(c).lower() for c in out.columns]
     if "calculation_date" in out.columns:
         out["date"] = pd.to_datetime(out["calculation_date"])
-    else:
+    elif "date" in out.columns:
         out["date"] = pd.to_datetime(out["date"])
     if "prc" not in out.columns and "altprc" in out.columns:
         out["prc"] = out["altprc"]
@@ -94,8 +94,11 @@ def _normalize_crsp_monthly(df: pd.DataFrame) -> pd.DataFrame:
         out["exchcd"] = out["exchange"].map(
             {"NYSE": 1, "AMEX": 2, "NASDAQ": 3}
         )
-    if out["shrout"].median() > 1e5:
-        out["shrout"] = out["shrout"] / 1000.0
+    if "exchcd" in out.columns:
+        # tidyfinance v1: 31/1 NYSE, 32/2 AMEX, 33/3 NASDAQ
+        out["exchcd"] = pd.to_numeric(out["exchcd"], errors="coerce").replace(
+            {31: 1, 32: 2, 33: 3}
+        )
     need = ["permno", "date", "ret", "retx", "prc", "shrout", "exchcd"]
     missing = [c for c in need if c not in out.columns]
     if missing:
@@ -103,6 +106,8 @@ def _normalize_crsp_monthly(df: pd.DataFrame) -> pd.DataFrame:
             f"CRSP extract missing columns {missing}; "
             "pass them via additional_columns"
         )
+    if out["shrout"].median() > 1e5:
+        out["shrout"] = out["shrout"] / 1000.0
     return out[need]
 
 
