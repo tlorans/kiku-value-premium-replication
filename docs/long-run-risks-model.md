@@ -1,6 +1,6 @@
 ---
 title: The long-run risks model
-nav_order: 4
+nav_order: 3
 ---
 
 # The long-run risks model
@@ -11,7 +11,7 @@ nav_order: 4
 
 Here is the model. It has exactly two parts, and they are the two halves of every DCF you have ever built. A consumption process with a small persistent component tells us where cash-flow growth comes from. A household that fears news about that component tells us where the discount rate comes from. The chapter ends with the one expression where the halves meet — the elasticity of valuations to long-run news — and with the model's version of the security market line, drawn before we touch a single return.
 
-Why go to this trouble? Because "the market went down, the discount rate must have risen" is not economics, it is poetry. A model earns the name only if its state variable is something you can measure and its predictions are things that can fail. The state variable here is expected consumption growth; the predictions are valuations *and* risk premia. [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) run those tests. We do not extract $$x_t$$ from NIPA or match Table VII here.
+Why go to this trouble? Because "the market went down, the discount rate must have risen" is not economics, it is poetry. A model earns the name only if its state variable is something you can measure and its predictions are things that can fail. The state variable here is expected consumption growth; the predictions are valuations *and* risk premia. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) estimates the loadings. [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) run the tests. We do not extract $$x_t$$ from NIPA or match Table VII here.
 
 We use the following packages. Run the chunks **in order** — later snippets reuse `paths` and `sol`.
 
@@ -25,7 +25,7 @@ import lrrcs as lrr
 
 ## The consumption process
 
-[Financial data]({{ '/financial-data.html' | relative_url }}) showed that annual U.S. consumption growth is not white noise: its first autocorrelation is about 0.41. That matters more than it looks. The Mehra–Prescott equity-premium puzzle is stated under i.i.d. consumption growth and power utility — and under those assumptions the model premium is a rounding error. Bansal and Yaron (2004) change the endowment, not the arithmetic: split growth into a small persistent piece $$x_t$$ and a transitory shock,
+Annual U.S. consumption growth is not white noise: its first autocorrelation is about 0.41. That matters more than it looks. The Mehra–Prescott equity-premium puzzle is stated under i.i.d. consumption growth and power utility — and under those assumptions the model premium is a rounding error. Bansal and Yaron (2004) change the endowment, not the arithmetic: split growth into a small persistent piece $$x_t$$ and a transitory shock,
 
 $$
 \Delta c_{t+1}=\mu+x_t+\sigma_t\eta_{t+1},\qquad
@@ -85,7 +85,7 @@ paths = pd.DataFrame({
 
 <p class="caption">$$x_t$$ is small (a few tenths of a percent per month) and highly persistent. That is the low-frequency risk embodied in cash flows.</p>
 
-For the DCF reader: $$x_t$$ *is* your $$g$$ — not a constant plugged into a terminal value, but a state of the economy that wanders, and that dividends inherit. In the CAPM the factor is $$R_m-r_f$$; here the factor is news about $$x_t$$ — and, separately, news about future uncertainty. Extracting $$x_t$$ from seventy-four years of annual data is [The Time Series]({{ '/time-series.html' | relative_url }}).
+For the DCF reader: $$x_t$$ *is* your $$g$$ — not a constant plugged into a terminal value, but a state of the economy that wanders, and that dividends inherit. In the CAPM the factor is $$R_m-r_f$$; here the factor is news about $$x_t$$ — and, separately, news about future uncertainty. Extracting $$x_t$$ from seventy-four years of annual data is the appendix of [The Time Series]({{ '/time-series.html' | relative_url }}).
 
 ## The household
 
@@ -179,7 +179,7 @@ Value's $$A_1$$ is about twice growth's. The same cash-flow leverage that earns 
 
 `lrr.solve_analytical` is this linearization for every claim in `ModelParams`. The points on the figure come from Table II: $$\phi_G=2.6$$, $$\phi_m=2.8$$, $$\phi_V=6.2$$.
 
-One rule, and it is the book's discipline: do **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure, measured from dividends and consumption. Average returns, Sharpe ratios, and CAPM betas stay out of that step, so that the Euler equation remains a *test*: given those cash-flow numbers, do valuations and risk premia look like the data? [The Time Series]({{ '/time-series.html' | relative_url }}) runs the test on the market. [The Cross Section]({{ '/cross-section.html' | relative_url }}) runs it on value and growth.
+One rule, and it is the book's discipline: do **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure, measured from dividends and consumption. Average returns, Sharpe ratios, and CAPM betas stay out of that step, so that the Euler equation remains a *test*: given those cash-flow numbers, do valuations and risk premia look like the data? [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) is that measurement. [The Time Series]({{ '/time-series.html' | relative_url }}) runs the test on the market. [The Cross Section]({{ '/cross-section.html' | relative_url }}) runs it on value and growth.
 
 ## Key takeaways
 
@@ -188,6 +188,8 @@ One rule, and it is the book's discipline: do **not** estimate $$\phi$$ from ret
 - The halves meet in $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$: cash-flow leverage and the household's substitution motive in one fraction. Because $$\rho$$ is near one, small persistent news moves valuations a lot.
 - Firms differ only in the exposure of their dividends to low- versus high-frequency consumption shocks. That dispersion — not return covariances — is what the equilibrium turns into valuations and premia.
 - $$\phi$$ is estimated from cash flows. Returns are the test.
+
+Next: [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}).
 
 ## Exercises
 
