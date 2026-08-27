@@ -106,3 +106,43 @@ def test_code_fences_use_flat_lrr():
         assert "from lrrcs.implications import" not in text
         assert "print_value_premium" not in text
         assert "lrr." in text or "import lrrcs as lrr" in text
+
+
+def test_home_is_landing():
+    text = _text("index.md")
+    assert "# Long-run risks" in text
+    assert "## Introduction" not in text
+    assert "I show" not in text
+    assert "Start here" in text
+    assert "getting-started" in text
+    assert "cash-flows-then-prices" in text
+    assert "time-series" in text
+    assert "cross-section" in text
+    assert "```python" in text
+    assert "import tidyfinance as tf" in text
+    assert "import lrrcs as lrr" in text
+    assert "print_long_short_premium" in text
+    for stem in (
+        "empirical",
+        "calibration",
+        "implications",
+        "climate",
+        "further",
+        "other-risk-premia",
+        "generalization",
+        "replica",
+    ):
+        assert f"{stem}.html" not in text
+        assert f"{stem}.md" not in text
+    assert "model.html" not in text
+
+
+def test_getting_started():
+    text = _text("getting-started.md")
+    assert "uv pip install -e ." in text
+    assert "import tidyfinance as tf" in text
+    assert "import lrrcs as lrr" in text
+    assert "solve_analytical" in text
+    assert "cash-flows-then-prices" in text
+    assert "set_wrds_credentials" not in text
+    assert "What that did not" in text
