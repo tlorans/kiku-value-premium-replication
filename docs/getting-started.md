@@ -9,6 +9,17 @@ nav_order: 2
 1. TOC
 {:toc}
 
+
+**Hook.** A bankable DCF at $$r-g=4\%$$ prices the firm at 25 times dividends. Shave the discount rate by one point and a third of the value moves. Where did that point come from?
+
+**Naive take.** Pick $$g$$ from an analyst note and $$r$$ from a CAPM beta, independently. The two numbers are "just inputs."
+
+**Outcomes this page.**
+- F — say why $$r$$ and $$g$$ are not independent once cash-flow risk is priced.
+- Q — compute Gordon $$P/D=1/(r-g)$$ at 4% and at 3% by hand.
+- P — install `lrrcs`, solve Table II, and read the printed long-run premia as an output, not a target.
+
+
 You already know how to price a stock. Forecast the cash flows, pick a discount rate, divide. Every valuation you have ever built runs on those two numbers. This book is about where the two numbers come from — and why, in the end, they are really one number.
 
 ## Two numbers you made up
@@ -105,3 +116,9 @@ Price of long-run risk Lambda_eps = 5.95
 - `lrr.solve_analytical` is the whole equilibrium in one call: risk premia and valuation elasticities from the same solution.
 
 Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we construct consumption, dividends, and the value and growth cash flows from the raw records.
+
+## Pitfalls
+
+- Finance — treating APR-style annualization as harmless when Table II is monthly.
+- Finance — reading the 0.40 percent long-run *piece* as the whole value premium.
+- Python — importing `from lrrcs.model import ...`. Documented code stays at `lrr.`.
