@@ -14,6 +14,7 @@ import tidyfinance as tf
 import lrrcs as lrr
 ```
 
+Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+
 - [Installation]({{ '/installation.html' | relative_url }})
 - [API]({{ '/api.html' | relative_url }})
-- [Other portfolios]({{ '/generalization.html' | relative_url }})

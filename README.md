@@ -1,4 +1,4 @@
-# Long-run risks and the cross section
+# Long-run risks
 
 Python package `lrrcs`, a companion to [tidyfinance](https://github.com/tidy-finance/py-tidyfinance).
 The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences.
@@ -9,12 +9,12 @@ Average returns never enter the cash-flow step.
 
 **Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
-| Page | What is priced |
+| Page | What it is |
 |---|---|
-| [Time series](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | Market claim |
-| [Cross section](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Value versus growth |
-| [Other risk premia](https://tlorans.github.io/kiku-value-premium-replication/other-risk-premia.html) | Size, profitability, investment, industries |
-| [Climate](https://tlorans.github.io/kiku-value-premium-replication/climate.html) | Transition and physical sorts |
+| [Getting started](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install and a five-line solve |
+| [Cash flows, then prices](https://tlorans.github.io/kiku-value-premium-replication/cash-flows-then-prices.html) | The four-step loop |
+| [The market](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, time series |
+| [Value versus growth](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |
 
 ## Install
 

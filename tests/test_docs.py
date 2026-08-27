@@ -211,3 +211,43 @@ def test_value_versus_growth_chapter():
     assert "import lrrcs as lrr" in text
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
+
+
+DELETED = (
+    "empirical.md",
+    "model.md",
+    "calibration.md",
+    "implications.md",
+    "other-risk-premia.md",
+    "climate.md",
+    "further.md",
+    "generalization.md",
+    "replica.md",
+    "value.md",
+    "recipe.md",
+)
+
+
+def test_deleted_pages_gone():
+    for name in DELETED:
+        assert not (ROOT / name).exists(), name
+
+
+def test_package_page_points_at_the_book():
+    text = _text("package.md")
+    assert "generalization" not in text
+    assert "getting-started" in text or "time-series" in text or "cash-flows-then-prices" in text
+
+
+def test_readme_matches_landing():
+    text = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+    assert text.startswith("# Long-run risks\n")
+    assert "and the cross section" not in text.splitlines()[0]
+    assert "six-step" not in text.lower() and "6-step" not in text.lower()
+    assert "getting-started" in text
+    assert "cash-flows-then-prices" in text
+    assert "time-series" in text
+    assert "cross-section" in text
+    assert "other-risk-premia" not in text
+    assert "climate.html" not in text
+    assert "import lrrcs as lrr" in text
