@@ -1,5 +1,5 @@
 import pytest
-from kiku_value_premium.empirical.wrds import EmpiricalDataError, connect_wrds
+from lrrcs.empirical.wrds import EmpiricalDataError, connect_wrds
 
 
 def test_connect_without_env_raises(monkeypatch, tmp_path):
@@ -12,8 +12,8 @@ def test_connect_without_env_raises(monkeypatch, tmp_path):
 
 @pytest.mark.wrds
 def test_live_panel_covers_1930_2003():
-    from kiku_value_premium.empirical.goldens import END, START
-    from kiku_value_premium.empirical.panel import build_annual_panel
+    from lrrcs.empirical.goldens import END, START
+    from lrrcs.empirical.panel import build_annual_panel
     bm = build_annual_panel(refresh=True)
     sub = bm[(bm["year"] >= START) & (bm["year"] <= END)]
     assert set(sub["claim"].unique()) == {"Growth", "Value", "Market"}
@@ -29,14 +29,14 @@ def test_live_table_i_hard_gate_within_se():
     Value cash-flow ranking cells (dg_sd, Value–Market Δd corr, φ̃, innov_corr)
     stay off this gate; they do not sit inside the printed SE.
     """
-    from kiku_value_premium.empirical.goldens import (
+    from lrrcs.empirical.goldens import (
         END,
         START,
         TABLE_I,
         TABLE_I_CORR_RET,
     )
-    from kiku_value_premium.empirical.panel import _cache_ready, build_annual_panel
-    from kiku_value_premium.empirical.tables import table_i, table_i_corr, within_se
+    from lrrcs.empirical.panel import _cache_ready, build_annual_panel
+    from lrrcs.empirical.tables import table_i, table_i_corr, within_se
 
     bm = build_annual_panel(refresh=not _cache_ready())
     tab = table_i(bm, START, END).set_index("claim")

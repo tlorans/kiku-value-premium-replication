@@ -1,7 +1,7 @@
 from pathlib import Path
 import pandas as pd
-from kiku_value_premium.empirical.tables import table_i, table_vi_data
-from kiku_value_premium.empirical.figures import figure1, figure2, figure3, figure4
+from lrrcs.empirical.tables import table_i, table_vi_data
+from lrrcs.empirical.figures import figure1, figure2, figure3, figure4
 
 FIX = Path(__file__).parent / "fixtures"
 

@@ -1,16 +1,16 @@
 def main():
     print("Kiku (2006) recipe — paper order")
     try:
-        from kiku_value_premium.empirical import START, END, build_annual_panel, table_i
+        from lrrcs.empirical import START, END, build_annual_panel, table_i
         bm = build_annual_panel(refresh=False)
         print(table_i(bm, START, END))
     except Exception as exc:
         print(f"Section 2 skipped ({exc}). Continuing from Table II.")
-    from kiku_value_premium.model import get_table_ii_params, solve_analytical, ModelSolver, print_value_premium
-    from kiku_value_premium.calibration import simulate_cashflow_moments
-    from kiku_value_premium.implications import compute_asset_pricing_moments, print_asset_pricing_moments
+    from lrrcs.model import get_table_ii_params, solve_analytical, ModelSolver, print_long_short_premium
+    from lrrcs.calibration import simulate_cashflow_moments
+    from lrrcs.implications import compute_asset_pricing_moments, print_asset_pricing_moments
     params = get_table_ii_params()
-    print_value_premium(solve_analytical(params))
+    print_long_short_premium(solve_analytical(params))
     print(simulate_cashflow_moments(n_sims=20, years=74, seed=1))
     solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
     solver.solve()

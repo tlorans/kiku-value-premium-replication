@@ -1,7 +1,7 @@
-from kiku_value_premium.calibration import simulate_cashflow_moments
-from kiku_value_premium.implications import compute_asset_pricing_moments
-from kiku_value_premium.implications.figures import figure5, figure_lr_premium, figure_mean_pd
-from kiku_value_premium.model import ModelSolver, get_table_ii_params, solve_analytical
+from lrrcs.calibration import simulate_cashflow_moments
+from lrrcs.implications import compute_asset_pricing_moments
+from lrrcs.implications.figures import figure5, figure_lr_premium, figure_mean_pd
+from lrrcs.model import ModelSolver, get_table_ii_params, solve_analytical
 
 
 def test_value_premium_positive_on_tiny_grid():
@@ -27,7 +27,7 @@ def test_simulated_consumption_moment_ranking():
 
 
 def test_figures_lr_and_5(tmp_path):
-    from kiku_value_premium.model import ModelSolver, get_table_ii_params
+    from lrrcs.model import ModelSolver, get_table_ii_params
     figure_lr_premium(tmp_path / "lr.pdf")
     solver = ModelSolver(get_table_ii_params(), n_x=5, n_s=2, n_quad=3)
     solver.solve()

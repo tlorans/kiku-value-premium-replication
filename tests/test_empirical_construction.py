@@ -1,20 +1,20 @@
 import numpy as np
 import pandas as pd
-from kiku_value_premium.empirical.construction import (
+from lrrcs.empirical.construction import (
     apply_delisting_returns,
     book_equity,
     nyse_quintile_labels,
     value_weight_monthly,
 )
-from kiku_value_premium.empirical.dividends import campbell_shiller_annual
-from kiku_value_premium.empirical.goldens import (
+from lrrcs.empirical.dividends import campbell_shiller_annual
+from lrrcs.empirical.goldens import (
     END,
     FIGURE2_START,
     START,
     TABLE_I,
     TABLE_VI_PHI,
 )
-from kiku_value_premium.empirical.tables import newey_west_mean, within_se
+from lrrcs.empirical.tables import newey_west_mean, within_se
 
 
 def test_windows():

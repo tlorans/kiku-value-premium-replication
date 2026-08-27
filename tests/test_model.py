@@ -1,4 +1,4 @@
-from kiku_value_premium.model import (
+from lrrcs.model import (
     Dynamics,
     EpsteinZinPreferences,
     ModelParams,

@@ -25,13 +25,13 @@ import urllib.request
 import numpy as np
 import pandas as pd
 
-from kiku_value_premium.calibration import (
+from lrrcs.calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
     get_table_ii_dividends,
     print_calibration_summary,
 )
-from kiku_value_premium.model import (
+from lrrcs.model import (
     ConsumptionParams,
     ModelParams,
     PreferencesParams,
@@ -146,7 +146,7 @@ def main():
 2. Align them with the consumption series (same years).
 3. Run:
 
-   from kiku_value_premium.calibration import calibrate_from_data
+   from lrrcs.calibration import calibrate_from_data
    div_params = calibrate_from_data(
        dc_series.values,
        {

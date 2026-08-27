@@ -17,12 +17,12 @@ Replace the synthetic generation with your own data to analyse real portfolios.
 from __future__ import annotations
 import numpy as np
 
-from kiku_value_premium.calibration import (
+from lrrcs.calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
     print_calibration_summary,
 )
-from kiku_value_premium.model import (
+from lrrcs.model import (
     ConsumptionParams,
     ModelParams,
     PreferencesParams,

@@ -67,10 +67,11 @@ def test_old_flat_modules_are_gone():
             importlib.import_module(f"lrrcs.{name}")
 
 
-def test_legacy_import_name():
-    import kiku_value_premium as old
-    import lrrcs as new
-    assert old.__version__ == new.__version__
+def test_kiku_value_premium_is_gone():
+    import importlib
+    import pytest
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("kiku_value_premium")
 
 
 def test_no_climate_imports():

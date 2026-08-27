@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from kiku_value_premium.empirical.goldens import (
+from lrrcs.empirical.goldens import (
     CASHFLOW_NOTE,
     END,
     START,
@@ -12,7 +12,7 @@ from kiku_value_premium.empirical.goldens import (
     TABLE_VI_INNOV,
     TABLE_VI_PHI,
 )
-from kiku_value_premium.empirical.tables import table_i, table_i_corr, table_vi_data, within_se
+from lrrcs.empirical.tables import table_i, table_i_corr, table_vi_data, within_se
 
 ROOT = Path(__file__).resolve().parents[1]
 PANEL = ROOT / "data" / "annual_panel.csv"
@@ -55,7 +55,7 @@ def test_table_i_correlations_within_se():
 def test_table_iii_consumption_within_se():
     dc = pd.read_csv(DC).set_index("year")["dc"]
     x = dc.loc[START:END].to_numpy() * 100.0
-    from kiku_value_premium.empirical.tables import newey_west_mean, sd_and_se
+    from lrrcs.empirical.tables import newey_west_mean, sd_and_se
     mu, se_mu = newey_west_mean(x, lags=8)
     sd, se_sd = sd_and_se(x, lags=8)
     ac1 = float(np.corrcoef(x[1:], x[:-1])[0, 1])

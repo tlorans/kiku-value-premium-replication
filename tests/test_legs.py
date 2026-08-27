@@ -1,7 +1,7 @@
 import numpy as np
 
-from kiku_value_premium.calibration import calibrate_from_data
-from kiku_value_premium.model import (
+from lrrcs.calibration import calibrate_from_data
+from lrrcs.model import (
     ModelParams,
     get_table_ii_params,
     resolve_legs,
@@ -9,7 +9,7 @@ from kiku_value_premium.model import (
     print_value_premium,
     ModelSolver,
 )
-from kiku_value_premium.implications import compute_asset_pricing_moments
+from lrrcs.implications import compute_asset_pricing_moments
 
 
 def test_resolve_legs_paper_aliases():

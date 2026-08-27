@@ -1,6 +1,6 @@
 import inspect
 import numpy as np
-from kiku_value_premium.calibration import (
+from lrrcs.calibration import (
     calibrate_from_data,
     estimate_long_run_leverage,
     get_table_ii_dividends,
@@ -41,7 +41,7 @@ def test_simulate_cashflow_moments_keys():
 
 
 def test_calibrate_from_data_phi_sigma_matches_residual_vol():
-    from kiku_value_premium.calibration.from_data import _consumption_innovation
+    from lrrcs.calibration.from_data import _consumption_innovation
 
     rng = np.random.default_rng(11)
     n = 80

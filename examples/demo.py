@@ -5,8 +5,8 @@ Quick demonstration of Kiku (2006) value-premium mechanism.
 Run from the repository root after `pip install -e .`:
     python examples/demo.py
 """
-from kiku_value_premium.model import solve_analytical, print_value_premium
-from kiku_value_premium.calibration import simulate_cashflow_moments, print_moments
+from lrrcs.model import solve_analytical, print_long_short_premium
+from lrrcs.calibration import simulate_cashflow_moments, print_moments
 
 def main():
     print("=" * 60)
@@ -16,7 +16,7 @@ def main():
     print("\n1. Analytical long-run risk premia (Section 3.4)")
     print("-" * 50)
     sol = solve_analytical()
-    print_value_premium(sol)
+    print_long_short_premium(sol)
 
     print("\n2. Monte-Carlo cash-flow moments (Tables III–IV targets)")
     print("-" * 50)

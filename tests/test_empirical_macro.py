@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from kiku_value_premium.empirical.consumption import consumption_growth_from_levels
-from kiku_value_premium.empirical.rates import real_rf_from_monthly
+from lrrcs.empirical.consumption import consumption_growth_from_levels
+from lrrcs.empirical.rates import real_rf_from_monthly
 
 
 def test_consumption_growth_is_log_diff_of_per_capita():
