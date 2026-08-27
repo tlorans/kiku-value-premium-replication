@@ -2,6 +2,8 @@
 from __future__ import annotations
 import numpy as np
 
+from .expected_growth import expected_growth_proxy
+
 
 def estimate_long_run_leverage(
     dc: np.ndarray,
@@ -25,18 +27,12 @@ def estimate_long_run_leverage(
     """
     dc = np.asarray(dc, dtype=float).ravel()
     dd = np.asarray(dd, dtype=float).ravel()
-    n = len(dc)
-    if n <= window:
-        raise ValueError("Series too short for the requested window")
-
-    ma = np.full(n, np.nan)
-    for t in range(window, n):
-        ma[t] = np.mean(dc[t - window : t])
-
+    if len(dc) != len(dd):
+        raise ValueError("dc and dd must have the same length")
+    ma = expected_growth_proxy(dc, window=window)
     mask = ~np.isnan(ma)
     y = dd[mask]
     x = ma[mask]
-    # simple OLS with intercept
     x_demean = x - x.mean()
     y_demean = y - y.mean()
     phi = float(np.dot(x_demean, y_demean) / np.dot(x_demean, x_demean))
