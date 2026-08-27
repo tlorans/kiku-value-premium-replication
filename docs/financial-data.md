@@ -1,5 +1,6 @@
 ---
 title: Financial data
+parent: Package
 nav_order: 3
 ---
 
@@ -9,7 +10,9 @@ nav_order: 3
 1. TOC
 {:toc}
 
-A model whose inputs cannot be measured is not a model; it is an opinion with equations. So before any Euler equation, this chapter builds every input from public records, and each series has a job. Consumption growth feeds *both* halves of the model — it is the endowment the household eats (the discount-rate side) and the trend that dividends are levered to (the cash-flow side). Dividends of the market, value, and growth claims are pure cash-flow-side objects. The real T-bill belongs to the discount-rate side: it pins the level against which every premium is measured. And the price–dividend ratios and average returns we tabulate at the end are neither — they are the *outputs* the equilibrium will be graded on. Average returns are a fact to explain, not an input; they enter nothing below.
+You do not need this chapter to read the book. The argument path uses the shipped 1930–2003 CSVs. Rebuild the panel only if you want to see where those files come from.
+
+A model whose inputs cannot be measured is not a model; it is an opinion with equations. CRSP stores returns, not a dividend file. The one idea that earns the page is Campbell–Shiller: dividends are the gap between the with-dividend return and the capital-gain return. Consumption growth feeds *both* halves of the model — it is the endowment the household eats (the discount-rate side) and the trend that dividends are levered to (the cash-flow side). The real T-bill belongs to the discount-rate side. The price–dividend ratios and average returns we tabulate at the end are the *outputs* the equilibrium will be graded on. Average returns enter nothing below.
 
 The pricing chapters use 1930–2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003; after constructing we cut to that window. Run the chunks **in order**.
 
@@ -262,6 +265,6 @@ Returns and dividend growth are percent per year, Newey–West standard errors i
 - Consumption serves both halves of the model: the household's endowment (discount-rate side) and the trend dividends are levered to (cash-flow side). Its volatility — 2.37 percent — is why the premium is a puzzle.
 - CRSP stores returns, so dividends are recovered by the Campbell–Shiller identity from `ret` minus `retx`. These are the cash flows in which low- versus high-frequency risks are embodied.
 - The real T-bill anchors the discount-rate side; the value and growth quintiles hand the cross section its two cash-flow claims.
-- The 1930–2003 files this pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose valuations and risk premia [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) have to match.
+- The 1930–2003 files this pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose valuations and risk premia [Does the market still fit?]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
 
-Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
+Next: [API]({{ '/api.html' | relative_url }}).
