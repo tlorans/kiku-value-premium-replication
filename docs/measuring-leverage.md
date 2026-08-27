@@ -31,7 +31,7 @@ The series themselves were built in [Financial data]({{ '/financial-data.html' |
 
 ## The two-year MA
 
-Raw annual \(\Delta c\) is jagged. Average the last two years — not the current year — and the slow component is visible.
+Raw annual \(\Delta c\) is jagged. Average the last two years (not the current year) and the slow component is visible.
 
 ```python
 window = 2
@@ -101,9 +101,9 @@ def phi_hat(claim):
 {'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
 ```
 
-There is the risk, in the cash flows where the model said it would be. Value's dividend growth rises hard with the slow component of consumption; growth's barely responds — on this reconstruction it even leans the other way.
+There is the risk, in the cash flows where the model said it would be. Value's dividend growth rises hard with the slow component of consumption; growth's barely responds, on this reconstruction it even leans the other way.
 
-These annual slopes are **not** the numbers the solver uses. They are the ranking Table II's monthly loadings have to respect. Monthly \(\phi\) is a different clock.
+The annual slopes are **not** the numbers the solver uses. They are the ranking Table II's monthly loadings have to respect. Monthly \(\phi\) is a different clock.
 
 Seventy-two annual observations buy you a ranking, not a third decimal. The ranking matches Kiku's Table VI in one respect: value loads more than growth. It does not match the growth point estimate. She prints \(-0.38\) / \(2.16\) / \(0.66\). We print \(-0.27\) / \(12.13\) / \(0.72\). Value \(\gg\) growth survives. The sign on growth does not.
 
@@ -190,5 +190,5 @@ Next: [Does the market still fit?]({{ '/time-series.html' | relative_url }}), wh
 ## Exercises
 
 1. Replace the two-year MA with `lrr.expected_growth_proxy(y, window=3)` and recompute the three slopes. Does the ranking survive?
-2. Drop 1930–1945 from the OLS. Does value still have the larger \(\tilde\phi\)?
+2. Drop 1930 to 1945 from the OLS. Does value still have the larger \(\tilde\phi\)?
 3. Call `lrr.calibrate_from_data` with only `market=dd("Market")`. Confirm there is still no place to pass a return.

@@ -9,9 +9,9 @@ nav_order: 5
 1. TOC
 {:toc}
 
-Now we test the model where Bansal and Yaron (2004) built it to be tested: the aggregate market, year after year. Two questions have organized macro-finance for forty years. Why is the equity premium so large — why does one claim on aggregate cash flows out-earn a Treasury bill by six to eight percentage points? And why do valuations move so much — why does the market's price–dividend ratio swing from 10 to 88 across this sample? A DCF has no answer to either; it takes the premium and the valuation as inputs. The equilibrium must produce both as outputs, from cash flows alone, and it gets no partial credit: *a match on the equity premium with the wrong price–dividend ratio is a fail.*
+Now we test the model where Bansal and Yaron (2004) built it to be tested, on the aggregate market, year after year. The equity premium is large. One claim on aggregate cash flows out-earns a Treasury bill by six to eight percentage points. Valuations also move a lot. The market's price-dividend ratio swings from 10 to 88 across this sample. A DCF has no answer to either fact, because it takes the premium and the valuation as inputs. The equilibrium must produce both as outputs, from cash flows alone, and it gets no partial credit: *a match on the equity premium with the wrong price–dividend ratio is a fail.*
 
-The loadings are already measured. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) ran equation (19) on the market. This chapter does not re-estimate $$x_t$$ or $$\phi$$. It asks whether the same Table II household, given those cash-flow numbers, still prices the aggregate claim — premium and valuation together. Average returns appear nowhere until the scoreboard. One claim; the ranking of firms is [Value versus growth]({{ '/cross-section.html' | relative_url }}). How one extracts $$x_t$$ from seventy-four annual observations is the appendix.
+The loadings are already measured. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) ran equation (19) on the market. This chapter does not re-estimate $$x_t$$ or $$\phi$$. It asks whether the same Table II household, given those cash-flow numbers, still prices the aggregate claim, premium and valuation together. Average returns appear nowhere until the scoreboard. One claim; the ranking of firms is [Value versus growth]({{ '/cross-section.html' | relative_url }}). How one extracts $$x_t$$ from seventy-four annual observations is the appendix.
 
 We use the following packages. Run the chunks **in order**: later snippets reuse `dc`, `mkt`, and `y`.
 
@@ -30,7 +30,7 @@ y = dc["dc"].to_numpy()
 
 ## Preparing the sample
 
-[Financial data]({{ '/financial-data.html' | relative_url }}) already wrote annual consumption growth and Campbell–Shiller market dividends for 1930–2003. We do not rebuild those series. Join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price–dividend ratio.
+[Financial data]({{ '/financial-data.html' | relative_url }}) already wrote annual consumption growth and Campbell-Shiller market dividends for 1930 to 2003. We do not rebuild those series. Join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price-dividend ratio.
 
 ```python
 mkt = (
@@ -51,7 +51,7 @@ mkt.head()
  1935  Market  0.419     0.077     30.34   0.042
 ```
 
-Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.37 percent — the endowment is astonishingly smooth, which is precisely why the premium is a puzzle. Its first autocorrelation is 0.41: expected growth is not a constant. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33). The real T-bill on this reconstruction is near zero; Kiku's printed sample is 0.91 percent.
+Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.37 percent. The endowment is smooth, which is why the premium is a puzzle. Its first autocorrelation is 0.41: expected growth is not a constant. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33). The real T-bill on this reconstruction is near zero; Kiku's printed sample is 0.91 percent.
 
 ```python
 print(len(y), y.mean() * 100, y.std(ddof=1) * 100)
@@ -86,9 +86,9 @@ Look at the last column. The valuation is not a constant the way a Gordon formul
 )
 ```
 
-![Market log price–dividend](figures/market_log_pd.svg)
+![Market log price-dividend](figures/market_log_pd.svg)
 
-<p class="caption">Market $$\log(P/D)$$ from Campbell–Shiller on CRSP. Valuations and risk premia have to match together.</p>
+<p class="caption">Market $$\log(P/D)$$ from Campbell-Shiller on CRSP. Valuations and risk premia have to match together.</p>
 
 ## The loadings are already measured
 
@@ -111,7 +111,7 @@ Portfolio          μ (m)     φ (long-run)   φ_σ      α
 market              0.00076     0.722       5.33    0.57
 ```
 
-Simulation and pricing use Table II: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. How one sees $$x_t$$ — the MA versus a Kalman AR(1) — is the appendix. Do **not** take $$\phi$$ from the filter.
+Simulation and pricing use Table II: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. How one sees $$x_t$$ (the MA versus a Kalman AR(1)) is the appendix. Do **not** take $$\phi$$ from the filter.
 
 ## Simulate cash flows
 
@@ -175,7 +175,7 @@ Twenty samples of 74 years are too noisy to grade persistence. With 1,000 sample
 
 ## Solve and check returns and prices
 
-Now, and only now, the discount-rate machinery. The Euler equation is $$E_t[M_{t+1}R_{i,t+1}]=1$$ with the Epstein–Zin IMRS from [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}); we do not re-derive it. Nothing on the discount-rate side is re-tuned to this chapter — the household is the one calibrated in Table II, and it now prices the cash flows we just built. The log-linear price–dividend ratio of a claim is affine in the state,
+Now, and only now, the discount-rate machinery. The Euler equation is $$E_t[M_{t+1}R_{i,t+1}]=1$$ with the Epstein-Zin IMRS from [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}); we do not re-derive it. Nothing on the discount-rate side is re-tuned to this chapter, the household is the one calibrated in Table II, and it now prices the cash flows we just built. The log-linear price-dividend ratio of a claim is affine in the state,
 
 $$
 z_t=\bar z+A_1 x_t+A_2(\sigma_t^2-\bar\sigma^2),
@@ -187,7 +187,7 @@ $$
 A_1=\frac{\phi-1/\psi}{1-\kappa_1\rho}.
 $$
 
-There it is again — cash-flow leverage $$\phi$$ over the household's $$1/\psi$$, amplified by persistence. Larger $$\phi$$ means prices rise more when expected growth is high, and the long-run premium is $$A_1$$ times the price of $$x$$-news. With Table II's market $$\phi=2.8$$, $$\psi=1.5$$, $$\rho=0.98$$, and $$\bar z=3.24$$:
+There it is again, cash-flow leverage $$\phi$$ over the household's $$1/\psi$$, amplified by persistence. Larger $$\phi$$ means prices rise more when expected growth is high, and the long-run premium is $$A_1$$ times the price of $$x$$-news. With Table II's market $$\phi=2.8$$, $$\psi=1.5$$, $$\rho=0.98$$, and $$\bar z=3.24$$:
 
 ```python
 phi, psi, rho = 2.8, 1.5, 0.98
@@ -219,7 +219,7 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-That 0.40 percent is only compensation for news about $$x_t$$. The table below is the Euler equation on the whole claim — short-run shocks and volatility news included. Do not subtract 0.40 from 5.3 and call it a miss; this chapter grades the *market* row.
+The 0.40 percent is only compensation for news about $$x_t$$. The table below is the Euler equation on the whole claim, short-run shocks and volatility news included. Do not subtract 0.40 from 5.3 and call it a miss; this chapter grades the *market* row.
 
 The scoreboard. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid; Kiku's Table VII (1000 samples) is the comparison. Remember the standard: the premium and the valuation come as a pair, and a match on one with a miss on the other is a fail.
 
@@ -228,9 +228,9 @@ The scoreboard. `lrr.compute_asset_pricing_moments` integrates the Euler equatio
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Look at the pair, not just the first column. The model earns 7.53 percent against 8.56 in the data — a little short — *and* prices the claim at a mean log $$P/D$$ of 3.24 against 3.34. Market return volatility is 20.1 percent in both. The blemish is the safe rate, about seventy basis points too high. The verdict: not a bullseye, but both members of the pair land, from cash flows that never saw a return. Close enough to ask a second question — and the second question is the cross section.
+Look at the pair, not the first column alone. The model earns 7.53 percent against 8.56 in the data (a little short) *and* prices the claim at a mean log $$P/D$$ of 3.24 against 3.34. Market return volatility is 20.1 percent in both. The blemish is the safe rate, about seventy basis points too high. The verdict is not exact, but both members of the pair land, from cash flows that never saw a return. Close enough to ask a second question, and the second question is the cross section.
 
-One simulated monthly path, using the affine map we just wrote. $$A_2$$ is the elasticity of $$\log P/D$$ to news about future economic uncertainty — time-variation in the conditional volatility of consumption — from the same analytical solution.
+One simulated monthly path, using the affine map we just wrote. $$A_2$$ is the elasticity of $$\log P/D$$ to news about future economic uncertainty (time-variation in the conditional volatility of consumption) from the same analytical solution.
 
 ```python
 x, s2, dc_m, dd_m = one_path(np.random.default_rng(1), 74 * 12)
@@ -262,7 +262,7 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 
 <p class="caption">Market dividend growth along the same path. High $$x_t$$ raises $$\Delta d$$ by $$\phi=2.8$$.</p>
 
-![Model price–dividend along the path](figures/sim_log_pd.svg)
+![Model price-dividend along the path](figures/sim_log_pd.svg)
 
 <p class="caption">Model $$\log(P/D)$$ from $$z=\bar z+A_1 x+A_2(\sigma^2-\bar\sigma^2)$$. Valuations and risk premia have to match together.</p>
 
@@ -270,7 +270,7 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 
 The solver iterates an AR(1). The annual sample is seventy-four points. Two extractors live here so the main chapter does not.
 
-You can already *see* $$x_t$$ with no machinery. Average the last two years of consumption growth — not the current year. Raw $$\Delta c$$ is jagged; the moving average is the slow component.
+You can already *see* $$x_t$$ with no machinery. Average the last two years of consumption growth, not the current year. Raw $$\Delta c$$ is jagged; the moving average is the slow component.
 
 ```python
 window = 2
@@ -411,7 +411,7 @@ plot_df = mkt.with_columns(pl.Series("ma", ma)).filter(
 - Cash-flow leverage on the market was measured before this chapter. The annual slope is $$\tilde\phi\approx 0.722$$; the solver uses monthly $$\phi=2.8$$.
 - Simulated cash-flow moments have to look like the sample *before* you look at prices or premia. If they fail, stop; a later match on returns would be a free parameter in disguise.
 - The discount-rate side is not re-tuned: the same Table II household prices the calibrated claim through the Euler equation.
-- The equilibrium is graded on the pair — the equity premium *and* the mean valuation. Table II lands both for the market (7.53 vs 8.56 percent; log $$P/D$$ 3.24 vs 3.34), with the safe rate as the visible blemish.
+- The equilibrium is graded on the pair, the equity premium *and* the mean valuation. Table II lands both for the market (7.53 vs 8.56 percent; log $$P/D$$ 3.24 vs 3.34), with the safe rate as the visible blemish.
 - $$A_2$$ prices news about future economic uncertainty, alongside $$A_1$$ for the growth-rate component. The Kalman filter is an appendix object, not an input.
 
 Value and growth are [Value versus growth]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.

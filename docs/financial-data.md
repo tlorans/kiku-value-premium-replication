@@ -10,11 +10,11 @@ nav_order: 3
 1. TOC
 {:toc}
 
-You do not need this chapter to read the book. The argument path uses the shipped 1930–2003 CSVs. Rebuild the panel only if you want to see where those files come from.
+You do not need this chapter to read the book. The argument path uses the shipped 1930 to 2003 CSVs. Rebuild the panel only if you want to see where those files come from.
 
-A model whose inputs cannot be measured is not a model; it is an opinion with equations. CRSP stores returns, not a dividend file. The one idea that earns the page is Campbell–Shiller: dividends are the gap between the with-dividend return and the capital-gain return. Consumption growth feeds *both* halves of the model — it is the endowment the household eats (the discount-rate side) and the trend that dividends are levered to (the cash-flow side). The real T-bill belongs to the discount-rate side. The price–dividend ratios and average returns we tabulate at the end are the *outputs* the equilibrium will be graded on. Average returns enter nothing below.
+A model whose inputs cannot be measured is not a model; it is an opinion with equations. CRSP stores returns, not a dividend file. The one idea that earns the page is Campbell-Shiller: dividends are the gap between the with-dividend return and the capital-gain return. Consumption growth feeds *both* halves of the model, it is the endowment the household eats (the discount-rate side) and the trend that dividends are levered to (the cash-flow side). The real T-bill belongs to the discount-rate side. The price-dividend ratios and average returns we tabulate at the end are the *outputs* the equilibrium will be graded on. Average returns enter nothing below.
 
-The pricing chapters use 1930–2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003; after constructing we cut to that window. Run the chunks **in order**.
+The pricing chapters use 1930 to 2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003; after constructing we cut to that window. Run the chunks **in order**.
 
 ```python
 import io
@@ -32,7 +32,7 @@ start, end = 1930, 2003
 
 ## Consumption
 
-The representative agent consumes real per-capita *nondurables plus services*. Why not total consumption? Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron): buying a car this year is not eating a car this year. We divide by population so headcount growth is not a consumption shock. This one series carries the whole model — the household's marginal utility and the trend in every claim's cash flows both run through it. The NIPA quantity indexes are on FRED — public, no credentials.
+The representative agent consumes real per-capita *nondurables plus services*. Why not total consumption? Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron): buying a car this year is not eating a car this year. We divide by population so headcount growth is not a consumption shock. This one series carries the whole model, the household's marginal utility and the trend in every claim's cash flows both run through it. The NIPA quantity indexes are on FRED, public, no credentials.
 
 ```python
 def fred_annual(series_id: str) -> pl.DataFrame:
@@ -82,7 +82,7 @@ print(dc["dc"].mean() * 100, dc["dc"].std() * 100, dc.height)
 1.75  2.37  74
 ```
 
-1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930–2003 is 1.75 percent, volatility 2.37 percent, 74 years. Hold on to that volatility number — 2.37 percent. The equity premium puzzle is the claim that a series this smooth cannot scare anyone into demanding six extra points of return, and the model's answer is that the scary part is not the wiggles but the slow component hiding under them.
+1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930 to 2003 is 1.75 percent, volatility 2.37 percent, 74 years. Hold on to that volatility number, 2.37 percent. The equity premium puzzle is the claim that a series this smooth cannot scare anyone into demanding six extra points of return, and the model's answer is that the scary part is not the wiggles but the slow component hiding under them.
 
 ```python
 (
@@ -94,7 +94,7 @@ print(dc["dc"].mean() * 100, dc["dc"].std() * 100, dc.height)
 
 ![Real per-capita ND+S growth](figures/consumption_growth.svg)
 
-<p class="caption">Annual log growth of real per-capita nondurables plus services, 1930–2003. The 1932 drop is the Depression, not a plotting glitch.</p>
+<p class="caption">Annual log growth of real per-capita nondurables plus services, 1930 to 2003. The 1932 drop is the Depression, not a plotting glitch.</p>
 
 If the three FRED series are already pandas with a year index, `lrr.consumption_growth_from_levels(nd, sv, pop)` is the log-difference step.
 
@@ -105,7 +105,7 @@ dc_pkg = lrr.load_consumption().loc[start:end]
 dc_pkg.mean(), float(dc["dc"].mean())
 ```
 
-CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) converts them into consumption units — the household cares about real cash flows, so the cash-flow side needs it too. Download it the same way as the quantity indexes, or call `lrr.load_deflator()`.
+CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) converts them into consumption units, the household cares about real cash flows, so the cash-flow side needs it too. Download it the same way as the quantity indexes, or call `lrr.load_deflator()`.
 
 ```python
 defl_pl = fred_annual("DPCERD3A086NBEA").rename({"value": "defl"})
@@ -125,7 +125,7 @@ $$
 D_t=(r_t-r_t^{x})\,V_{t-1},\qquad V_t=V_{t-1}(1+r_t^{x}).
 $$
 
-In words: whatever the with-dividend return earned beyond the price return, that was the dividend, paid on last month's value. The monthly CRSP file comes from WRDS; the `tidyfinance` package's `download_data` is one convenient client (any WRDS client works), and this identity needs `retx` and the 1925–2003 file (`version="v1"`):
+In words: whatever the with-dividend return earned beyond the price return, that was the dividend, paid on last month's value. The monthly CRSP file comes from WRDS; the `tidyfinance` package's `download_data` is one convenient client (any WRDS client works), and this identity needs `retx` and the 1925 to 2003 file (`version="v1"`):
 
 ```python
 tf.set_wrds_credentials()
@@ -139,7 +139,7 @@ crsp = tf.download_data(
 )
 ```
 
-Ordinary shares, NYSE/AMEX/NASDAQ, and delisting (Fama–French −30% on performance codes 400–599, applied to `retx` as well as `ret`) live inside `lrr.build_annual_panel`. The identity itself does not need WRDS. Start $$V=100$$. Every month $$r^{x}=1\%$$ and $$r=1.2\%$$, so each dividend is 0.2 percent of the lagged price index. Compound for a year:
+Ordinary shares, NYSE/AMEX/NASDAQ, and delisting (Fama-French −30% on performance codes 400-599, applied to `retx` as well as `ret`) live inside `lrr.build_annual_panel`. The identity itself does not need WRDS. Start $$V=100$$. Every month $$r^{x}=1\%$$ and $$r=1.2\%$$, so each dividend is 0.2 percent of the lagged price index. Compound for a year:
 
 ```python
 dates = pd.date_range("2000-01-31", periods=12, freq="ME")
@@ -200,11 +200,11 @@ mkt.select("year", "ret", "dgrowth", "pd", "dc").head()
 
 ![Market dividend growth against consumption growth](figures/market_dd_vs_dc.svg)
 
-<p class="caption">Market dividend growth against consumption growth. Both series are constructed (NIPA; Campbell–Shiller on CRSP). Average returns never entered.</p>
+<p class="caption">Market dividend growth against consumption growth. Both series are constructed (NIPA; Campbell-Shiller on CRSP). Average returns never entered.</p>
 
-![Market log price–dividend](figures/market_log_pd.svg)
+![Market log price-dividend](figures/market_log_pd.svg)
 
-<p class="caption">Market $$\log(P/D)$$ from the same Campbell–Shiller price and dividend. The Euler equation has to match this later.</p>
+<p class="caption">Market $$\log(P/D)$$ from the same Campbell-Shiller price and dividend. The Euler equation has to match this later.</p>
 
 ## Real T-bill
 
@@ -229,7 +229,7 @@ The first year is missing because of the twelve-month inflation window. `lrr.rea
 
 ## Value, growth, and the panel
 
-Finally, the cross section's cash flows. Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993): growth is the bottom fifth, value the top. The sort needs book equity — Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM — and the whole point of sorting is to hand the model two claims whose *dividends* behave differently, so that any difference in prices and premia must be earned by cash-flow risk, not assumed.
+Finally, the cross section's cash flows. Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993): growth is the bottom fifth, value the top. The sort needs book equity (Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM) and the whole point of sorting is to hand the model two claims whose *dividends* behave differently, so that any difference in prices and premia must be earned by cash-flow risk, not assumed.
 
 Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody's book equity. That file is public:
 
@@ -243,7 +243,7 @@ with zipfile.ZipFile(io.BytesIO(blob)) as zf:
 text.splitlines()[:4]
 ```
 
-Each line is a `permno` and a vector of annual book-equity values starting in 1926. `lrr.build_annual_panel` parses it, splices it onto Compustat, forms the quintiles, value-weights, and runs Campbell–Shiller on growth (quintile 1), value (quintile 5), and the market.
+Each line is a `permno` and a vector of annual book-equity values starting in 1926. `lrr.build_annual_panel` parses it, splices it onto Compustat, forms the quintiles, value-weights, and runs Campbell-Shiller on growth (quintile 1), value (quintile 5), and the market.
 
 ```python
 print(lrr.table_i(panel))
@@ -257,14 +257,14 @@ print(lrr.table_i(panel))
 | Value | 13.67 (1.63) | 29.67 | 3.53 (4.13) | 47.72 | 3.34 (0.19) |
 | Market | 8.52 (1.75) | 20.10 | 0.92 (0.94) | 11.02 | 3.33 (0.13) |
 
-Returns and dividend growth are percent per year, Newey–West standard errors in parentheses. Look at the middle columns before the first one. Value's dividend growth is wilder — a volatility of 48 percent against growth's 14 — and that is a *cash-flow* statement, constructed without a single average return. The return columns then record the facts to explain: value earned more *and* was cheaper. Higher risk premia and lower valuations, the two outputs of the general equilibrium, and neither entered the construction.
+Returns and dividend growth are percent per year, Newey-West standard errors in parentheses. Look at the middle columns before the first one. Value's dividend growth is wilder (a volatility of 48 percent against growth's 14) and that is a *cash-flow* statement, constructed without a single average return. The return columns then record the facts to explain: value earned more *and* was cheaper. Higher risk premia and lower valuations, the two outputs of the general equilibrium, and neither entered the construction.
 
 ## Key takeaways
 
 - Every input is measurable and public or WRDS-standard: NIPA consumption, CRSP returns, Compustat book equity, a Ken French zip for pre-1960 book equity.
-- Consumption serves both halves of the model: the household's endowment (discount-rate side) and the trend dividends are levered to (cash-flow side). Its volatility — 2.37 percent — is why the premium is a puzzle.
-- CRSP stores returns, so dividends are recovered by the Campbell–Shiller identity from `ret` minus `retx`. These are the cash flows in which low- versus high-frequency risks are embodied.
+- Consumption serves both halves of the model: the household's endowment (discount-rate side) and the trend dividends are levered to (cash-flow side). Its volatility (2.37 percent) is why the premium is a puzzle.
+- CRSP stores returns, so dividends are recovered by the Campbell-Shiller identity from `ret` minus `retx`. These are the cash flows in which low- versus high-frequency risks are embodied.
 - The real T-bill anchors the discount-rate side; the value and growth quintiles hand the cross section its two cash-flow claims.
-- The 1930–2003 files this pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose valuations and risk premia [Does the market still fit?]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
+- The 1930 to 2003 files this pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose valuations and risk premia [Does the market still fit?]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
 
 Next: [API]({{ '/api.html' | relative_url }}).
