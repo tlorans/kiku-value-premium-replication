@@ -32,4 +32,4 @@ tidyfinance gets data and sorts. `lrrcs` calibrates cash-flow loadings and price
 
 For Numba, matplotlib, parquet, and WRDS credentials, see [Installation]({{ '/installation.html' | relative_url }}).
 
-Next: [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).
+Next: [Financial data]({{ '/financial-data.html' | relative_url }}).

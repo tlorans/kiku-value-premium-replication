@@ -1,6 +1,6 @@
 ---
 title: Value versus growth
-nav_order: 5
+nav_order: 6
 ---
 
 # Value versus growth

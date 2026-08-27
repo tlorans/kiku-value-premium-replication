@@ -12,6 +12,7 @@ Average returns never enter the cash-flow step.
 | Page | What it is |
 |---|---|
 | [Getting started](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install and a five-line solve |
+| [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Consumption, Campbell–Shiller dividends, the annual panel |
 | [Cash flows, then prices](https://tlorans.github.io/kiku-value-premium-replication/cash-flows-then-prices.html) | The four-step loop |
 | [The market](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, time series |
 | [Value versus growth](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |

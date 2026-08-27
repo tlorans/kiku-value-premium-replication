@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1] / "docs"
 BOOK_PAGES = (
     "index.md",
     "getting-started.md",
+    "financial-data.md",
     "cash-flows-then-prices.md",
     "time-series.md",
     "cross-section.md",
@@ -56,17 +57,23 @@ def test_new_chapter_front_matter():
     assert _parent("getting-started.md") is None
     assert _front_nav_order("getting-started.md") == 2
 
+    fd = _text("financial-data.md")
+    assert "title: Financial data" in fd
+    assert "# Financial data" in fd
+    assert _parent("financial-data.md") is None
+    assert _front_nav_order("financial-data.md") == 3
+
     cf = _text("cash-flows-then-prices.md")
     assert "title: Cash flows, then prices" in cf
     assert "# Cash flows, then prices" in cf
     assert _parent("cash-flows-then-prices.md") is None
-    assert _front_nav_order("cash-flows-then-prices.md") == 3
+    assert _front_nav_order("cash-flows-then-prices.md") == 4
 
     assert _parent("time-series.md") is None
-    assert _front_nav_order("time-series.md") == 4
+    assert _front_nav_order("time-series.md") == 5
     assert _parent("cross-section.md") is None
-    assert _front_nav_order("cross-section.md") == 5
-    assert _front_nav_order("package.md") == 6
+    assert _front_nav_order("cross-section.md") == 6
+    assert _front_nav_order("package.md") == 7
     assert _parent("installation.md") == "Package"
     assert _parent("api.md") == "Package"
 
@@ -115,6 +122,7 @@ def test_home_is_landing():
     assert "I show" not in text
     assert "Start here" in text
     assert "getting-started" in text
+    assert "financial-data" in text
     assert "cash-flows-then-prices" in text
     assert "time-series" in text
     assert "cross-section" in text
@@ -143,7 +151,7 @@ def test_getting_started():
     assert "import tidyfinance as tf" in text
     assert "import lrrcs as lrr" in text
     assert "solve_analytical" in text
-    assert "cash-flows-then-prices" in text
+    assert "financial-data" in text
     assert "set_wrds_credentials" not in text
     assert "What that did not" in text
 
@@ -177,7 +185,7 @@ def test_market_chapter():
     assert "title: The market" in text
     assert "# The market" in text
     assert _parent("time-series.md") is None
-    assert _front_nav_order("time-series.md") == 4
+    assert _front_nav_order("time-series.md") == 5
     positions = [text.index(h) for h in H2S]
     assert positions == sorted(positions)
     assert "8.56" in text and "7.53" in text
@@ -195,7 +203,7 @@ def test_value_versus_growth_chapter():
     assert "title: Value versus growth" in text
     assert "# Value versus growth" in text
     assert _parent("cross-section.md") is None
-    assert _front_nav_order("cross-section.md") == 5
+    assert _front_nav_order("cross-section.md") == 6
     h2s = (
         "## Data",
         "## Calibrate cash flows",
@@ -237,6 +245,7 @@ def test_package_page_points_at_the_book():
     text = _text("package.md")
     assert "generalization" not in text
     assert "getting-started" in text or "time-series" in text or "cash-flows-then-prices" in text
+    assert "financial-data" in text
 
 
 def test_readme_matches_landing():
@@ -245,6 +254,7 @@ def test_readme_matches_landing():
     assert "and the cross section" not in text.splitlines()[0]
     assert "six-step" not in text.lower() and "6-step" not in text.lower()
     assert "getting-started" in text
+    assert "financial-data" in text
     assert "cash-flows-then-prices" in text
     assert "time-series" in text
     assert "cross-section" in text

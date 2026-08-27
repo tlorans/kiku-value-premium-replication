@@ -1,6 +1,6 @@
 ---
 title: Package
-nav_order: 6
+nav_order: 7
 has_children: true
 has_toc: false
 ---
@@ -14,7 +14,7 @@ import tidyfinance as tf
 import lrrcs as lrr
 ```
 
-Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
 - [Installation]({{ '/installation.html' | relative_url }})
 - [API]({{ '/api.html' | relative_url }})

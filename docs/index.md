@@ -26,6 +26,6 @@ lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 3. Solve the long-run risks model.
 4. Compare model asset-pricing moments to the data.
 
-That loop is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}). Then we run it twice: [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+Series are on [Financial data]({{ '/financial-data.html' | relative_url }}). The loop is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}). Then we run it twice: [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [GitHub](https://github.com/tlorans/kiku-value-premium-replication)
