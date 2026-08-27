@@ -70,7 +70,7 @@ plot_df = dc.with_columns(pl.Series("ma", ma))
 
 <p class="caption">Raw annual \(\Delta c\) (black) and the two-year MA of lagged growth (blue). The blue line is the annual picture of \(x_t\).</p>
 
-A Kalman AR(1) filter on the same series returns annual persistence of about 0.43, next to the raw AC1 of 0.41. That check lives in the appendix of [The Time Series]({{ '/time-series.html' | relative_url }}). Calibration uses the MA, as in the paper. Do **not** take \(\phi\) from the filter.
+Calibration uses the MA, as in the paper. Do **not** take \(\phi\) from a filter of \(x_t\).
 
 ## Equation (19)
 
@@ -101,7 +101,11 @@ def phi_hat(claim):
 {'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
 ```
 
-There is the risk, in the cash flows where the model said it would be. Value's dividend growth rises hard with the slow component of consumption; growth's barely responds — on this reconstruction it even leans the other way. Seventy-two annual observations buy you a ranking, not a third decimal. The ranking matches Kiku's Table VI: \(-0.38\) / \(2.16\) / \(0.66\), same order.
+There is the risk, in the cash flows where the model said it would be. Value's dividend growth rises hard with the slow component of consumption; growth's barely responds — on this reconstruction it even leans the other way.
+
+These annual slopes are **not** the numbers the solver uses. They are the ranking Table II's monthly loadings have to respect. Monthly \(\phi\) is a different clock.
+
+Seventy-two annual observations buy you a ranking, not a third decimal. The ranking matches Kiku's Table VI in one respect: value loads more than growth. It does not match the growth point estimate. She prints \(-0.38\) / \(2.16\) / \(0.66\). We print \(-0.27\) / \(12.13\) / \(0.72\). Value \(\gg\) growth survives. The sign on growth does not.
 
 ```python
 plot_df = (
@@ -173,15 +177,15 @@ Portfolio          μ (m)     φ (long-run)   φ_σ      α
 market              0.00076     0.722       5.33    0.57
 ```
 
-The solver wants *monthly* \(\phi\). Table II locks \(\phi_G=2.6\), \(\phi_m=2.8\), \(\phi_V=6.2\). Those are the numbers [The result]({{ '/getting-started.html' | relative_url }}) already priced. The annual slopes are the ranking check those monthly loadings have to survive, not substitutes for them.
+The solver wants *monthly* \(\phi\). Table II locks \(\phi_G=2.6\), \(\phi_m=2.8\), \(\phi_V=6.2\). Those are the numbers [The result]({{ '/getting-started.html' | relative_url }}) already priced. The annual slopes are why those monthly loadings are allowed to differ, not substitutes for them.
 
 ## Key takeaways
 
 - \(\phi\) is a property of dividends and consumption. Average returns stay out of the step, so the Euler equation remains a test.
-- The check is the ranking: value loads hard on the slow component, growth barely, the market in between.
+- The check is the ranking: value loads hard on the slow component, growth barely, the market in between. The growth point estimate is not Table VI's.
 - Table II's monthly loadings are what the solver uses. The annual OLS is why those loadings are allowed to differ.
 
-Next: [The Time Series]({{ '/time-series.html' | relative_url }}), where the same household prices the market.
+Next: [Does the market still fit?]({{ '/time-series.html' | relative_url }}), where the same household prices the market.
 
 ## Exercises
 

@@ -9,9 +9,9 @@ nav_order: 3
 1. TOC
 {:toc}
 
-Here is the model. It has exactly two parts, and they are the two halves of every DCF you have ever built. A consumption process with a small persistent component tells us where cash-flow growth comes from. A household that fears news about that component tells us where the discount rate comes from. The chapter ends with the one expression where the halves meet — the elasticity of valuations to long-run news — and with the model's version of the security market line, drawn before we touch a single return.
+Here is the model. It has exactly two parts, and they are the two halves of every DCF you have ever built. A consumption process with a small persistent component tells us where cash-flow growth comes from. A household that fears news about that component tells us where the discount rate comes from. The chapter ends with the one expression where the halves meet — the elasticity of valuations to long-run news — and with compensation plotted against cash-flow leverage, drawn before we touch a single return.
 
-Why go to this trouble? Because "the market went down, the discount rate must have risen" is not economics, it is poetry. A model earns the name only if its state variable is something you can measure and its predictions are things that can fail. The state variable here is expected consumption growth; the predictions are valuations *and* risk premia. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) estimates the loadings. [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) run the tests. We do not extract $$x_t$$ from NIPA or match Table VII here.
+Why go to this trouble? Because "the market went down, the discount rate must have risen" is not economics, it is poetry. A model earns the name only if its state variable is something you can measure and its predictions are things that can fail. The state variable here is expected consumption growth; the predictions are valuations *and* risk premia. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) estimates the loadings. [Does the market still fit?]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) run the tests. We do not extract $$x_t$$ from NIPA or match Table VII here.
 
 We use the following packages. Run the chunks **in order** — later snippets reuse `paths` and `sol`.
 
@@ -85,7 +85,7 @@ paths = pd.DataFrame({
 
 <p class="caption">$$x_t$$ is small (a few tenths of a percent per month) and highly persistent. That is the low-frequency risk embodied in cash flows.</p>
 
-For the DCF reader: $$x_t$$ *is* your $$g$$ — not a constant plugged into a terminal value, but a state of the economy that wanders, and that dividends inherit. In the CAPM the factor is $$R_m-r_f$$; here the factor is news about $$x_t$$ — and, separately, news about future uncertainty. Extracting $$x_t$$ from seventy-four years of annual data is the appendix of [The Time Series]({{ '/time-series.html' | relative_url }}).
+For the DCF reader: mean growth is $$\mu$$. $$x_t$$ is the *deviation* of expected growth from that mean — not a constant $$g$$ plugged into a terminal value, but a state of the economy that wanders, and that dividends inherit. In the CAPM the factor is $$R_m-r_f$$; here the factor is news about $$x_t$$ — and, separately, news about future uncertainty. Extracting $$x_t$$ from seventy-four years of annual data is the appendix of [Does the market still fit?]({{ '/time-series.html' | relative_url }}).
 
 ## The household
 
@@ -98,6 +98,8 @@ M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
 $$
 
 Read it in English: marginal utility falls with consumption growth, as always — but it also moves with $$R_{c,t+1}$$, the return on the aggregate wealth portfolio, which is the market's forward-looking assessment of *all future consumption*. Table II sets $$\delta=0.999$$, $$\gamma=10$$, $$\psi=1.5$$.
+
+The economic reason $$\psi>1$$ is the interest-rate channel. Persistent good news about growth raises the risk-free rate. If the EIS is small, that rate effect crushes valuations and cash-flow leverage cannot produce a value premium. Epstein–Zin is here so the cash-flow term in $$A_1$$ can win.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5
@@ -113,7 +115,7 @@ $$\theta = -27$$, not 1. That is the whole trick. With $$\gamma > 1/\psi$$, the 
 
 The pricing theory is still one line — the Euler equation, $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$ — and its outputs are valuations and risk premia together.
 
-## The security market line
+## Compensation versus cash-flow leverage
 
 The cash-flow model for an individual claim is one equation:
 
@@ -131,7 +133,7 @@ $$
 
 Stop and look at this expression, because it is where the two halves of the model — and the two halves of your DCF — meet in a single fraction. $$\phi$$ is the cash-flow model: how hard dividends lever long-run news. $$1/\psi$$ is the household: how hard the interest rate pushes back when expected growth rises. $$\rho$$ is the endowment's persistence, amplified by the discounting constant $$\kappa_1\approx 0.96$$. Good news about $$x_t$$ raises expected cash flows (the $$\phi$$ term, your $$g$$) and raises discount rates a little (the $$1/\psi$$ term, your $$r$$); with $$\phi > 1/\psi$$ and $$\rho$$ near one, the cash-flow effect wins by a wide margin and valuations react strongly. In a DCF, $$r$$ and $$g$$ never talk to each other. Here they are two terms of the same numerator.
 
-The long-run risk premium is $$A_1$$ times the price of long-run news. So the model draws its own security market line — expected compensation against $$\phi$$, cash-flow leverage on the horizontal axis where the CAPM puts return beta. Draw it, then place Table II's three claims on it.
+The long-run risk premium is $$A_1$$ times the price of long-run news. So the model draws expected compensation against $$\phi$$ — cash-flow leverage on the horizontal axis where the CAPM puts return beta. Draw it, then place Table II's three claims on it.
 
 ```python
 psi, rho, gamma = 1.5, 0.98, 10.0
@@ -168,7 +170,7 @@ pts = pd.DataFrame({
 
 ![Long-run premium versus leverage](figures/lrr_sml.svg)
 
-<p class="caption">The general-equilibrium analogue of the security market line. The horizontal axis is exposure of dividends to long-run consumption shocks, not CAPM $$\beta$$. Value firms are highly exposed to those shocks; growth firms less so. That dispersion shows up in valuations and in ex-ante premia.</p>
+<p class="caption">Expected compensation against exposure of dividends to long-run consumption shocks, not CAPM $$\beta$$. Value firms are highly exposed to those shocks; growth firms less so. That dispersion shows up in valuations and in ex-ante premia.</p>
 
 ```text
 A1 growth 43.1, market 37.5, value 88.9
@@ -179,12 +181,12 @@ Value's $$A_1$$ is about twice growth's. The same cash-flow leverage that earns 
 
 `lrr.solve_analytical` is this linearization for every claim in `ModelParams`. The points on the figure come from Table II: $$\phi_G=2.6$$, $$\phi_m=2.8$$, $$\phi_V=6.2$$.
 
-One rule, and it is the book's discipline: do **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure, measured from dividends and consumption. Average returns, Sharpe ratios, and CAPM betas stay out of that step, so that the Euler equation remains a *test*: given those cash-flow numbers, do valuations and risk premia look like the data? [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) is that measurement. [The Time Series]({{ '/time-series.html' | relative_url }}) runs the test on the market. [The Cross Section]({{ '/cross-section.html' | relative_url }}) runs it on value and growth.
+One rule, and it is the book's discipline: do **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure, measured from dividends and consumption. Average returns, Sharpe ratios, and CAPM betas stay out of that step, so that the Euler equation remains a *test*: given those cash-flow numbers, do valuations and risk premia look like the data? [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) is that measurement. [Does the market still fit?]({{ '/time-series.html' | relative_url }}) runs the test on the market. [Value versus growth]({{ '/cross-section.html' | relative_url }}) runs it on value and growth.
 
 ## Key takeaways
 
-- The consumption process is where growth comes from: a small, highly persistent component $$x_t$$ plus transitory noise plus time-varying uncertainty. $$x_t$$ is the DCF's $$g$$, made a measurable state of the economy.
-- The Epstein–Zin household is where the discount rate comes from: with $$\gamma > 1/\psi$$, marginal utility responds to the return on total wealth, so the feared risk is bad news about *long-run* growth.
+- The consumption process is where growth comes from: a small, highly persistent component $$x_t$$ plus transitory noise plus time-varying uncertainty. Mean growth is $$\mu$$; $$x_t$$ is the deviation of expected growth from that mean.
+- The Epstein–Zin household is where the discount rate comes from: with $$\gamma > 1/\psi$$ and $$\psi>1$$, the interest-rate channel does not crush valuations when expected growth rises, and marginal utility responds to the return on total wealth.
 - The halves meet in $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$: cash-flow leverage and the household's substitution motive in one fraction. Because $$\rho$$ is near one, small persistent news moves valuations a lot.
 - Firms differ only in the exposure of their dividends to low- versus high-frequency consumption shocks. That dispersion — not return covariances — is what the equilibrium turns into valuations and premia.
 - $$\phi$$ is estimated from cash flows. Returns are the test.

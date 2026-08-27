@@ -1,17 +1,19 @@
 ---
-title: The Cross Section
+title: Value versus growth
 nav_order: 6
 ---
 
-# The Cross Section
+# Value versus growth
 {: .no_toc }
 
 1. TOC
 {:toc}
 
+Nothing about the household changes. Same preferences, same consumption process, same Euler equation as [Does the market still fit?]({{ '/time-series.html' | relative_url }}). A model that needed a new discount rate for every asset class would just be DCF with extra steps.
+
 Value stocks have out-earned growth stocks by about six percentage points a year over this sample. Why? "They're cheap" is not an answer — it restates the fact. "They have higher betas" is an answer, but a false one: their market betas sit near one. An equilibrium answer must name the *risk* the extra return pays for, measure that risk somewhere other than in the returns themselves, and then deliver both facts at once — the higher premium *and* the lower price–dividend ratio.
 
-Here is what makes this chapter the payoff of the book: nothing about the household changes. Same preferences, same consumption process, same Euler equation as [The Time Series]({{ '/time-series.html' | relative_url }}). A model that needed a new discount rate for every asset class would just be DCF with extra steps. Instead, each claim brings only its cash-flow numbers — and value's dividends, it turns out, are levered to long-run consumption news far harder than growth's. The six-percent gap and value's cheaper valuation are facts to explain, not numbers you feed the calibrator. Average returns never enter the cash-flow step.
+Each claim brings only its cash-flow numbers. Value's dividends are levered to long-run consumption news far harder than growth's. The six-percent gap and value's cheaper valuation are facts to explain, not numbers you feed the calibrator. Average returns never enter the cash-flow step.
 
 We use the following packages. Run the chunks **in order**: later snippets reuse `dc`, `panel`, and `y`.
 
@@ -44,7 +46,7 @@ wide.head()
 
 A note on vintages, once: our reconstruction prints 7.49 / 13.67 / 8.52, while Kiku's sample — a slightly different CRSP vintage — prints 7.81 / 13.88 / 8.56. Whenever a data column below shows her numbers, that is why. The gap is about six percent either way, and value is also *cheaper*: a lower valuation alongside a higher risk premium. Both facts, together, are the target.
 
-|  | E[R] % | σ(R) % | E[log P/D] |
+|  | E[R] % | σ(R) % | Mean log P/D |
 |:---|---:|---:|---:|
 | Growth | 7.81 (1.98) | 20.2 | 3.61 (0.18) |
 | Value | 13.88 (1.74) | 29.9 | 3.25 (0.12) |
@@ -106,11 +108,9 @@ def capm_beta(claim):
 
 Value's beta is a bit above one on this reconstruction — nowhere near enough to explain six percent — and the paper's vintage has both near 1.03. The premium is not a market-beta fact. So what risk is it?
 
-## Two cash-flow exposures
+## The loadings are already measured
 
-The household and the consumption process stay those of [The Time Series]({{ '/time-series.html' | relative_url }}). Each claim differs only in four cash-flow numbers: mean dividend growth $$\mu$$, monthly loading $$\phi$$ on $$x_t$$, residual scale $$\varphi$$, and short-run correlation $$\alpha$$. This is the cross section's entire cash-flow model — four numbers per claim, estimated from dividends and consumption.
-
-The two-year MA of lagged consumption is the same regressor as on The Time Series. `lrr.expected_growth_proxy` is that MA. Equation (19) is OLS of dividend growth on it. Look at the right-hand side: no return anywhere.
+The household and the consumption process stay those of [Does the market still fit?]({{ '/time-series.html' | relative_url }}). The annual slopes were already estimated in [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}). Recompute them if the page must stand alone. There is no argument for returns.
 
 ```python
 ma = lrr.expected_growth_proxy(y, window=2)
@@ -134,7 +134,7 @@ def phi_hat(claim):
 {'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
 ```
 
-There is the risk, in the cash flows where the model said it would be. Value's dividend growth rises hard with the slow component of consumption; growth's barely responds — on this reconstruction it even leans the other way. The point estimates are noisy (seventy-two annual observations), so the *ranking* is the check, and the ranking matches Kiku's Table VI: $$-0.38$$ / $$2.16$$ / $$0.66$$, same order. Plot dividend growth against that MA. These are cash flows, not returns.
+Kiku's Table VI prints $$-0.38$$ / $$2.16$$ / $$0.66$$. Value $$\gg$$ growth survives. The growth point estimate does not.
 
 ```python
 plot_df = (
@@ -156,8 +156,6 @@ plot_df = (
 ![Dividend growth against the MA](figures/vg_dd_vs_ma.svg)
 
 <p class="caption">Value and growth dividend growth against the two-year MA of lagged consumption. Value's slope is steeper. Average returns never entered.</p>
-
-The solver wants monthly $$\phi$$. Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$, $$\phi_{\text{market}}=2.8$$. Value gets the larger $$\phi$$ because its cash flows load more on the persistent growth-rate component — not because it had a larger average return. `lrr.calibrate_from_data` wraps the annual OLS; then we read off Table II.
 
 ```python
 def dd(claim):
@@ -185,11 +183,9 @@ params.dividends["value"].phi, params.dividends["growth"].phi
 (6.2, 2.6)
 ```
 
-There is no argument for returns. The function will not take one.
-
 ## Elasticity of price–dividend to x_t
 
-Same preferences as The Time Series — nothing re-tuned. The Euler equation and the IMRS are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). The elasticity of log $$P/D$$ to $$x_t$$ is the expression where cash flows meet the household, $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$, and only $$\phi$$ differs across claims. With Table II's monthly $$\phi$$:
+Same preferences as the market chapter — nothing re-tuned. The Euler equation and the IMRS are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). The elasticity of log $$P/D$$ to $$x_t$$ is $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$, and only $$\phi$$ differs across claims.
 
 ```python
 psi, rho = 1.5, 0.98
@@ -204,11 +200,9 @@ growth 43.1
 value  88.9
 ```
 
-One gap in cash-flow leverage, two consequences. Value's price–dividend ratio is about twice as elastic to long-run consumption news, so its valuation is more fragile exactly when the Epstein–Zin household is most miserable — and it must therefore offer high ex-ante compensation. The premium and the cheap valuation are not two facts the model happens to fit; they are one fact seen from two sides.
+One gap in cash-flow leverage, two consequences. Value's price–dividend ratio is about twice as elastic to long-run consumption news. The premium and the cheap valuation are one fact seen from two sides.
 
 ## Solve and check rankings
-
-`solve_analytical` and `ModelSolver` resolve either pair. The market key remains the time-series check that the same equilibrium still prices the aggregate claim.
 
 ```python
 sol = lrr.solve_analytical(params)
@@ -225,20 +219,34 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-The 0.40 percent is only the long-run *piece*. The full Euler-equation gap is larger. `lrr.compute_asset_pricing_moments` integrates that Euler equation on a grid, the same objects as on The Time Series. Kiku's Table VII (1000 samples) is the comparison we want. The standard has not changed: a match on the premium with the wrong price–dividend ranking is a fail — the equilibrium objects come as a pair.
+The 0.40 percent is only the long-run *piece*. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid. Kiku's Table VII (1000 samples) is the comparison. A match on the premium with the wrong price–dividend ranking is a fail.
 
-|  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
+|  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
 | Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
 | Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Look at the whole table, row by row. The model gap is about 5.3 percent against about 6 in the data. Mean price–dividend levels come out near 24.7 on value versus 39.8 on growth — the high-premium claim is the low-valuation claim, in the model as in the data. The market row is the time-series check: the same equilibrium still prices the aggregate claim, so the cross section came free, not at the market's expense.
+The model gap is about 5.3 percent against about 6 in the data. The model's ratio of value to growth CAPM betas is 0.92 — value's market beta is *lower* while its premium is five points higher.
 
-And here is the result I find most satisfying. The model's ratio of value to growth CAPM betas is 0.92 — value's market beta is *lower*, as in the paper's vintage, while its premium is five points higher. The model does not merely deliver the value premium; it delivers the value premium *as a CAPM anomaly*. Inside this economy, an econometrician running CAPM regressions would find exactly the puzzle the empirical literature found, while the household sees no puzzle at all: it is paid for the low-frequency consumption risk embodied in cash flows, which market betas — dominated by transitory price fluctuations — cannot see.
+Equalize the only cross-sectional input and the ranking has to die.
 
-What would failure have looked like? Value's risk premium below growth's; value's price–dividend ratio above growth's; or value's CAPM beta so much larger that covariance with the market would have been enough. None of those happened.
+```python
+params.dividends["value"].phi = 2.6
+params.dividends["growth"].phi = 2.6
+lrr.print_long_short_premium(lrr.solve_analytical(params))
+```
+
+```text
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.39%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.00%
+```
+
+Nothing about the household changed.
 
 ```python
 print("A1 value / A1 growth", round(sol.A1["value"] / sol.A1["growth"], 2))
@@ -250,19 +258,18 @@ A1 value / A1 growth 2.06
 
 ![Long-run risk premia](figures/lr_premium_decomposition.svg)
 
-<p class="caption">Analytical long-run premia. The gap is $$\phi_V=6.2$$ versus $$\phi_G=2.6$$, scaled by $$\rho=0.98$$ and the Epstein–Zin price of long-run news.</p>
+<p class="caption">Analytical long-run premia. The gap is $$\phi_V=6.2$$ versus $$\phi_G=2.6$$.</p>
 
 ## Key takeaways
 
-- The six-percent premium and value's cheaper valuation are facts to explain, not calibration targets. Average returns never enter the inputs.
-- Nothing about the household changes across assets: one set of preferences, one consumption process, one Euler equation. The cross section costs zero new discount-rate parameters.
-- The claims differ only in estimated cash-flow exposures, and the ranking is the check: value loads hard on long-run consumption news, growth barely at all.
-- One gap in $$\phi$$ delivers the pair: value's higher premium and lower price–dividend ratio are the same fact seen from two sides.
-- The model reproduces the CAPM *anomaly* itself — value's model beta is lower (ratio 0.92) while its premium is higher. The priced risk lives in cash flows, where market betas cannot see it.
-- The market row still matches: the equilibrium prices the asset class and the cross section together.
+- The six-percent premium and value's cheaper valuation are facts to explain, not calibration targets.
+- Nothing about the household changes across assets.
+- The ranking is the check: value loads hard on long-run consumption news, growth barely at all.
+- Equalize $$\phi$$ and the ranking disappears.
+- The model reproduces the CAPM anomaly itself — value's model beta is lower (ratio 0.92) while its premium is higher.
 
 ## Exercises
 
-1. Set $$\phi_{\text{value}}=\phi_{\text{growth}}=2.6$$ and recompute $$A_1$$ and the long-run spread from `solve_analytical`. Where did the ranking go?
-2. Drop 1930–1945 from the OLS in Two cash-flow exposures. Does value still have the larger $$\tilde\phi$$?
-3. Using the model's $$A_1$$ ratio 2.06, what $$\phi_{\text{value}}$$ would you need if $$\phi_{\text{growth}}$$ stayed 2.6 and you wanted the two elasticities equal?
+1. Drop 1930–1945 from the OLS. Does value still have the larger $$\tilde\phi$$?
+2. Using the model's $$A_1$$ ratio 2.06, what $$\phi_{\text{value}}$$ would you need if $$\phi_{\text{growth}}$$ stayed 2.6 and you wanted the two elasticities equal?
+3. Set $$\psi=1/\gamma$$ and re-solve. Does the value–growth ranking in $$A_1$$ survive?

@@ -30,7 +30,7 @@ import lrrcs as lrr
 
 `lrr.build_annual_panel` downloads CRSP/Compustat/CCM through the `tidyfinance` WRDS client, forms NYSE-breakpoint quintiles, builds Campbell–Shiller dividends, and splices historical book equity.
 
-A new sort is the same loop as [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}): consumption and two dividend legs in, no returns.
+A new sort is the same loop as [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}): consumption and two dividend legs in, no returns.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()
