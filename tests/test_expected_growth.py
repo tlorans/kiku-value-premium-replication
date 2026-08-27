@@ -37,3 +37,31 @@ def test_leverage_still_recovers_known_phi_via_proxy():
     dd = 0.01 + 2.16 * np.nan_to_num(ma, nan=0.0) + rng.normal(0, 0.05, size=n)
     phi = estimate_long_run_leverage(dc, dd, window=2)
     assert abs(phi - 2.16) < 0.4
+
+
+from lrrcs.calibration.expected_growth import filter_expected_growth
+
+
+def test_filter_expected_growth_too_short():
+    with pytest.raises(ValueError):
+        filter_expected_growth(np.ones(7))
+
+
+def test_filter_expected_growth_recovers_persistent_state():
+    rng = np.random.default_rng(0)
+    n = 200
+    rho_true = 0.6
+    mu = 0.02
+    q = 0.001
+    r = 0.002
+    x = np.zeros(n)
+    for t in range(n - 1):
+        x[t + 1] = rho_true * x[t] + rng.normal(0.0, np.sqrt(q))
+    y = mu + x + rng.normal(0.0, np.sqrt(r), size=n)
+    out = filter_expected_growth(y)
+    assert set(out) == {"x", "mu", "rho", "q", "r", "loglik"}
+    assert isinstance(out["x"], np.ndarray)
+    assert out["x"].shape == (n,)
+    assert 0.3 < out["rho"] < 0.9
+    assert float(np.std(out["x"])) < float(np.std(y))
+    assert np.isfinite(out["loglik"])
