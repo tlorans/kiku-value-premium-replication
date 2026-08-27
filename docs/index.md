@@ -20,6 +20,14 @@ lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 
 [Start here]({{ '/getting-started.html' | relative_url }})
 
+## How to work a page
+
+Predict first. Then compute the toy case by hand. Then run the same numbers in `lrr`. Change one assumption and say what broke. A cell that prints without an interpretation sentence has not taught the notion.
+
+- **Finance** — name the mechanism and the decision it changes.
+- **Quanti** — keep units honest (monthly vs annual, percent vs decimal, simple vs log).
+- **Python** — public names live at `lrr.`; do not import submodules in the documented form.
+
 ## The book
 
 1. [Financial data]({{ '/financial-data.html' | relative_url }}) — consumption, dividends, the real rate, and the value and growth cash flows, built from the raw records.
