@@ -1,10 +1,14 @@
 # Long-run risks
 
 Python package `lrrcs`, a companion to [tidyfinance](https://github.com/tidy-finance/py-tidyfinance).
-The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences.
-Kiku (2006) is the first cross-sectional column.
+A general-equilibrium long-run-risks model (Bansal and Yaron 2004; Kiku 2006).
+The objects of the equilibrium are **asset prices and risk premia**.
 
-tidyfinance gets data and sorts. `lrrcs` calibrates cash-flow loadings and prices claims.
+Long-run risks are a small but highly persistent component of consumption growth.
+Value firms are highly exposed to those low-frequency shocks; growth firms are driven more by short-lived consumption news.
+Epstein–Zin preferences make the marginal rate of substitution depend on the return on aggregate wealth, so that dispersion in cash-flow exposure shows up in valuations and in ex-ante premia.
+
+tidyfinance gets data and sorts. `lrrcs` maps cash-flow exposures into prices and premia.
 Average returns never enter the cash-flow step.
 
 **Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
@@ -13,7 +17,7 @@ Average returns never enter the cash-flow step.
 |---|---|
 | [Getting started](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install, Table II by hand, a first solve |
 | [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Consumption, Campbell–Shiller dividends, the annual panel |
-| [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | What expected-growth risk is, and why it is priced |
+| [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | General equilibrium: valuations and risk premia |
 | [The market](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, time series |
 | [Value versus growth](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |
 

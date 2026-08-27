@@ -1,5 +1,5 @@
 title: Long-run risks
-description: Calibrate cash flows, then ask whether the model matches asset-pricing moments.
+description: A general-equilibrium model of asset prices and risk premia. Calibrate cash flows, then ask whether valuations and premia match.
 url: https://tlorans.github.io
 baseurl: /kiku-value-premium-replication
 
@@ -16,7 +16,7 @@ search:
 heading_anchors: true
 back_to_top: true
 back_to_top_text: Back to top
-footer_content: "Calibrate cash flows, then ask whether asset-pricing moments match. MIT License."
+footer_content: "A general-equilibrium model of asset prices and risk premia. MIT License."
 
 aux_links:
   GitHub:

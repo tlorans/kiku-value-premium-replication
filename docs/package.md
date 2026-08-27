@@ -7,7 +7,7 @@ has_toc: false
 
 # Package
 
-`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` calibrates cash-flow loadings and prices claims. Average returns never enter the cash-flow step.
+`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. Average returns never enter the cash-flow step.
 
 ```python
 import numpy as np
@@ -18,7 +18,7 @@ import lrrcs as lrr
 
 Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
-A typical session after the data chapter: load the 1930–2003 sample, slope of market $$\Delta d$$ on the two-year MA of lagged $$\Delta c$$, then Table II prices.
+A typical session after the data chapter: load the 1930–2003 sample, measure the market’s exposure to long-run consumption shocks, then read off Table II valuations and premia.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")
@@ -44,7 +44,7 @@ phi_tilde
 0.722
 ```
 
-The same slope from the package, then the linearized prices:
+The same slope from the package, then the linearized valuations and risk premia:
 
 ```python
 lrr.estimate_long_run_leverage(y, dd, window=2)

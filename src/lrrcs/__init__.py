@@ -1,4 +1,4 @@
-"""Long-run risks in the time series and the cross section.
+"""General-equilibrium long-run risks: asset prices and risk premia.
 
 Companion to tidyfinance. Documented import::
 

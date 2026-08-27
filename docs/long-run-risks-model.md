@@ -9,13 +9,13 @@ nav_order: 4
 1. TOC
 {:toc}
 
-Tidy Finance’s [capital asset pricing model](https://www.tidy-finance.org/chapters/capital-asset-pricing-model.html) chapter starts from mean-variance investors and arrives at
+This chapter is the general-equilibrium counterpart of Tidy Finance’s [capital asset pricing model](https://www.tidy-finance.org/chapters/capital-asset-pricing-model.html). There the priced risk is covariance with the market return, and the objects are expected excess returns. Here the economy is Bansal and Yaron (2004) / Kiku (2006): the objects of the equilibrium are **asset prices and risk premia** — valuations and ex-ante compensations together.
 
-$$
-E[R_i]-r_f=\beta_i\,\bigl(E[R_m]-r_f\bigr).
-$$
+Long-run risks in the model are captured by a small but highly persistent component that governs the evolution of consumption growth. In addition, the model allows for time-variation in the conditional volatility of consumption. Firms are distinguished by the exposure of their dividends to low- and high-frequency shocks in consumption, as well as news about future economic uncertainty. Time-non-separable Epstein and Zin (1989) preferences break the link between agents’ attitude towards smoothing consumption over time and across different states of nature. The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Predictable variation in those systematic risks has a significant bearing for valuations and for risk premia.
 
-The priced risk is covariance with the *market return*. This chapter is the same kind of walk-through for a different factor. In Bansal and Yaron (2004), the priced risk is news about *expected consumption growth*. We do not survey the literature. We write the objects, simulate them, and look at the analogue of the security market line. Run the chunks **in order**.
+What drives a premium in this economy? Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption growth far into the future, leading to large reactions in stock prices and sizable risk compensations. Assets’ valuations and risk premia, therefore, by and large depend on the amount of low-frequency risks embodied in assets’ cash flows.
+
+We write those objects, simulate them, and look at the analogue of the security market line. Run the chunks **in order**.
 
 ```python
 import numpy as np
@@ -64,7 +64,7 @@ $$
 x_{t+1}=\rho x_t+\varphi_x\sigma_t e_{t+1}.
 $$
 
-$$x_t$$ is *expected* growth. A shock to $$x_t$$ revises the whole future path of consumption, not just next month. That revision is **long-run risk**. Table II of Kiku (2006) uses monthly $$\rho=0.98$$ — a half-life of about three years.
+$$x_t$$ is the small but highly persistent component that governs consumption growth. A shock to that growth-rate component significantly alters investors’ expectations about consumption far into the future. That revision is **long-run risk**. Table II of Kiku (2006) uses monthly $$\rho=0.98$$ — a half-life of about three years. Conditional volatility of consumption, $$\sigma_t$$, can move as well; that is news about future economic uncertainty.
 
 Simulate two consumption paths with the same short-run shocks: one i.i.d., one with this $$x_t$$.
 
@@ -103,7 +103,7 @@ paths = pd.DataFrame({
 
 ![Consumption paths with and without long-run risk](figures/lrr_consumption_paths.svg)
 
-<p class="caption">Gray: i.i.d. growth. Blue: the same short-run shocks plus an AR(1) expected-growth state. Long-run risk is the extra low-frequency swing.</p>
+<p class="caption">Gray: i.i.d. growth. Blue: the same short-run shocks plus a small but highly persistent component in consumption growth. That extra low-frequency swing is long-run risk.</p>
 
 ```python
 (
@@ -115,13 +115,13 @@ paths = pd.DataFrame({
 
 ![The expected-growth state](figures/lrr_state.svg)
 
-<p class="caption">$$x_t$$ is small (a few tenths of a percent per month) and highly persistent. That is the factor.</p>
+<p class="caption">$$x_t$$ is small (a few tenths of a percent per month) and highly persistent. That is the low-frequency risk embodied in cash flows.</p>
 
-In the CAPM the factor is $$R_m-r_f$$. Here the factor is news in $$x_t$$.
+In the CAPM the factor is $$R_m-r_f$$. Here the factor is news in the persistent growth-rate component — and, separately, news about future economic uncertainty.
 
-## Why power utility is not enough
+## Time-non-separable preferences
 
-Power utility forces risk aversion and the EIS to be reciprocals: $$\gamma=1/\psi$$. Epstein and Zin (1989) / Weil (1989) let them differ. The IMRS is
+Power utility forces risk aversion and the EIS to be reciprocals: $$\gamma=1/\psi$$. That ties agents’ attitude towards smoothing consumption over time to their attitude across states of nature. Epstein and Zin (1989) / Weil (1989) break that link. The intertemporal marginal rate of substitution is
 
 $$
 M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
@@ -139,25 +139,25 @@ gamma, 1.0 / psi, theta
 (10.0, 0.667, -27.0)
 ```
 
-$$\theta\neq 1$$. The term $$R_{c,t+1}^{\theta-1}$$ prices news about wealth. A shock to $$x_t$$ is news about the whole path of future consumption, hence about wealth. Under power utility $$\theta=1$$ and that term is 1. Then a gap in dividend loadings on $$x_t$$ cannot produce a large premium, no matter how persistent $$x_t$$ is.
+$$\theta\neq 1$$. The term $$R_{c,t+1}^{\theta-1}$$ is the forward-looking return on the aggregate wealth portfolio. A shock to $$x_t$$ revises expected consumption far into the future, hence wealth, hence $$M_{t+1}$$. Under power utility $$\theta=1$$ and that term is 1. Then a gap in dividend loadings on low-frequency consumption shocks cannot produce large reactions in stock prices or sizable risk compensations, no matter how persistent $$x_t$$ is.
 
-The Euler equation is still the whole pricing theory: $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. What changed is *which* shocks $$M_{t+1}$$ loads on.
+The Euler equation is still the whole pricing theory: $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. The objects it delivers are **valuations and risk premia**.
 
-## The analogue of beta
+## Low-frequency risks in cash flows
 
-CAPM beta is the slope of asset excess returns on market excess returns. Long-run leverage $$\phi$$ is the slope of *dividend growth* on $$x_t$$:
+CAPM beta is the slope of asset excess returns on market excess returns. Long-run leverage $$\phi$$ is the exposure of *dividends* to the persistent growth-rate component:
 
 $$
 \Delta d_{t+1}=\mu_d+\phi x_t+\varphi_\sigma\sigma_t u_{t+1}.
 $$
 
-A claim with larger $$\phi$$ inherits more of the expected-growth news. Log price–dividend is affine in the state, $$z_t=\bar z+A_1 x_t+\cdots$$, with elasticity
+Firms are distinguished by this exposure, and by their loading on short-lived consumption shocks and on news about future economic uncertainty. Log price–dividend is affine in the state, $$z_t=\bar z+A_1 x_t+\cdots$$, with elasticity
 
 $$
 A_1=\frac{\phi-1/\psi}{1-\kappa_1\rho}.
 $$
 
-Because $$\rho$$ is close to one, $$A_1$$ is large: prices move a lot with $$x_t$$. The long-run premium is $$A_1$$ times the price of $$x$$-news. That is the analogue of $$\beta_i\times(E[R_m]-r_f)$$.
+Because $$\rho$$ is close to one, $$A_1$$ is large: valuations react strongly to long-run consumption news. The long-run risk premium is $$A_1$$ times the price of that news. Assets’ valuations and risk premia, therefore, depend on the amount of low-frequency risk embodied in their cash flows.
 
 ```python
 psi, rho, gamma = 1.5, 0.98, 10.0
@@ -187,37 +187,37 @@ pts = pd.DataFrame({
     + p9.labs(
         x="Long-run leverage φ",
         y="Long-run premium (% per year)",
-        title="Compensation for exposure to expected-growth news",
+        title="Valuations’ compensation for low-frequency cash-flow risk",
     )
 )
 ```
 
 ![Long-run premium versus leverage](figures/lrr_sml.svg)
 
-<p class="caption">The long-run-risks analogue of the security market line. The horizontal axis is $$\phi$$, not CAPM $$\beta$$. Growth, market, and value are Table II. Value sits further along the same line because its dividends load more on $$x_t$$.</p>
+<p class="caption">The general-equilibrium analogue of the security market line. The horizontal axis is exposure of dividends to long-run consumption shocks, not CAPM $$\beta$$. Value firms are highly exposed to those shocks; growth firms less so. That dispersion shows up in valuations and in ex-ante premia.</p>
 
 ```text
 A1 growth 43.1, market 37.5, value 88.9
 Lambda_eps  5.95
 ```
 
-Value’s $$A_1$$ is about twice growth’s. That is the cross-sectional prediction. It is *not* a prediction that value has a larger CAPM beta — often it does not.
+Value’s $$A_1$$ is about twice growth’s: value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation. That is *not* a prediction that value has a larger CAPM beta — often it does not.
 
 `lrr.solve_analytical` is this linearization for every claim in `ModelParams`. The points on the figure come from Table II: $$\phi_G=2.6$$, $$\phi_m=2.8$$, $$\phi_V=6.2$$.
 
-## Cash flows in, prices out
+## Cash flows in, prices and premia out
 
-In the CAPM chapter you estimate $$\beta_i$$ from returns. Here you must **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow slope (dividend growth on slow consumption). Average returns, Sharpe ratios, and CAPM betas stay out of that step. The Euler equation is then a *test*: given those cash-flow numbers, do expected returns and $$P/D$$ look like the data?
+In the CAPM chapter you estimate $$\beta_i$$ from returns. Here you must **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure (dividend growth on the persistent consumption component). Average returns, Sharpe ratios, and CAPM betas stay out of that step. The Euler equation is then a *test* of the general equilibrium: given those cash-flow numbers, do **valuations and risk premia** look like the data?
 
-That test is the rest of the book. [The market]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, loads market dividends on it, and checks the market’s $$E[R]$$ and $$E[\log P/D]$$. [Value versus growth]({{ '/cross-section.html' | relative_url }}) does the same for two legs with different $$\phi$$.
+That test is the rest of the book. [The market]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, measures the market’s exposure to long-run consumption shocks, and checks the market’s price–dividend ratio and equity premium. [Value versus growth]({{ '/cross-section.html' | relative_url }}) does the same for two legs: value highly exposed to low-frequency shocks, growth driven more by short-lived fluctuations.
 
 ## Key takeaways
 
-- Long-run risk is news about expected consumption growth $$x_t$$, not news about the market return.
-- Consumption growth is persistent in the data (annual AC1 about 0.4). That is the empirical hook.
-- Epstein–Zin with $$\psi\neq 1/\gamma$$ prices that news. Power utility does not.
-- $$\phi$$ is to this model what $$\beta$$ is to the CAPM. It is a cash-flow loading, estimated without returns.
-- Claims with larger $$\phi$$ earn a larger long-run premium and have more elastic $$P/D$$.
+- This is a general-equilibrium model. Its objects are asset prices and risk premia.
+- Long-run risks are a small but highly persistent component of consumption growth, plus time-varying uncertainty.
+- Epstein–Zin preferences make the MRS depend on the return on aggregate wealth, so those shocks move valuations and require compensation.
+- Value firms are highly exposed to long-run consumption shocks; growth firms less so. That cash-flow fact, not CAPM beta, is the mechanism.
+- $$\phi$$ is estimated from cash flows. Returns are the test.
 
 ## Exercises
 

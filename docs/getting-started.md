@@ -9,7 +9,9 @@ nav_order: 2
 1. TOC
 {:toc}
 
-This book is a companion to [Tidy Finance](https://www.tidy-finance.org/). tidyfinance gets CRSP, Compustat, and sorts. `lrrcs` calibrates cash-flow loadings on long-run consumption risk and prices the claims. Average returns never enter the cash-flow step. Run the chunks **in order**.
+This book is a companion to [Tidy Finance](https://www.tidy-finance.org/). It implements a **general-equilibrium** long-run-risks economy whose objects are **asset prices and risk premia** — valuations (price–dividend ratios) and ex-ante compensations, not only average returns.
+
+tidyfinance gets CRSP, Compustat, and sorts. `lrrcs` maps the low-frequency risks embodied in cash flows into those prices and premia. Average returns never enter the cash-flow step. Run the chunks **in order**.
 
 ## Install
 
@@ -33,7 +35,7 @@ You now have both packages. This first run uses only `lrrcs`. You will need tidy
 
 ## Table II, by hand
 
-Kiku (2006, Table II) is the default household: Epstein–Zin preferences, a persistent expected-growth state $$x_t$$, and three dividend claims (growth, value, market). The numbers are monthly.
+Kiku (2006, Table II) is the default economy: time-non-separable Epstein–Zin preferences, a small but highly persistent component $$x_t$$ that governs consumption growth, time-varying consumption volatility, and three claims (growth, value, market) distinguished by the exposure of their dividends to low-frequency consumption shocks. The numbers are monthly.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5
@@ -47,9 +49,11 @@ theta, rho, phi
 (-27.0, 0.98, {'growth': 2.6, 'value': 6.2, 'market': 2.8})
 ```
 
-$$\theta\neq 1$$ because $$\gamma\neq 1/\psi$$. Under power utility that gap is zero and news about $$x_t$$ is not priced. Value’s monthly loading on $$x_t$$ is 6.2; growth’s is 2.6. That ranking — not the six-percent return gap — is what the model will turn into a premium.
+$$\theta\neq 1$$ because Epstein–Zin preferences break the link between smoothing consumption over time ($$\psi$$) and across states ($$\gamma$$). The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Shocks to the persistent growth-rate component therefore lead to large reactions in stock prices and sizable risk compensations.
 
-`lrr.get_table_ii_params()` is those numbers as a `ModelParams` object. `lrr.solve_analytical` linearizes log price–dividend in $$x_t$$ and returns the long-run premium of each claim.
+Value’s monthly loading on $$x_t$$ is 6.2; growth’s is 2.6. That dispersion in long-run cash-flow exposure — not the six-percent return gap — is what the equilibrium turns into valuations and premia.
+
+`lrr.get_table_ii_params()` is those numbers as a `ModelParams` object. `lrr.solve_analytical` linearizes log price–dividend in $$x_t$$ and returns both the elasticity of valuations and the long-run risk premium of each claim.
 
 ```python
 params = lrr.get_table_ii_params()
@@ -69,11 +73,11 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-**What that did.** It loaded Table II, solved the linearized model, and printed the long–short premium the Euler equation assigns. You did not estimate anything.
+**What that did.** It loaded Table II, solved the linearized general-equilibrium model, and printed the long-run risk premia and the elasticity of price–dividend ratios to $$x_t$$. You did not estimate anything.
 
-**What that did not do.** It did not match that premium. Average returns never entered. It did not touch WRDS.
+**What that did not do.** It did not match those premia or those valuations to the data. Average returns never entered. It did not touch WRDS.
 
-The 0.40 percent here is only the *long-run piece* of the value premium (the part that comes from $$A_1\times x$$-news). The full Euler-equation gap is about 5.3 percent against about 6 percent in the data — that comparison is [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+The 0.40 percent here is only the long-run *piece* of the value premium. The full Euler-equation gap is about 5.3 percent against about 6 percent in the data, and value’s $$P/D$$ sits below growth’s — both prices and premia. That comparison is [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
 ## Extras
 
@@ -83,6 +87,6 @@ Numba (`[fast]`), matplotlib / polars / plotnine / parquet (`[data]`), and WRDS 
 
 - Two imports: `tidyfinance as tf` and `lrrcs as lrr`.
 - Table II is a cash-flow calibration. Returns are not in it.
-- `solve_analytical` is a first look at prices, not an estimation.
+- The equilibrium objects are asset prices and risk premia. `solve_analytical` is a first look at both.
 
 Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we actually download NIPA and construct Campbell–Shiller dividends.

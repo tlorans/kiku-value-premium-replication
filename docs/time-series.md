@@ -9,9 +9,9 @@ nav_order: 5
 1. TOC
 {:toc}
 
-In this chapter we take the consumption and market-dividend series from [Financial data]({{ '/financial-data.html' | relative_url }}) and ask whether a long-run-risks household can price the *market* — the value-weighted claim on all listed stocks — year after year. That is the test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
+In this chapter we take the consumption and market-dividend series from [Financial data]({{ '/financial-data.html' | relative_url }}) and ask whether the general equilibrium can match the **valuations and risk premia** of the aggregate claim — the value-weighted market — year after year. That is the time-series test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
 
-The CAPM says expected returns line up with market beta. Here the priced factor is not the market return. It is news about *expected consumption growth*, a small persistent component $$x_t$$. Claims that load more on $$x_t$$ earn more. We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) load market dividends on that proxy, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** average returns and price–dividend ratios. Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
+Long-run risks are a small but highly persistent component $$x_t$$ that governs consumption growth, plus time-variation in consumption volatility. The market’s dividends are exposed to those low-frequency shocks. Coupled with Epstein–Zin preferences, that exposure entails a significant risk premium and large reactions in the price–dividend ratio. We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) measure the market’s cash-flow exposure to long-run consumption news, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** the equity premium and the valuation (mean $$\log P/D$$). Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
 
 We use the following packages. Run the chunks **in order**, as on [Tidy Finance’s beta-estimation chapter](https://www.tidy-finance.org/chapters/beta-estimation.html): later snippets reuse `dc`, `mkt`, and `y`.
 
@@ -81,7 +81,7 @@ $$
 x_{t+1}=\rho x_t+\varphi_x\sigma_t e_{t+1}.
 $$
 
-$$x_t$$ is expected growth. A shock to $$x_t$$ revises the whole path of future consumption. Epstein–Zin preferences with $$\psi\neq 1/\gamma$$ price that news. A claim’s loading $$\phi$$ on $$x_t$$ is how much of it the claim inherits. That is long-run risk.
+$$x_t$$ is the small but highly persistent component that governs consumption growth; $$\sigma_t$$ allows time-variation in conditional volatility. A shock to the growth-rate component significantly alters investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Epstein–Zin preferences make the marginal rate of substitution depend on the return on aggregate wealth, so that news is priced. A claim’s loading $$\phi$$ is the amount of low-frequency risk embodied in its cash flows.
 
 You can already *see* $$x_t$$ in the annual data. Average the last two years of consumption growth. Raw $$\Delta c$$ is jagged. The moving average is the slow component.
 
@@ -366,7 +366,7 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-The test is whether the same locked cash-flow numbers reproduce **returns and prices**. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid. Kiku’s Table VII (1000 samples) is the comparison we want. A match on $$E[R]$$ with the wrong $$P/D$$ is a fail.
+The test is whether the same locked cash-flow numbers reproduce **risk premia and valuations**. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid. Kiku’s Table VII (1000 samples) is the comparison we want. A match on the equity premium with the wrong price–dividend ratio is a fail: the equilibrium objects come as a pair.
 
 |  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
 |:---|---:|---:|---:|---:|
@@ -409,13 +409,13 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 
 ![Model price–dividend along the path](figures/sim_log_pd.svg)
 
-<p class="caption">Model $$\log(P/D)$$ from $$z=\bar z+A_1 x+A_2(\sigma^2-\bar\sigma^2)$$. Returns and prices have to match together.</p>
+<p class="caption">Model $$\log(P/D)$$ from $$z=\bar z+A_1 x+A_2(\sigma^2-\bar\sigma^2)$$. Valuations and risk premia have to match together.</p>
 
 ## Key takeaways
 
-- Consumption growth is persistent. A two-year MA of lags, or a Kalman AR(1), is the annual picture of $$x_t$$.
-- Market dividends load on that proxy with $$\tilde\phi\approx 0.72$$. Returns are not in the regression.
-- Simulated cash-flow moments have to look like the sample *before* you look at prices.
-- The Euler equation is a joint test of $$E[R]$$ and $$E[\log P/D]$$. Table II is close on both for the market.
+- Long-run risks are a small persistent component of consumption growth. A two-year MA, or a Kalman AR(1), is the annual picture of that component.
+- The market’s cash flows are exposed to those low-frequency shocks ($$\tilde\phi\approx 0.72$$). Returns are not in the regression.
+- Simulated cash-flow moments have to look like the sample *before* you look at prices or premia.
+- The general equilibrium is a joint test of the equity premium and the valuation. Table II is close on both for the market.
 
 Value and growth are [Value versus growth]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.

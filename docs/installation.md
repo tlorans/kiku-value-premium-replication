@@ -26,7 +26,7 @@ sys.version_info[:2], lrr.__version__
 ((3, 12), '0.5.0')
 ```
 
-Core install solves Table II with no secrets:
+Core install solves the Table II general equilibrium — valuations and long-run risk premia — with no secrets:
 
 ```python
 params = lrr.get_table_ii_params()

@@ -6,7 +6,7 @@ nav_order: 2
 
 # API
 
-Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path.
+Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The equilibrium objects are asset prices and risk premia.
 
 ```python
 import numpy as np
@@ -26,7 +26,7 @@ import lrrcs as lrr
 | IMRS, dynamics, solver | `lrr.get_table_ii_params`, `lrr.ModelSolver`, `lrr.solve_analytical` |
 | Expected growth \(x_t\) | `lrr.expected_growth_proxy`, `lrr.filter_expected_growth` |
 | Cash-flow loadings | `lrr.calibrate_from_data` |
-| Prices and returns | `lrr.compute_asset_pricing_moments` |
+| Valuations and risk premia | `lrr.compute_asset_pricing_moments` |
 
 tidyfinance downloads CRSP/Compustat/CCM and supplies NYSE breakpoints. `lrr.build_annual_panel` still builds Campbell–Shiller dividends and historical book equity.
 

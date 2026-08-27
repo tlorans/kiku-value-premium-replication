@@ -9,7 +9,7 @@ nav_order: 3
 1. TOC
 {:toc}
 
-Long-run risks is a cash-flow model. Before any Euler equation you need how consumption grows, how each claim’s dividends grow, and a real safe rate. Average stock returns are a fact to explain later. They are not an input here.
+This is a general-equilibrium model of asset prices and risk premia. Before any Euler equation you need the cash flows in which low-frequency risks are embodied: how consumption grows, how each claim’s dividends are exposed to low- and high-frequency consumption shocks, and a real safe rate. Average stock returns are a fact the equilibrium has to explain. They are not an input here.
 
 Tidy Finance already shows CRSP, Compustat, CCM, and how to store downloads: [Accessing and managing financial data](https://www.tidy-finance.org/chapters/accessing-and-managing-financial-data.html) and [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). Credentials are `tf.set_wrds_credentials()`; see [Installation]({{ '/installation.html' | relative_url }}). This page does not redo those extracts. It builds the series Tidy Finance does not: NIPA consumption, Campbell–Shiller dividends, the PCE deflator, a real T-bill, and the 1930–2003 claims panel.
 
@@ -31,7 +31,7 @@ start, end = 1930, 2003
 
 ## Consumption
 
-The household consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a productivity shock. The NIPA quantity indexes are on FRED — public, no WRDS.
+The representative agent consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a consumption shock. Long-run risks in the model are a small persistent component of *this* series. The NIPA quantity indexes are on FRED — public, no WRDS.
 
 ```python
 def fred_annual(series_id: str) -> pl.DataFrame:
@@ -228,7 +228,7 @@ The first year is missing because of the twelve-month inflation window. `lrr.rea
 
 ## Value, growth, and the panel
 
-Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). Tidy Finance’s `assign_portfolio(..., breakpoint_options=tf.breakpoint_options(n_portfolios=5, breakpoints_exchanges="NYSE"))` is the sort. Book equity is Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM.
+Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). In the data, as in the model, value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations in consumption. That is the cash-flow fact the equilibrium will turn into valuations and premia. Tidy Finance’s `assign_portfolio(..., breakpoint_options=tf.breakpoint_options(n_portfolios=5, breakpoints_exchanges="NYSE"))` is the sort. Book equity is Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM.
 
 Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody’s book equity. That file is public:
 
@@ -256,13 +256,13 @@ print(lrr.table_i(panel))
 | Value | 13.67 (1.63) | 29.67 | 3.53 (4.13) | 47.72 | 3.34 (0.19) |
 | Market | 8.52 (1.75) | 20.10 | 0.92 (0.94) | 11.02 | 3.33 (0.13) |
 
-Returns and dividend growth are percent per year. Newey–West standard errors in parentheses. Value earned more *and* was cheaper. Those are the two columns the model has to match. Neither entered the cash-flow construction.
+Returns and dividend growth are percent per year. Newey–West standard errors in parentheses. Value earned more *and* was cheaper: higher risk premia and lower valuations. Those are the two objects of the general equilibrium. Neither entered the cash-flow construction.
 
 ## Key takeaways
 
-- Consumption is real per-capita ND+S from FRED. You can build it without WRDS.
-- CRSP stores returns. Dividends are Campbell–Shiller from `ret` minus `retx`.
+- Consumption is real per-capita ND+S from FRED. Its persistent component is the long-run risk.
+- CRSP stores returns. Dividends — the cash flows that carry low-frequency risk — are Campbell–Shiller from `ret` minus `retx`.
 - Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
-- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample [The market]({{ '/time-series.html' | relative_url }}) prices.
+- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose *valuations and risk premia* [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
 
 Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).

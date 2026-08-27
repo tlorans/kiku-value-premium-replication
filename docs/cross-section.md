@@ -9,9 +9,9 @@ nav_order: 6
 1. TOC
 {:toc}
 
-**Question.** Why do cheap stocks (high book-to-market, *value*) earn more than expensive stocks (low book-to-market, *growth*) when both move about one-for-one with the market?
+**Question.** Why do value firms — highly exposed, in the data, to long-run consumption shocks — exhibit both higher ex-ante risk premia *and* lower price–dividend ratios than growth firms, whose cash flows are driven more by short-lived fluctuations in consumption?
 
-The last page priced one claim. This page prices two, with the same household. Kiku (2006) is the worked example. The six-percent gap in average returns is a fact to be explained. It is not a number you feed the calibrator. Run the chunks **in order**; they reuse `dc`, `panel`, and `ma` from the top.
+The last page was the aggregate claim. This page is two firms in the same general equilibrium. Kiku (2006) is the worked example. The six-percent gap in average returns, and the ranking of valuations, are facts to be explained. They are not numbers you feed the calibrator. Run the chunks **in order**; they reuse `dc`, `panel`, and `ma` from the top.
 
 ```python
 import numpy as np
@@ -40,7 +40,7 @@ wide.head()
 {'Growth': 7.49, 'Value': 13.67, 'Market': 8.52}
 ```
 
-Kiku’s printed sample (slightly different CRSP vintage) is 7.81 / 13.88 / 8.56. The gap is about six percent either way. Value is also cheaper. CAPM betas sit near one, so the return gap is not a market-beta fact. Compute those betas on this file: OLS of each claim’s return on the market return.
+Kiku’s printed sample (slightly different CRSP vintage) is 7.81 / 13.88 / 8.56. The gap is about six percent either way. Value is also cheaper: a lower valuation alongside a higher risk premium. CAPM betas sit near one, so neither the premium nor the valuation gap is a market-beta fact. Compute those betas on this file: OLS of each claim’s return on the market return.
 
 ```python
 rm = panel.filter(pl.col("claim") == "Market").sort("year")["ret"].to_numpy()
@@ -104,7 +104,7 @@ def phi_hat(claim):
 {'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
 ```
 
-The ranking is the check: value’s slope is larger than growth’s (Kiku’s Table VI prints $$-0.38$$ / $$2.16$$ / $$0.66$$, same order). The solver wants monthly $$\phi$$. Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$, $$\phi_{\text{market}}=2.8$$. Value gets the larger $$\phi$$ because (19) said so, not because value had a larger average return.
+The ranking is the check: value firms are highly exposed to long-run consumption shocks; growth firms less so (Kiku’s Table VI prints $$-0.38$$ / $$2.16$$ / $$0.66$$, same order). The solver wants monthly $$\phi$$. Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$, $$\phi_{\text{market}}=2.8$$. Value gets the larger $$\phi$$ because its cash flows load more on the persistent growth-rate component, not because it had a larger average return.
 
 ```python
 def dd(claim):
@@ -151,7 +151,7 @@ growth 43.1
 value  88.9
 ```
 
-Value’s price moves about twice as much with expected-growth news. `solve_analytical` and `ModelSolver` resolve either pair. The market key remains the time-series check on this calibration.
+Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation. `solve_analytical` and `ModelSolver` resolve either pair. The market key remains the time-series check that the same equilibrium still prices the aggregate claim.
 
 ```python
 sol = lrr.solve_analytical(params)
@@ -172,7 +172,7 @@ The 0.40 percent is only the long-run *piece*. The full Euler-equation gap is la
 
 ## Compare pricing moments
 
-With those four numbers locked, what expected returns and price–dividend ratios does the Euler equation assign?
+With those four numbers locked, what **valuations and risk premia** does the general equilibrium assign?
 
 |  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
 |:---|---:|---:|---:|---:|
@@ -181,11 +181,11 @@ With those four numbers locked, what expected returns and price–dividend ratio
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-The model gap is about 5.3 percent against about 6 percent in the data. Mean price–dividend levels are about 24.7 on value versus 39.8 on growth. Value is both the high-return claim and the low price–dividend claim. The market row is the time-series check that the same investor still prices the aggregate claim.
+The model gap is about 5.3 percent against about 6 percent in the data. Mean price–dividend levels are about 24.7 on value versus 39.8 on growth. Value is both the high-premium claim and the low-valuation claim — risk premia and asset prices together. The market row is the time-series check that the same equilibrium still prices the aggregate claim.
 
-Do not confuse $$\phi$$ with a CAPM beta. The model’s ratio of value to growth CAPM betas is 0.92. Value’s market beta is *lower*, as in the paper’s vintage. The priced risk is exposure to $$x_t$$.
+Do not confuse $$\phi$$ with a CAPM beta. The model’s ratio of value to growth CAPM betas is 0.92. Value’s market beta is *lower*, as in the paper’s vintage. The priced risk is the amount of low-frequency consumption risk embodied in cash flows.
 
-Failure would be: value earns less than growth; value’s price–dividend ratio sits above growth’s; or value’s CAPM beta is much larger, so covariance with the market would have been enough.
+Failure would be: value’s risk premium sits below growth’s; value’s price–dividend ratio sits above growth’s; or value’s CAPM beta is much larger, so covariance with the market would have been enough.
 
 ```python
 print("A1 value / A1 growth", round(sol.A1["value"] / sol.A1["growth"], 2))
@@ -201,6 +201,7 @@ A1 value / A1 growth 2.06
 
 ## Key takeaways
 
-- The six-percent return gap is a fact, not a calibration target.
-- Value’s dividends load more on slow consumption. That ranking, not CAPM beta, is the mechanism.
-- The same household still prices the market. That is the time-series check on this calibration.
+- The six-percent premium and the cheaper valuation of value are facts, not calibration targets.
+- Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That cash-flow ranking, not CAPM beta, is the mechanism.
+- Valuations and risk premia both come from the amount of low-frequency risk embodied in cash flows.
+- The same general equilibrium still prices the market. That is the time-series check.
