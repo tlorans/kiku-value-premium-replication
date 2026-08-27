@@ -9,13 +9,18 @@ nav_order: 3
 1. TOC
 {:toc}
 
-Long-run risks is a *cash-flow* model. Before any Euler equation you need how consumption grows, how each claim’s dividends grow, and a real safe rate. Average stock returns are a fact to explain later. They are not an input here.
+Long-run risks is a cash-flow model. Before any Euler equation you need how consumption grows, how each claim’s dividends grow, and a real safe rate. Average stock returns are a fact to explain later. They are not an input here.
 
-Tidy Finance already shows how to pull CRSP, Compustat, and CCM, and how to store downloads: [Accessing and managing financial data](https://www.tidy-finance.org/chapters/accessing-and-managing-financial-data.html) and [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). Credentials are `tf.set_wrds_credentials()`; see [Installation]({{ '/installation.html' | relative_url }}). This page does not redo those extracts. It builds the series Tidy Finance does not: NIPA consumption, Campbell–Shiller dividends, the PCE deflator, a real T-bill, and the 1930–2003 claims panel.
+Tidy Finance already shows CRSP, Compustat, CCM, and how to store downloads: [Accessing and managing financial data](https://www.tidy-finance.org/chapters/accessing-and-managing-financial-data.html) and [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). Credentials are `tf.set_wrds_credentials()`; see [Installation]({{ '/installation.html' | relative_url }}). This page does not redo those extracts. It builds the series Tidy Finance does not: NIPA consumption, Campbell–Shiller dividends, the PCE deflator, a real T-bill, and the 1930–2003 claims panel.
 
-The pricing chapters use 1930–2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003. After each construction we cut to that window so everyone prices the same sample.
+The pricing chapters use 1930–2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003; after constructing we cut to that window. Run the chunks **in order**.
 
 ```python
+import io
+import zipfile
+import urllib.request
+import numpy as np
+import pandas as pd
 import polars as pl
 import plotnine as p9
 import tidyfinance as tf
@@ -26,11 +31,9 @@ start, end = 1930, 2003
 
 ## Consumption
 
-The household in this book consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a productivity shock. The NIPA quantity indexes are on FRED; no WRDS login.
+The household consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a productivity shock. The NIPA quantity indexes are on FRED — public, no WRDS.
 
 ```python
-import polars as pl
-
 def fred_annual(series_id: str) -> pl.DataFrame:
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
     raw = pl.read_csv(url)
@@ -46,22 +49,15 @@ nd.head(3)
 ```
 
 ```text
-shape: (3, 2)
-┌──────┬────────┐
-│ year ┆ nd     │
-│ 1929 ┆ 11.737 │
-│ 1930 ┆ 11.125 │
-│ 1931 ┆ 11.006 │
-└──────┴────────┘
+ year     nd
+ 1929  11.737
+ 1930  11.125
+ 1931  11.006
 ```
 
-Quantity indexes plus population give a per-capita consumption *level*. Log difference is growth:
+Join on year, form the per-capita level, then take log differences. That *is* consumption growth.
 
 ```python
-import polars as pl
-import plotnine as p9
-import lrrcs as lrr
-
 levels = (
     nd.join(sv, on="year")
     .join(pop, on="year")
@@ -71,6 +67,7 @@ levels = (
 )
 dc = levels.filter((pl.col("year") >= start) & (pl.col("year") <= end)).select("year", "dc")
 dc.head()
+print(dc["dc"].mean() * 100, dc["dc"].std() * 100, dc.height)
 ```
 
 ```text
@@ -80,13 +77,13 @@ dc.head()
  1932  -0.088
  1933  -0.021
  1934   0.062
+
+1.75  2.37  74
 ```
 
-1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930–2003 is 1.75 percent per year.
+1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930–2003 is 1.75 percent, volatility 2.37 percent, 74 years.
 
 ```python
-import plotnine as p9
-
 (
     p9.ggplot(dc.to_pandas(), p9.aes("year", "dc"))
     + p9.geom_line()
@@ -94,39 +91,42 @@ import plotnine as p9
 )
 ```
 
-Same three FRED series and the same log difference, as a one-liner:
-
-```python
-dc_all = lrr.load_consumption()   # pandas Series, indexed by year
-dc = dc_all.loc[start:end]
-```
-
-`lrr.consumption_growth_from_levels(nd, sv, pop)` is just the level-to-growth step if you already downloaded the indexes.
-
 ![Real per-capita ND+S growth](figures/consumption_growth.svg)
 
 <p class="caption">Annual log growth of real per-capita nondurables plus services, 1930–2003. The 1932 drop is the Depression, not a plotting glitch.</p>
 
-CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) turns them into consumption goods:
+If the three FRED series are already pandas with a year index, `lrr.consumption_growth_from_levels(nd, sv, pop)` is the log-difference step.
+
+The same three FRED series and the same log difference:
 
 ```python
-defl = lrr.load_deflator()
+dc_pkg = lrr.load_consumption().loc[start:end]
+dc_pkg.mean(), float(dc["dc"].mean())
+```
+
+CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) converts them into consumption units. Download it the same way as the quantity indexes, or call `lrr.load_deflator()`.
+
+```python
+defl_pl = fred_annual("DPCERD3A086NBEA").rename({"value": "defl"})
+defl = pd.Series(
+    defl_pl["defl"].to_numpy(),
+    index=defl_pl["year"].to_numpy(),
+    name="defl",
+)
+defl.loc[start:end].head()
 ```
 
 ## Market dividends
 
-CRSP stores *returns*, not a dividend file. The return with dividends is `ret`. The capital-gain return is `retx`. Campbell and Shiller recover the dividend as the gap, scaled by a cumulated price index $$V$$:
+CRSP stores *returns*, not a dividend file. The return with dividends is `ret`. The capital-gain return is `retx`. Campbell and Shiller (1988) recover the dividend as the gap, scaled by a cumulated price index $$V$$:
 
 $$
 D_t=(r_t-r_t^{x})\,V_{t-1},\qquad V_t=V_{t-1}(1+r_t^{x}).
 $$
 
-Tidy Finance’s CRSP extract is in [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). For Campbell–Shiller you also need `retx` and the 1925–2003 file, so `version="v1"`:
+Tidy Finance’s CRSP extract is in [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). For this identity you also need `retx` and the 1925–2003 file (`version="v1"`):
 
 ```python
-import tidyfinance as tf
-import lrrcs as lrr
-
 tf.set_wrds_credentials()
 crsp = tf.download_data(
     domain="WRDS",
@@ -138,18 +138,27 @@ crsp = tf.download_data(
 )
 ```
 
-Ordinary shares, NYSE/AMEX/NASDAQ, and delisting (Fama–French −30% on performance codes 400–599, applied to `retx` as well as `ret`) stay in `lrr.build_annual_panel`. The identity itself is easiest to see on a year of made-up months. Start $$V=100$$, every month $$r^{x}=1\%$$ and $$r=1.2\%$$:
+Ordinary shares, NYSE/AMEX/NASDAQ, and delisting (Fama–French −30% on performance codes 400–599, applied to `retx` as well as `ret`) live inside `lrr.build_annual_panel`. The identity itself does not need WRDS. Start $$V=100$$. Every month $$r^{x}=1\%$$ and $$r=1.2\%$$, so each dividend is 0.2 percent of the lagged price index. Compound for a year:
 
 ```python
-import pandas as pd
-import lrrcs as lrr
-
 dates = pd.date_range("2000-01-31", periods=12, freq="ME")
 retx = pd.Series(0.01, index=dates)
 ret = pd.Series(0.012, index=dates)
-defl = pd.Series({2000: 1.0})
-cs = lrr.campbell_shiller_annual(ret, retx, defl)
-cs[["year", "div", "v", "pd"]]
+
+v = 100.0
+rows = []
+year_div, year_v, year_ret = {}, {}, {}
+for dt in dates:
+    d = (ret.loc[dt] - retx.loc[dt]) * v
+    v = v * (1.0 + retx.loc[dt])
+    y = int(dt.year)
+    year_div[y] = year_div.get(y, 0.0) + max(d, 0.0)
+    year_v[y] = v
+    year_ret[y] = year_ret.get(y, 1.0) * (1.0 + ret.loc[dt])
+pd.DataFrame(
+    {"year": [2000], "div": [year_div[2000]], "v": [year_v[2000]],
+     "pd": [year_v[2000] / year_div[2000]]}
+)
 ```
 
 ```text
@@ -157,26 +166,32 @@ cs[["year", "div", "v", "pd"]]
  2000  2.54  112.68  44.42
 ```
 
-Each month the dividend is $$0.002\times V_{t-1}$$. The price index compounds at 1% per month to 112.68. Year-end $$P/D$$ is 44.4. On CRSP, pass the value-weighted `ret` / `retx` (and the deflator) the same way. `lrrcs` still has to do this step: Tidy Finance does not ship Campbell–Shiller dividends.
+The price index compounds at 1% per month to 112.68. Year-end $$P/D$$ is 44.4. Deflate `div` and `v` by the PCE index, then take log differences of real dividends for $$\Delta d$$. `lrr.campbell_shiller_annual(ret, retx, defl)` is that loop plus deflation. Tidy Finance does not ship this.
 
-The market row of the claims panel *is* that procedure on CRSP ordinary shares, 1930–2003. `lrr.build_annual_panel` runs it (and writes `data/annual_panel.csv`). `refresh=False` reuses `data/raw/*.parquet` when present so you are not billed a WRDS round-trip for a chart.
+On CRSP, pass the value-weighted `ret` / `retx` of ordinary shares the same way. `lrr.build_annual_panel` does it for growth, value, and the market, and writes `data/annual_panel.csv`. `refresh=False` reuses `data/raw/*.parquet` when present.
 
 ```python
-import numpy as np
-import plotnine as p9
-import lrrcs as lrr
+try:
+    panel = lrr.build_annual_panel(refresh=False)
+except Exception:
+    panel = pd.read_csv("data/annual_panel.csv")
+if not isinstance(panel, pl.DataFrame):
+    panel = pl.from_pandas(panel)
+mkt = panel.filter(pl.col("claim") == "Market").join(dc, on="year")
+mkt.select("year", "ret", "dgrowth", "pd", "dc").head()
+```
 
-panel = lrr.build_annual_panel(refresh=False)
-dc = lrr.load_consumption().loc[start:end].rename("dc").reset_index()
-mkt = panel.loc[panel["claim"] == "Market"].merge(dc, on="year")
-
+```python
 (
-    p9.ggplot(mkt, p9.aes("dc", "dgrowth"))
+    p9.ggplot(mkt.to_pandas(), p9.aes("dc", "dgrowth"))
     + p9.geom_point()
     + p9.labs(x="Δc", y="Market Δd", title="Cash flows, not returns")
 )
 (
-    p9.ggplot(mkt.assign(log_pd=np.log(mkt["pd"])), p9.aes("year", "log_pd"))
+    p9.ggplot(
+        mkt.with_columns(pl.col("pd").log().alias("log_pd")).to_pandas(),
+        p9.aes("year", "log_pd"),
+    )
     + p9.geom_line()
     + p9.labs(x="Year", y="log(P/D)", title="Market price–dividend, 1930–2003")
 )
@@ -192,48 +207,48 @@ mkt = panel.loc[panel["claim"] == "Market"].merge(dc, on="year")
 
 ## Real T-bill
 
-The model’s safe rate is a real T-bill, not Ken French’s `RF` column (that one is a nominal one-month yield). CRSP’s `mcti` file has the 90-day bill (`t90ret`) and a CPI index. Subtract a twelve-month moving average of log inflation, then average inside the calendar year:
+The model’s safe rate is a *real* T-bill, not Ken French’s nominal `RF`. CRSP `mcti` has the 90-day bill (`t90ret`) and a CPI index. Subtract a twelve-month moving average of log inflation, then average inside the year:
 
 ```python
-import lrrcs as lrr
-
-# t90 and cpi are monthly Series from CRSP mcti
-rf = lrr.real_rf_from_monthly(t90, cpi)
+idx = pd.date_range("2000-01-31", periods=24, freq="ME")
+t90 = pd.Series(0.004, index=idx)
+cpi = pd.Series(100.0 * (1.002 ** np.arange(24)), index=idx)
+inflation = np.log(cpi / cpi.shift(1))
+real_m = t90 - inflation.rolling(12).mean()
+rf_toy = real_m.resample("YE").mean()
+rf_toy
 ```
 
-`lrr.build_annual_panel` writes `data/rf_annual.csv`. Mean real bill 1930–2003 is about 0.9 percent.
+```text
+2000-12-31    NaN
+2001-12-31    0.002
+```
+
+The first year is missing because of the twelve-month inflation window. `lrr.real_rf_from_monthly(t90, cpi)` is that transformation. On CRSP, pass `mcti.t90ret` and `mcti.cpi`. `build_annual_panel` writes `data/rf_annual.csv`.
 
 ## Value, growth, and the panel
 
-Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). Tidy Finance’s `assign_portfolio` / `breakpoint_options(n_portfolios=5, breakpoints_exchanges="NYSE")` is the sort. Book equity is Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM.
+Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). Tidy Finance’s `assign_portfolio(..., breakpoint_options=tf.breakpoint_options(n_portfolios=5, breakpoints_exchanges="NYSE"))` is the sort. Book equity is Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM.
 
-Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody’s book equity. That file is public (Ken French’s library), not WRDS:
+Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody’s book equity. That file is public:
 
 ```python
-import io
-import zipfile
-import urllib.request
-
 url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Historical_BE_Data.zip"
 req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
 with urllib.request.urlopen(req, timeout=60) as resp:
     blob = resp.read()
 with zipfile.ZipFile(io.BytesIO(blob)) as zf:
     text = zf.read(zf.namelist()[0]).decode("latin-1")
-text.splitlines()[:5]
+text.splitlines()[:4]
 ```
 
 Each line is a `permno` and a vector of annual book-equity values starting in 1926. `lrr.build_annual_panel` parses it, splices it onto Compustat, forms the quintiles, value-weights, and runs Campbell–Shiller on growth (quintile 1), value (quintile 5), and the market.
 
 ```python
-import lrrcs as lrr
-
-tf.set_wrds_credentials()          # once; skip if the cache is already there
-panel = lrr.build_annual_panel(refresh=False)
 print(lrr.table_i(panel))
 ```
 
-`refresh=True` hits WRDS and Ken French again. `refresh=False` rebuilds from `data/raw/*.parquet` if present, otherwise from the shipped CSVs.
+`refresh=True` hits WRDS and Ken French again.
 
 | claim | E[R] % | σ(R) % | E[Δd] % | σ(Δd) % | E[log P/D] |
 |:---|---:|---:|---:|---:|---:|
@@ -241,6 +256,13 @@ print(lrr.table_i(panel))
 | Value | 13.67 (1.63) | 29.67 | 3.53 (4.13) | 47.72 | 3.34 (0.19) |
 | Market | 8.52 (1.75) | 20.10 | 0.92 (0.94) | 11.02 | 3.33 (0.13) |
 
-Returns and dividend growth are percent per year. Numbers in parentheses are Newey–West standard errors. Value earned more *and* was cheaper (lower $$P/D$$). Those are the two columns the model has to match. Neither entered the cash-flow construction.
+Returns and dividend growth are percent per year. Newey–West standard errors in parentheses. Value earned more *and* was cheaper. Those are the two columns the model has to match. Neither entered the cash-flow construction.
 
-The pricing chapters read the 1930–2003 files that pipeline writes: `data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`. Next: [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}), or [The market]({{ '/time-series.html' | relative_url }}).
+## Key takeaways
+
+- Consumption is real per-capita ND+S from FRED. You can build it without WRDS.
+- CRSP stores returns. Dividends are Campbell–Shiller from `ret` minus `retx`.
+- Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
+- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample [The market]({{ '/time-series.html' | relative_url }}) prices.
+
+Next: [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).

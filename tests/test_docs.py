@@ -178,6 +178,7 @@ def test_financial_data_chapter():
     assert "fredgraph.csv" in text
     assert "retx" in text
     assert "Historical_BE_Data" in text
+    assert "year_div" in text
     assert "real_rf_from_monthly" in text
     assert "consumption_growth_from_levels" in text
     assert "from lrrcs.model import" not in text
@@ -243,8 +244,12 @@ def test_market_chapter():
     assert "figures/sim_dd.svg" in text
     assert "figures/sim_log_pd.svg" in text
     assert "0.722" in text
-    assert "1.82%" in text
+    assert "1.82" in text
     assert "Lambda_eps" in text
+    assert "kalman_filter" in text
+    assert "one_path" in text
+    assert "# ... Kalman" not in text
+    assert "## Key takeaways" in text
 
 
 TUTORIAL_FIGURES = (
