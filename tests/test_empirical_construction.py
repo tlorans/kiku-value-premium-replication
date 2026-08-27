@@ -117,3 +117,50 @@ def test_campbell_shiller_v0_is_100():
     out = campbell_shiller_annual(ret, retx, defl)
     assert set(out.columns) >= {"year", "ret", "dgrowth", "pd"}
     assert out["pd"].notna().any()
+
+
+def test_form_bm_quintiles_uses_assign_portfolio(monkeypatch):
+    import pandas as pd
+    from lrrcs.empirical.construction import form_bm_quintiles
+
+    seen = {}
+
+    def fake_assign(data, sorting_variable, breakpoint_options=None, data_options=None, **kwargs):
+        seen["sorting_variable"] = sorting_variable
+        seen["n_portfolios"] = breakpoint_options["n_portfolios"]
+        seen["exchanges"] = breakpoint_options["breakpoints_exchanges"]
+        seen["exchange_col"] = data_options["exchange"]
+        n = len(data)
+        # 1 = growth ... 5 = value
+        return pd.Series([1] * n)
+
+    monkeypatch.setattr("lrrcs.empirical.construction.tf.assign_portfolio", fake_assign)
+    monkeypatch.setattr(
+        "lrrcs.empirical.construction.tf.breakpoint_options",
+        lambda **kw: kw,
+    )
+    monkeypatch.setattr(
+        "lrrcs.empirical.construction.tf.data_options",
+        lambda **kw: kw,
+    )
+
+    idx = pd.date_range("1999-12-31", periods=2, freq="6ME")
+    # two dates: Dec 1999 and Jun 2000 so the June sort can see lagged Dec ME
+    msf = pd.DataFrame(
+        {
+            "permno": [1, 1],
+            "date": idx,
+            "ret": [0.0, 0.0],
+            "retx": [0.0, 0.0],
+            "prc": [10.0, 10.0],
+            "shrout": [1000.0, 1000.0],
+            "exchcd": [1, 1],
+        }
+    )
+    book = pd.DataFrame({"permno": [1], "year": [1999], "be": [50.0]})
+    out = form_bm_quintiles(msf, book)
+    assert seen["sorting_variable"] == "bm"
+    assert seen["n_portfolios"] == 5
+    assert seen["exchanges"] == "NYSE"
+    assert not out.empty
+    assert set(out["quintile"]) == {1}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import tidyfinance as tf
 
 _CRSP_BAD = (-66.0, -77.0, -88.0, -99.0)
 
@@ -150,14 +151,19 @@ def form_bm_quintiles(msf: pd.DataFrame, book: pd.DataFrame) -> pd.DataFrame:
     asg["bm"] = asg["be"] / asg["me_dec"]
     rows = []
     for _, g in asg.groupby("sort_year"):
-        nyse = g.loc[g["exchcd"] == 1, "bm"].to_numpy(dtype=float)
-        nyse = nyse[np.isfinite(nyse)]
-        if nyse.size < 5:
-            continue
         labeled = g.copy()
-        labeled["quintile"] = nyse_quintile_labels(
-            labeled["bm"].to_numpy(dtype=float), nyse
+        labeled["exchange"] = labeled["exchcd"].map(
+            {1: "NYSE", 2: "AMEX", 3: "NASDAQ"}
         )
+        labeled["quintile"] = tf.assign_portfolio(
+            labeled,
+            sorting_variable="bm",
+            breakpoint_options=tf.breakpoint_options(
+                n_portfolios=5,
+                breakpoints_exchanges="NYSE",
+            ),
+            data_options=tf.data_options(exchange="exchange"),
+        ).astype(int)
         rows.append(labeled[["permno", "sort_year", "quintile", "me_june"]])
     if not rows:
         return pd.DataFrame(columns=["permno", "sort_year", "quintile", "me_june"])
