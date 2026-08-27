@@ -121,4 +121,4 @@ Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we co
 
 - Finance — treating APR-style annualization as harmless when Table II is monthly.
 - Finance — reading the 0.40 percent long-run *piece* as the whole value premium.
-- Python — importing `from lrrcs.model import ...`. Documented code stays at `lrr.`.
+- Python — importing a submodule instead of the package root. Documented code stays at `lrr.`.
