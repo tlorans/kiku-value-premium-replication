@@ -6,12 +6,14 @@ nav_order: 2
 
 # API
 
+Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path.
+
 ```python
+import numpy as np
+import polars as pl
 import tidyfinance as tf
 import lrrcs as lrr
 ```
-
-Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path.
 
 `market` is the time-series claim. `long` and `short` are the two legs of a sort. `value` / `growth` remain aliases. `print_long_short_premium` prints the spread.
 
@@ -28,12 +30,33 @@ Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empiric
 
 tidyfinance downloads CRSP/Compustat/CCM and supplies NYSE breakpoints. `lrr.build_annual_panel` still builds Campbell–Shiller dividends and historical book equity.
 
-`lrr.calibrate_from_data(dc, long=..., short=..., market=..., frequency="annual", window=2)` takes consumption growth and the two legs. No argument for returns.
+A new sort is the same loop as [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}): consumption and two dividend legs in, no returns.
 
 ```python
-import tidyfinance as tf
-import lrrcs as lrr
+dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()
+panel = pl.read_csv("data/annual_panel.csv")
 
+def dd(claim):
+    return (
+        panel.filter(pl.col("claim") == claim)
+        .sort("year")["dgrowth"]
+        .to_numpy()
+    )
+
+div = lrr.calibrate_from_data(
+    dc,
+    frequency="annual",
+    window=2,
+    long=dd("Value"),
+    short=dd("Growth"),
+    market=dd("Market"),
+)
+lrr.print_calibration_summary(div)
+```
+
+`lrr.calibrate_from_data(..., long=..., short=..., market=...)` takes consumption growth and the two legs. No argument for returns.
+
+```python
 lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 

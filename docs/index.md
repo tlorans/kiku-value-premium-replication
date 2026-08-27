@@ -8,7 +8,7 @@ permalink: /
 
 Calibrate cash flows, then ask whether the model matches asset-pricing moments.
 
-Companion to [tidyfinance](https://www.tidy-finance.org/): tidyfinance gets data and sorts; `lrrcs` calibrates cash-flow loadings and prices claims. Average returns never enter the cash-flow step.
+Companion to [tidyfinance](https://www.tidy-finance.org/): tidyfinance gets data and sorts; `lrrcs` calibrates cash-flow loadings and prices claims. Average returns never enter the cash-flow step. The chapters are follow-alongs: run every snippet top to bottom, full code first, then the `lrr.` shortcut.
 
 ```python
 import tidyfinance as tf

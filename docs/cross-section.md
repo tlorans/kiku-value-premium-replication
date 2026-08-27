@@ -11,11 +11,54 @@ nav_order: 6
 
 **Question.** Why do cheap stocks (high book-to-market, *value*) earn more than expensive stocks (low book-to-market, *growth*) when both move about one-for-one with the market?
 
-The last page priced one claim. This page prices two, with the same household. Kiku (2006) is the worked example. The six-percent gap in average returns is a fact to be explained. It is not a number you feed the calibrator.
+The last page priced one claim. This page prices two, with the same household. Kiku (2006) is the worked example. The six-percent gap in average returns is a fact to be explained. It is not a number you feed the calibrator. Run the chunks **in order**; they reuse `dc`, `panel`, and `ma` from the top.
+
+```python
+import numpy as np
+import pandas as pd
+import polars as pl
+import plotnine as p9
+import lrrcs as lrr
+
+dc = pl.read_csv("data/consumption_annual.csv").sort("year")
+panel = pl.read_csv("data/annual_panel.csv")
+y = dc["dc"].to_numpy()
+```
 
 ## Data
 
-Each June, sort ordinary shares on NYSE, AMEX, and NASDAQ by book-to-market, using NYSE cutoffs (Fama and French 1993). Growth is the bottom fifth. Value is the top fifth. Dividends are inferred from the gap between the return with dividends and the return without dividends (Campbell and Shiller). Sample: 1930–2003.
+Each June, sort ordinary shares on NYSE, AMEX, and NASDAQ by book-to-market, using NYSE cutoffs (Fama and French 1993). Growth is the bottom fifth. Value is the top fifth. Dividends are Campbell–Shiller from `ret` versus `retx`, as in [Financial data]({{ '/financial-data.html' | relative_url }}). Sample: 1930–2003.
+
+```python
+wide = panel.pivot(index="year", on="claim", values="ret")
+wide.head()
+{c: round(float(panel.filter(pl.col("claim") == c)["ret"].mean() * 100), 2)
+ for c in ("Growth", "Value", "Market")}
+```
+
+```text
+{'Growth': 7.49, 'Value': 13.67, 'Market': 8.52}
+```
+
+Kiku’s printed sample (slightly different CRSP vintage) is 7.81 / 13.88 / 8.56. The gap is about six percent either way. Value is also cheaper. CAPM betas sit near one, so the return gap is not a market-beta fact. Compute those betas on this file: OLS of each claim’s return on the market return.
+
+```python
+rm = panel.filter(pl.col("claim") == "Market").sort("year")["ret"].to_numpy()
+rm_d = rm - rm.mean()
+
+def capm_beta(claim):
+    r = panel.filter(pl.col("claim") == claim).sort("year")["ret"].to_numpy()
+    r_d = r - r.mean()
+    return float(np.dot(rm_d, r_d) / np.dot(rm_d, rm_d))
+
+{c: round(capm_beta(c), 2) for c in ("Growth", "Value")}
+```
+
+```text
+{'Growth': 0.95, 'Value': 1.28}
+```
+
+Value’s beta is a bit above one on this reconstruction, not enough to explain six percent. The paper’s vintage has both near 1.03.
 
 |  | E[R] % | σ(R) % | E[log P/D] |
 |:---|---:|---:|---:|
@@ -23,13 +66,8 @@ Each June, sort ordinary shares on NYSE, AMEX, and NASDAQ by book-to-market, usi
 | Value | 13.88 (1.74) | 29.9 | 3.25 (0.12) |
 | Market | 8.56 (1.79) | 20.1 | 3.34 (0.13) |
 
-Value earned about six percent more per year. Value was cheaper (3.25 against 3.61). Both CAPM betas sit near 1.03, so the return gap is not a market-beta fact.
-
 ```python
-import lrrcs as lrr
-
-bm = lrr.build_annual_panel(refresh=False)
-print(lrr.table_i(bm))
+print(lrr.table_i(panel.to_pandas() if hasattr(panel, "to_pandas") else panel))
 ```
 
 ![Figure 1](figures/figure1.svg)
@@ -40,34 +78,97 @@ print(lrr.table_i(bm))
 
 The household and the consumption process stay those of [the market]({{ '/time-series.html' | relative_url }}). Each claim differs only in four cash-flow numbers: mean dividend growth $$\mu$$, monthly loading $$\phi$$ on $$x_t$$, residual scale $$\varphi$$, and short-run correlation $$\alpha$$.
 
-The data give an *annual* slope of dividend growth on two lags of consumption, equation (19). Printed $$\tilde\phi$$: growth $$-0.38$$ (1.34), value $$2.16$$ (1.44), market $$0.66$$ (1.20). That ranking is the check. The solver wants monthly $$\phi$$. Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$. Value gets the larger $$\phi$$ because (19) said so, not because value had a larger average return. The annual slope never enters the solver as a number.
+Equation (19) is OLS of dividend growth on a two-year MA of lagged consumption. No return on the right-hand side.
 
 ```python
-import lrrcs as lrr
+ma = np.full(len(y), np.nan)
+for t in range(2, len(y)):
+    ma[t] = float(np.mean(y[t - 2 : t]))
 
-dividends = lrr.calibrate_from_data(
-    dc, frequency="annual", window=2,
-    long=dd_value, short=dd_growth, market=dd_market,
+def phi_hat(claim):
+    dd = (
+        panel.filter(pl.col("claim") == claim)
+        .join(dc, on="year")
+        .sort("year")["dgrowth"]
+        .to_numpy()
+    )
+    mask = np.isfinite(ma) & np.isfinite(dd)
+    x = ma[mask] - ma[mask].mean()
+    e = dd[mask] - dd[mask].mean()
+    return float(np.dot(x, e) / np.dot(x, x))
+
+{c: round(phi_hat(c), 3) for c in ("Growth", "Value", "Market")}
+```
+
+```text
+{'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
+```
+
+The ranking is the check: value’s slope is larger than growth’s (Kiku’s Table VI prints $$-0.38$$ / $$2.16$$ / $$0.66$$, same order). The solver wants monthly $$\phi$$. Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$, $$\phi_{\text{market}}=2.8$$. Value gets the larger $$\phi$$ because (19) said so, not because value had a larger average return.
+
+```python
+def dd(claim):
+    return (
+        panel.filter(pl.col("claim") == claim)
+        .join(dc, on="year")
+        .sort("year")["dgrowth"]
+        .to_numpy()
+    )
+
+div = lrr.calibrate_from_data(
+    y,
+    frequency="annual",
+    window=2,
+    long=dd("Value"),
+    short=dd("Growth"),
+    market=dd("Market"),
 )
+lrr.print_calibration_summary(div)
 params = lrr.get_table_ii_params()
-params.dividends["value"].phi   # 6.2 at Table II
-params.dividends["growth"].phi  # 2.6
+params.dividends["value"].phi, params.dividends["growth"].phi
+```
+
+```text
+(6.2, 2.6)
 ```
 
 There is no argument for returns.
 
 ## Solve
 
-Same preferences as the market pass. `solve_analytical` and `ModelSolver` resolve either pair. The market key remains the time-series check on this calibration.
+Same preferences as the market pass. Elasticity of log $$P/D$$ to $$x_t$$ is $$A_1=(\phi-1/\psi)/(1-\kappa_1\rho)$$. With Table II’s monthly $$\phi$$:
 
 ```python
-import lrrcs as lrr
-
-params = lrr.get_table_ii_params()
-lrr.print_long_short_premium(lrr.solve_analytical(params))
-solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
-solver.solve()
+psi, rho = 1.5, 0.98
+for name, phi, zbar in (("growth", 2.6, 3.65), ("value", 6.2, 3.10)):
+    kappa1 = np.exp(zbar) / (1.0 + np.exp(zbar))
+    A1 = (phi - 1.0 / psi) / (1.0 - kappa1 * rho)
+    print(name, round(A1, 1))
 ```
+
+```text
+growth 43.1
+value  88.9
+```
+
+Value’s price moves about twice as much with expected-growth news. `solve_analytical` and `ModelSolver` resolve either pair. The market key remains the time-series check on this calibration.
+
+```python
+sol = lrr.solve_analytical(params)
+lrr.print_long_short_premium(sol)
+```
+
+```text
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.80%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.40%
+A1 (PD elasticity to x): growth=43.1, value=88.9
+Price of long-run risk Lambda_eps = 5.95
+```
+
+The 0.40 percent is only the long-run *piece*. The full Euler-equation gap is larger.
 
 ## Compare pricing moments
 
@@ -82,19 +183,24 @@ With those four numbers locked, what expected returns and price–dividend ratio
 
 The model gap is about 5.3 percent against about 6 percent in the data. Mean price–dividend levels are about 24.7 on value versus 39.8 on growth. Value is both the high-return claim and the low price–dividend claim. The market row is the time-series check that the same investor still prices the aggregate claim.
 
-Do not confuse $$\phi$$ with a CAPM beta. The model’s ratio of value to growth CAPM betas is 0.92. Value’s market beta is *lower*, as in the data. The priced risk is exposure to $$x_t$$.
+Do not confuse $$\phi$$ with a CAPM beta. The model’s ratio of value to growth CAPM betas is 0.92. Value’s market beta is *lower*, as in the paper’s vintage. The priced risk is exposure to $$x_t$$.
 
 Failure would be: value earns less than growth; value’s price–dividend ratio sits above growth’s; or value’s CAPM beta is much larger, so covariance with the market would have been enough.
 
 ```python
-import lrrcs as lrr
+print("A1 value / A1 growth", round(sol.A1["value"] / sol.A1["growth"], 2))
+```
 
-params = lrr.get_table_ii_params()
-solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
-solver.solve()
-lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
+```text
+A1 value / A1 growth 2.06
 ```
 
 ![Long-run risk premia](figures/lr_premium_decomposition.svg)
 
 <p class="caption">Analytical long-run premia. The gap is $$\phi_V=6.2$$ versus $$\phi_G=2.6$$, scaled by $$\rho=0.98$$ and the Epstein–Zin price of long-run news.</p>
+
+## Key takeaways
+
+- The six-percent return gap is a fact, not a calibration target.
+- Value’s dividends load more on slow consumption. That ranking, not CAPM beta, is the mechanism.
+- The same household still prices the market. That is the time-series check on this calibration.

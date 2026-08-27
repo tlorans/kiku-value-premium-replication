@@ -202,6 +202,8 @@ def test_cash_flows_then_prices():
     assert "compute_asset_pricing_moments" in text or "print_long_short_premium" in text
     assert "time-series" in text
     assert "cross-section" in text
+    assert "phi_hat" in text
+    assert "## Key takeaways" in text
     assert "8.56" not in text
     assert "13.88" not in text
 
@@ -291,6 +293,10 @@ def test_value_versus_growth_chapter():
     assert "calibrate_from_data" in text
     assert "```python" in text
     assert "import lrrcs as lrr" in text
+    assert "import polars as pl" in text
+    assert "phi_hat" in text
+    assert "capm_beta" in text
+    assert "## Key takeaways" in text
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
 
