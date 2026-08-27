@@ -174,6 +174,12 @@ def test_financial_data_chapter():
     assert "load_consumption" in text
     assert "campbell_shiller_annual" in text
     assert "build_annual_panel" in text
+    assert "DNDGRA3A086NBEA" in text
+    assert "fredgraph.csv" in text
+    assert "retx" in text
+    assert "Historical_BE_Data" in text
+    assert "real_rf_from_monthly" in text
+    assert "consumption_growth_from_levels" in text
     assert "from lrrcs.model import" not in text
     assert "kiku_value_premium" not in text
     assert "time-series" in text

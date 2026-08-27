@@ -18,6 +18,8 @@ Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empiric
 | Object | Call |
 |:---|:---|
 | Book-to-market panel, 1930–2003 | `lrr.build_annual_panel` |
+| Consumption, deflator, T-bill | `lrr.load_consumption`, `lrr.load_deflator`, `lrr.real_rf_from_monthly` |
+| Campbell–Shiller dividends | `lrr.campbell_shiller_annual` |
 | Table I / Table VI | `lrr.table_i`, `lrr.table_vi_data` |
 | IMRS, dynamics, solver | `lrr.get_table_ii_params`, `lrr.ModelSolver`, `lrr.solve_analytical` |
 | Expected growth \(x_t\) | `lrr.expected_growth_proxy`, `lrr.filter_expected_growth` |

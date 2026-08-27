@@ -23,7 +23,7 @@ The Euler equation is the whole pricing theory: $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]
 
 ## The four steps
 
-**Data.** Form the claim or claims. Consumption growth and dividend growth are the cash-flow series. How to retrieve those series is [Financial data]({{ '/financial-data.html' | relative_url }}). tidyfinance supplies CRSP, Compustat, CCM, and NYSE breakpoints. `lrrcs` still builds Campbell–Shiller dividends and historical book equity.
+**Data.** Form the claim or claims. Consumption growth and dividend growth are the cash-flow series. [Financial data]({{ '/financial-data.html' | relative_url }}) downloads NIPA from FRED, builds Campbell–Shiller dividends from CRSP `ret` / `retx`, and sorts on book-to-market. tidyfinance supplies CRSP, Compustat, CCM, and NYSE breakpoints. `lrrcs` still builds those cash-flow objects.
 
 **Calibrate cash flows.** Match mean and persistence of consumption growth, persistence of $$x_t$$, dividend volatilities, and each claim’s loading on slow consumption. Do not match mean returns, Sharpe ratios, or CAPM betas. Table II is the default. `calibrate_from_data` is the first-pass helper for a new sort. If simulated consumption does not look like the sample, stop.
 

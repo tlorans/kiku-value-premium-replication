@@ -11,7 +11,7 @@ nav_order: 5
 
 **Question.** Can this household price the *market* — the value-weighted claim on all listed stocks — year after year?
 
-That is the test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms. Consumption and market dividends come from [Financial data]({{ '/financial-data.html' | relative_url }}). The recipe is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).
+That is the test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms. [Financial data]({{ '/financial-data.html' | relative_url }}) built consumption from NIPA and market dividends from CRSP via Campbell–Shiller. Here we use the 1930–2003 sample that pipeline writes. The recipe is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).
 
 ```python
 import polars as pl
