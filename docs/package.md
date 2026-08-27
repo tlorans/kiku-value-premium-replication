@@ -7,7 +7,7 @@ has_toc: false
 
 # Package
 
-`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. Average returns never enter the cash-flow step.
+`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. Long-run risks are a small but highly persistent component that governs consumption growth. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. Average returns never enter the cash-flow step.
 
 ```python
 import numpy as np

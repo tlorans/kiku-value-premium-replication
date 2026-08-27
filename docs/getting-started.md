@@ -35,7 +35,7 @@ You now have both packages. This first run uses only `lrrcs`. You will need tidy
 
 ## Table II, by hand
 
-Kiku (2006, Table II) is the default economy: time-non-separable Epstein–Zin preferences, a small but highly persistent component $$x_t$$ that governs consumption growth, time-varying consumption volatility, and three claims (growth, value, market) distinguished by the exposure of their dividends to low-frequency consumption shocks. The numbers are monthly.
+Kiku (2006, Table II) is the default economy: time-non-separable Epstein–Zin preferences, a small but highly persistent component that governs consumption growth ($$x_t$$), time-variation in the conditional volatility of consumption (news about future economic uncertainty), and three claims (growth, value, market) distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. The numbers are monthly.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5
@@ -49,9 +49,9 @@ theta, rho, phi
 (-27.0, 0.98, {'growth': 2.6, 'value': 6.2, 'market': 2.8})
 ```
 
-$$\theta\neq 1$$ because Epstein–Zin preferences break the link between smoothing consumption over time ($$\psi$$) and across states ($$\gamma$$). The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Shocks to the persistent growth-rate component therefore lead to large reactions in stock prices and sizable risk compensations.
+$$\theta\neq 1$$ because Epstein–Zin preferences break the link between smoothing consumption over time ($$\psi$$) and across states ($$\gamma$$). The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations.
 
-Value’s monthly loading on $$x_t$$ is 6.2; growth’s is 2.6. That dispersion in long-run cash-flow exposure — not the six-percent return gap — is what the equilibrium turns into valuations and premia.
+Value’s monthly loading on $$x_t$$ is 6.2; growth’s is 2.6. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That dispersion in long-run cash-flow exposure — not the six-percent return gap — is what the equilibrium turns into valuations and premia. Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
 
 `lrr.get_table_ii_params()` is those numbers as a `ModelParams` object. `lrr.solve_analytical` linearizes log price–dividend in $$x_t$$ and returns both the elasticity of valuations and the long-run risk premium of each claim.
 
@@ -86,7 +86,8 @@ Numba (`[fast]`), matplotlib / polars / plotnine / parquet (`[data]`), and WRDS 
 ## Key takeaways
 
 - Two imports: `tidyfinance as tf` and `lrrcs as lrr`.
-- Table II is a cash-flow calibration. Returns are not in it.
-- The equilibrium objects are asset prices and risk premia. `solve_analytical` is a first look at both.
+- Table II is a cash-flow calibration: a persistent growth-rate component, time-varying uncertainty, and dividend exposures. Returns are not in it.
+- Epstein–Zin breaks the link between smoothing over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio.
+- The equilibrium objects are asset prices and risk premia. `solve_analytical` is a first look at both, including value’s higher $$P/D$$ elasticity.
 
 Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we actually download NIPA and construct Campbell–Shiller dividends.

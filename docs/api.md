@@ -6,7 +6,7 @@ nav_order: 2
 
 # API
 
-Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The equilibrium objects are asset prices and risk premia.
+Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The equilibrium objects are asset prices and risk premia: `calibrate_from_data` measures dividend exposures, `solve_analytical` and `compute_asset_pricing_moments` turn those into valuations and premia. Both depend on the amount of low-frequency risks embodied in cash flows.
 
 ```python
 import numpy as np

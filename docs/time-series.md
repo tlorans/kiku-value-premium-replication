@@ -11,7 +11,9 @@ nav_order: 5
 
 In this chapter we take the consumption and market-dividend series from [Financial data]({{ '/financial-data.html' | relative_url }}) and ask whether the general equilibrium can match the **valuations and risk premia** of the aggregate claim — the value-weighted market — year after year. That is the time-series test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
 
-Long-run risks are a small but highly persistent component $$x_t$$ that governs consumption growth, plus time-variation in consumption volatility. The market’s dividends are exposed to those low-frequency shocks. Coupled with Epstein–Zin preferences, that exposure entails a significant risk premium and large reactions in the price–dividend ratio. We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) measure the market’s cash-flow exposure to long-run consumption news, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** the equity premium and the valuation (mean $$\log P/D$$). Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
+Long-run risks are a small but highly persistent component that governs consumption growth ($$x_t$$), plus time-variation in the conditional volatility of consumption — news about future economic uncertainty. The market’s dividends are one claim’s exposure to those low-frequency shocks. Time-non-separable Epstein–Zin preferences break the link between smoothing consumption over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Coupled with those preferences, the market’s exposure entails a significant risk premium and large reactions in the price–dividend ratio: shocks to the growth-rate component alter expectations far into the future, leading to sizable risk compensations. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.
+
+We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) measure the market’s cash-flow exposure to long-run consumption news, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** the equity premium and the valuation (mean $$\log P/D$$). Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
 
 We use the following packages. Run the chunks **in order**, as on [Tidy Finance’s beta-estimation chapter](https://www.tidy-finance.org/chapters/beta-estimation.html): later snippets reuse `dc`, `mkt`, and `y`.
 
@@ -81,7 +83,7 @@ $$
 x_{t+1}=\rho x_t+\varphi_x\sigma_t e_{t+1}.
 $$
 
-$$x_t$$ is the small but highly persistent component that governs consumption growth; $$\sigma_t$$ allows time-variation in conditional volatility. A shock to the growth-rate component significantly alters investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Epstein–Zin preferences make the marginal rate of substitution depend on the return on aggregate wealth, so that news is priced. A claim’s loading $$\phi$$ is the amount of low-frequency risk embodied in its cash flows.
+$$x_t$$ is the small but highly persistent component that governs consumption growth; $$\sigma_t$$ allows time-variation in the conditional volatility of consumption — news about future economic uncertainty. A shock to the growth-rate component significantly alters investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Time-non-separable Epstein–Zin preferences break the link between smoothing over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio and that news is priced. A claim’s loading $$\phi$$ is the amount of low-frequency risks embodied in its cash flows.
 
 You can already *see* $$x_t$$ in the annual data. Average the last two years of consumption growth. Raw $$\Delta c$$ is jagged. The moving average is the slow component.
 
@@ -375,7 +377,7 @@ The test is whether the same locked cash-flow numbers reproduce **risk premia an
 
 Market return volatility is 20.1 percent in both. The safe rate is about seventy basis points too high. The equity premium is a little short of the sample. Close enough to ask a second question.
 
-One simulated monthly path, using the affine map we just wrote. $$A_2$$ is the volatility elasticity from the same analytical solution.
+One simulated monthly path, using the affine map we just wrote. $$A_2$$ is the elasticity of $$\log P/D$$ to news about future economic uncertainty — time-variation in the conditional volatility of consumption — from the same analytical solution.
 
 ```python
 x, s2, dc_m, dd_m = one_path(np.random.default_rng(1), 74 * 12)
@@ -413,8 +415,10 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 
 ## Key takeaways
 
-- Long-run risks are a small persistent component of consumption growth. A two-year MA, or a Kalman AR(1), is the annual picture of that component.
-- The market’s cash flows are exposed to those low-frequency shocks ($$\tilde\phi\approx 0.72$$). Returns are not in the regression.
+- Long-run risks are a small but highly persistent component that governs consumption growth, plus time-variation in the conditional volatility of consumption. A two-year MA, or a Kalman AR(1), is the annual picture of that component.
+- Time-non-separable Epstein–Zin preferences make the MRS depend on the forward-looking return on the aggregate wealth portfolio, so a shock to $$x_t$$ that revises consumption far into the future produces large reactions in the price–dividend ratio and sizable risk compensations.
+- The market’s cash flows are exposed to those low-frequency shocks ($$\tilde\phi\approx 0.72$$). Returns are not in the regression. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.
+- $$A_2$$ is compensation for news about future economic uncertainty, alongside $$A_1$$ for the growth-rate component.
 - Simulated cash-flow moments have to look like the sample *before* you look at prices or premia.
 - The general equilibrium is a joint test of the equity premium and the valuation. Table II is close on both for the market.
 

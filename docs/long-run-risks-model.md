@@ -11,9 +11,9 @@ nav_order: 4
 
 This chapter is the general-equilibrium counterpart of Tidy Finance’s [capital asset pricing model](https://www.tidy-finance.org/chapters/capital-asset-pricing-model.html). There the priced risk is covariance with the market return, and the objects are expected excess returns. Here the economy is Bansal and Yaron (2004) / Kiku (2006): the objects of the equilibrium are **asset prices and risk premia** — valuations and ex-ante compensations together.
 
-Long-run risks in the model are captured by a small but highly persistent component that governs the evolution of consumption growth. In addition, the model allows for time-variation in the conditional volatility of consumption. Firms are distinguished by the exposure of their dividends to low- and high-frequency shocks in consumption, as well as news about future economic uncertainty. Time-non-separable Epstein and Zin (1989) preferences break the link between agents’ attitude towards smoothing consumption over time and across different states of nature. The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Predictable variation in those systematic risks has a significant bearing for valuations and for risk premia.
+Long-run risks are a small but highly persistent component that governs consumption growth. In addition, the model allows for time-variation in the conditional volatility of consumption — news about future economic uncertainty. Firms are distinguished by the exposure of their dividends to low- and high-frequency shocks in consumption, as well as news about future economic uncertainty. Time-non-separable Epstein and Zin (1989) preferences break the link between smoothing consumption over time and across states. The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio.
 
-What drives a premium in this economy? Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption growth far into the future, leading to large reactions in stock prices and sizable risk compensations. Assets’ valuations and risk premia, therefore, by and large depend on the amount of low-frequency risks embodied in assets’ cash flows.
+What drives a premium in this economy? Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Assets’ valuations and risk premia therefore depend on the amount of low-frequency risks embodied in cash flows. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
 
 We write those objects, simulate them, and look at the analogue of the security market line. Run the chunks **in order**.
 
@@ -213,10 +213,15 @@ That test is the rest of the book. [The market]({{ '/time-series.html' | relativ
 
 ## Key takeaways
 
-- This is a general-equilibrium model. Its objects are asset prices and risk premia.
-- Long-run risks are a small but highly persistent component of consumption growth, plus time-varying uncertainty.
-- Epstein–Zin preferences make the MRS depend on the return on aggregate wealth, so those shocks move valuations and require compensation.
-- Value firms are highly exposed to long-run consumption shocks; growth firms less so. That cash-flow fact, not CAPM beta, is the mechanism.
+- Long-run risks are a small but highly persistent component that governs consumption growth.
+- The model allows for time-variation in the conditional volatility of consumption — news about future economic uncertainty.
+- Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks.
+- Time-non-separable Epstein–Zin preferences break the link between smoothing consumption over time and across states.
+- The MRS depends on the forward-looking return on the aggregate wealth portfolio.
+- Shocks to the growth-rate component alter expectations far into the future, producing large reactions in stock prices and sizable risk compensations.
+- Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.
+- Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations.
+- Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
 - $$\phi$$ is estimated from cash flows. Returns are the test.
 
 ## Exercises

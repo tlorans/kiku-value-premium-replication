@@ -351,3 +351,114 @@ def test_readme_matches_landing():
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
     assert "import lrrcs as lrr" in text
+
+
+# Distinctive cores of Kiku (2006) introduction, used throughout the book.
+C1 = "small but highly persistent component that governs consumption growth"
+C2A = "time-variation in the conditional volatility"
+C2B = "news about future economic uncertainty"
+C3_VARIANTS = ("low- versus high-frequency", "low- and high-frequency")
+C4A = "break the link"
+C4B = "over time"
+C4C = "across states"
+C5 = "forward-looking return on the aggregate wealth"
+C6A = "far into the future"
+C6B = "sizable risk compensations"
+C7 = "low-frequency risks embodied"
+C8A = "highly exposed to long-run consumption shocks"
+C8B = "short-lived fluctuations"
+C9A = "higher elasticity of their price–dividend"
+C9B = "high ex-ante compensation"
+
+
+def _has_c3(text: str) -> bool:
+    return any(v in text for v in C3_VARIANTS)
+
+
+def _has_c4(text: str) -> bool:
+    return C4A in text and C4B in text and C4C in text
+
+
+def test_kiku_introduction_spine():
+    home = _text("index.md")
+    gs = _text("getting-started.md")
+    fd = _text("financial-data.md")
+    model = _text("long-run-risks-model.md")
+    market = _text("time-series.md")
+    vvg = _text("cross-section.md")
+    readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+    pkg = _text("package.md")
+    api = _text("api.md")
+    cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
+
+    for page, text in (("index.md", home), ("long-run-risks-model.md", model)):
+        assert C1 in text, page
+        assert C2A in text, page
+        assert C2B in text, page
+        assert _has_c3(text), page
+        assert _has_c4(text), page
+        assert C5 in text, page
+        assert C6A in text, page
+        assert C6B in text, page
+        assert C7 in text, page
+        assert C8A in text, page
+        assert C8B in text, page
+        assert C9A in text, page
+        assert C9B in text, page
+
+    assert "## Introduction" not in home
+
+    assert C1 in gs
+    assert C2A in gs
+    assert C2B in gs
+    assert _has_c3(gs)
+    assert _has_c4(gs)
+    assert C5 in gs
+    assert C6A in gs
+    assert C6B in gs
+    assert C8A in gs
+    assert C9A in gs
+    assert C9B in gs
+
+    assert C1 in fd
+    assert C2A in fd
+    assert C2B in fd
+    assert _has_c3(fd)
+    assert C7 in fd
+    assert C8A in fd
+    assert C8B in fd
+    assert C5 in fd
+
+    assert C1 in market
+    assert C2A in market
+    assert C2B in market
+    assert C5 in market
+    assert C6A in market
+    assert C6B in market
+    assert C7 in market
+
+    assert C7 in vvg
+    assert C8A in vvg
+    assert C8B in vvg
+    assert C9A in vvg
+    assert C9B in vvg
+    assert C5 in vvg
+
+    assert "small but highly persistent" in readme
+    assert C2A in readme
+    assert C2B in readme
+    assert _has_c4(readme)
+    assert C5 in readme
+    assert C7 in readme
+    assert C8A in readme
+    assert C8B in readme
+    assert C9A in readme
+    assert C9B in readme
+
+    assert C1 in pkg
+    assert C7 in pkg
+    assert C8A in pkg
+
+    assert C7 in api
+    assert C7 in cfg
+    assert "calibrate cash flows" in cfg.lower()

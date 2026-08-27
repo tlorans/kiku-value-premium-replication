@@ -11,6 +11,8 @@ nav_order: 6
 
 **Question.** Why do value firms — highly exposed, in the data, to long-run consumption shocks — exhibit both higher ex-ante risk premia *and* lower price–dividend ratios than growth firms, whose cash flows are driven more by short-lived fluctuations in consumption?
 
+The household is the same as on the market page: time-non-separable Epstein–Zin preferences, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Valuations and risk premia then depend on the amount of low-frequency risks embodied in each claim’s cash flows.
+
 The last page was the aggregate claim. This page is two firms in the same general equilibrium. Kiku (2006) is the worked example. The six-percent gap in average returns, and the ranking of valuations, are facts to be explained. They are not numbers you feed the calibrator. Run the chunks **in order**; they reuse `dc`, `panel`, and `ma` from the top.
 
 ```python
@@ -202,6 +204,8 @@ A1 value / A1 growth 2.06
 ## Key takeaways
 
 - The six-percent premium and the cheaper valuation of value are facts, not calibration targets.
+- The same household prices both legs: time-non-separable Epstein–Zin preferences, so the MRS depends on the forward-looking return on the aggregate wealth portfolio.
 - Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That cash-flow ranking, not CAPM beta, is the mechanism.
-- Valuations and risk premia both come from the amount of low-frequency risk embodied in cash flows.
+- Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
+- Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.
 - The same general equilibrium still prices the market. That is the time-series check.

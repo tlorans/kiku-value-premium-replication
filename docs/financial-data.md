@@ -9,7 +9,9 @@ nav_order: 3
 1. TOC
 {:toc}
 
-This is a general-equilibrium model of asset prices and risk premia. Before any Euler equation you need the cash flows in which low-frequency risks are embodied: how consumption grows, how each claim’s dividends are exposed to low- and high-frequency consumption shocks, and a real safe rate. Average stock returns are a fact the equilibrium has to explain. They are not an input here.
+This is a general-equilibrium model of asset prices and risk premia. Before any Euler equation you need the cash flows in which low-frequency risks are embodied: how consumption grows, how each claim’s dividends are exposed to low- and high-frequency consumption shocks, and a real safe rate.
+
+Long-run risks are a small but highly persistent component that governs consumption growth, plus time-variation in the conditional volatility of consumption — news about future economic uncertainty. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows. Average stock returns are a fact the equilibrium has to explain. They are not an input here. Later pages price these cash flows with time-non-separable Epstein–Zin preferences, whose marginal rate of substitution depends on the forward-looking return on the aggregate wealth portfolio.
 
 Tidy Finance already shows CRSP, Compustat, CCM, and how to store downloads: [Accessing and managing financial data](https://www.tidy-finance.org/chapters/accessing-and-managing-financial-data.html) and [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). Credentials are `tf.set_wrds_credentials()`; see [Installation]({{ '/installation.html' | relative_url }}). This page does not redo those extracts. It builds the series Tidy Finance does not: NIPA consumption, Campbell–Shiller dividends, the PCE deflator, a real T-bill, and the 1930–2003 claims panel.
 
@@ -31,7 +33,7 @@ start, end = 1930, 2003
 
 ## Consumption
 
-The representative agent consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a consumption shock. Long-run risks in the model are a small persistent component of *this* series. The NIPA quantity indexes are on FRED — public, no WRDS.
+The representative agent consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a consumption shock. Long-run risks are a small but highly persistent component that governs consumption growth in *this* series, together with time-variation in its conditional volatility. The NIPA quantity indexes are on FRED — public, no WRDS.
 
 ```python
 def fred_annual(series_id: str) -> pl.DataFrame:
@@ -260,8 +262,9 @@ Returns and dividend growth are percent per year. Newey–West standard errors i
 
 ## Key takeaways
 
-- Consumption is real per-capita ND+S from FRED. Its persistent component is the long-run risk.
-- CRSP stores returns. Dividends — the cash flows that carry low-frequency risk — are Campbell–Shiller from `ret` minus `retx`.
+- Consumption is real per-capita ND+S from FRED. Long-run risks are a small but highly persistent component that governs this series, plus time-variation in its conditional volatility.
+- CRSP stores returns. Dividends — the cash flows in which low- versus high-frequency risks are embodied — are Campbell–Shiller from `ret` minus `retx`.
+- Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That ranking is in the dividends, not in average returns.
 - Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
 - The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose *valuations and risk premia* [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
 
