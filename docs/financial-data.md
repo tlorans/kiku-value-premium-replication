@@ -266,6 +266,6 @@ Returns and dividend growth are percent per year. Newey–West standard errors i
 - CRSP stores returns. Dividends — the cash flows in which low- versus high-frequency risks are embodied — are Campbell–Shiller from `ret` minus `retx`.
 - Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That ranking is in the dividends, not in average returns.
 - Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
-- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose *valuations and risk premia* [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}) have to match.
+- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose *valuations and risk premia* [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) have to match.
 
 Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).

@@ -19,8 +19,8 @@ Average returns never enter the cash-flow step.
 | [Getting started](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install, Table II by hand, a first solve |
 | [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Consumption, Campbell–Shiller dividends, the annual panel |
 | [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | General equilibrium: valuations and risk premia |
-| [The market](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, time series |
-| [Value versus growth](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |
+| [The Time Series](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, year after year |
+| [The Cross Section](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |
 
 ## Install
 

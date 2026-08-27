@@ -1,9 +1,9 @@
 ---
-title: The market
+title: The Time Series
 nav_order: 5
 ---
 
-# The market
+# The Time Series
 {: .no_toc }
 
 1. TOC
@@ -422,4 +422,4 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 - Simulated cash-flow moments have to look like the sample *before* you look at prices or premia.
 - The general equilibrium is a joint test of the equity premium and the valuation. Table II is close on both for the market.
 
-Value and growth are [Value versus growth]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.
+Value and growth are [The Cross Section]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.

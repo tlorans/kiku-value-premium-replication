@@ -77,7 +77,7 @@ Price of long-run risk Lambda_eps = 5.95
 
 **What that did not do.** It did not match those premia or those valuations to the data. Average returns never entered. It did not touch WRDS.
 
-The 0.40 percent here is only the long-run *piece* of the value premium. The full Euler-equation gap is about 5.3 percent against about 6 percent in the data, and value’s $$P/D$$ sits below growth’s — both prices and premia. That comparison is [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+The 0.40 percent here is only the long-run *piece* of the value premium. The full Euler-equation gap is about 5.3 percent against about 6 percent in the data, and value’s $$P/D$$ sits below growth’s — both prices and premia. That comparison is [The Cross Section]({{ '/cross-section.html' | relative_url }}).
 
 ## Extras
 

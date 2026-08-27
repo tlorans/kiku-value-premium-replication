@@ -209,7 +209,7 @@ Value’s $$A_1$$ is about twice growth’s: value firms exhibit higher elastici
 
 In the CAPM chapter you estimate $$\beta_i$$ from returns. Here you must **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure (dividend growth on the persistent consumption component). Average returns, Sharpe ratios, and CAPM betas stay out of that step. The Euler equation is then a *test* of the general equilibrium: given those cash-flow numbers, do **valuations and risk premia** look like the data?
 
-That test is the rest of the book. [The market]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, measures the market’s exposure to long-run consumption shocks, and checks the market’s price–dividend ratio and equity premium. [Value versus growth]({{ '/cross-section.html' | relative_url }}) does the same for two legs: value highly exposed to low-frequency shocks, growth driven more by short-lived fluctuations.
+That test is the rest of the book. [The Time Series]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, measures the market’s exposure to long-run consumption shocks, and checks the market’s price–dividend ratio and equity premium. [The Cross Section]({{ '/cross-section.html' | relative_url }}) does the same for two legs: value highly exposed to low-frequency shocks, growth driven more by short-lived fluctuations.
 
 ## Key takeaways
 

@@ -27,7 +27,7 @@ lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 
 1. [Financial data]({{ '/financial-data.html' | relative_url }}) — the consumption process that governs growth, and the cash flows in which low- versus high-frequency risk is embodied.
 2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — Epstein–Zin, the forward-looking return on wealth, and why shocks to the growth-rate component move valuations and premia.
-3. [The market]({{ '/time-series.html' | relative_url }}) — one claim’s exposure to low-frequency consumption shocks, year after year.
-4. [Value versus growth]({{ '/cross-section.html' | relative_url }}) — value highly exposed to long-run news; growth driven more by short-lived fluctuations.
+3. [The Time Series]({{ '/time-series.html' | relative_url }}) — one claim’s exposure to low-frequency consumption shocks, year after year.
+4. [The Cross Section]({{ '/cross-section.html' | relative_url }}) — value highly exposed to long-run news; growth driven more by short-lived fluctuations.
 
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [GitHub](https://github.com/tlorans/kiku-value-premium-replication)

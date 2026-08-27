@@ -16,7 +16,7 @@ import tidyfinance as tf
 import lrrcs as lrr
 ```
 
-Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The Time Series]({{ '/time-series.html' | relative_url }}), [The Cross Section]({{ '/cross-section.html' | relative_url }}).
 
 A typical session after the data chapter: load the 1930–2003 sample, measure the market’s exposure to long-run consumption shocks, then read off Table II valuations and premia.
 

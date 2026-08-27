@@ -1,9 +1,9 @@
 ---
-title: Value versus growth
+title: The Cross Section
 nav_order: 6
 ---
 
-# Value versus growth
+# The Cross Section
 {: .no_toc }
 
 1. TOC
@@ -11,7 +11,7 @@ nav_order: 6
 
 **Question.** Why do value firms — highly exposed, in the data, to long-run consumption shocks — exhibit both higher ex-ante risk premia *and* lower price–dividend ratios than growth firms, whose cash flows are driven more by short-lived fluctuations in consumption?
 
-The household is the same as on the market page: time-non-separable Epstein–Zin preferences, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Valuations and risk premia then depend on the amount of low-frequency risks embodied in each claim’s cash flows.
+The household is the same as on the Time Series page: time-non-separable Epstein–Zin preferences, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Valuations and risk premia then depend on the amount of low-frequency risks embodied in each claim’s cash flows.
 
 The last page was the aggregate claim. This page is two firms in the same general equilibrium. Kiku (2006) is the worked example. The six-percent gap in average returns, and the ranking of valuations, are facts to be explained. They are not numbers you feed the calibrator. Run the chunks **in order**; they reuse `dc`, `panel`, and `ma` from the top.
 
@@ -78,7 +78,7 @@ print(lrr.table_i(panel.to_pandas() if hasattr(panel, "to_pandas") else panel))
 
 ## Calibrate cash flows
 
-The household and the consumption process stay those of [the market]({{ '/time-series.html' | relative_url }}). Each claim differs only in four cash-flow numbers: mean dividend growth $$\mu$$, monthly loading $$\phi$$ on $$x_t$$, residual scale $$\varphi$$, and short-run correlation $$\alpha$$.
+The household and the consumption process stay those of [The Time Series]({{ '/time-series.html' | relative_url }}). Each claim differs only in four cash-flow numbers: mean dividend growth $$\mu$$, monthly loading $$\phi$$ on $$x_t$$, residual scale $$\varphi$$, and short-run correlation $$\alpha$$.
 
 Equation (19) is OLS of dividend growth on a two-year MA of lagged consumption. No return on the right-hand side.
 

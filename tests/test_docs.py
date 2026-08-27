@@ -225,8 +225,8 @@ MARKET_H2S = (
 
 def test_market_chapter():
     text = _text("time-series.md")
-    assert "title: The market" in text
-    assert "# The market" in text
+    assert "title: The Time Series" in text
+    assert "# The Time Series" in text
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
     positions = [text.index(h) for h in MARKET_H2S]
@@ -285,8 +285,8 @@ def test_tutorial_figures_exist():
 
 def test_value_versus_growth_chapter():
     text = _text("cross-section.md")
-    assert "title: Value versus growth" in text
-    assert "# Value versus growth" in text
+    assert "title: The Cross Section" in text
+    assert "# The Cross Section" in text
     assert _parent("cross-section.md") is None
     assert _front_nav_order("cross-section.md") == 6
     h2s = (
