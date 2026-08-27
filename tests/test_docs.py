@@ -177,6 +177,10 @@ def test_financial_data_chapter():
     assert "from lrrcs.model import" not in text
     assert "kiku_value_premium" not in text
     assert "time-series" in text
+    assert "figures/consumption_growth.svg" in text
+    assert "figures/market_dd_vs_dc.svg" in text
+    assert "figures/market_log_pd.svg" in text
+    assert "8.52" in text and "13.67" in text
 
 
 def test_cash_flows_then_prices():
@@ -227,6 +231,34 @@ def test_market_chapter():
     assert "Melin" not in text
     assert "other-risk-premia" not in text
     assert "cross-section" in text
+    assert "figures/consumption_ma.svg" in text
+    assert "figures/xt_proxy_filter.svg" in text
+    assert "figures/sim_xt.svg" in text
+    assert "figures/sim_dd.svg" in text
+    assert "figures/sim_log_pd.svg" in text
+    assert "0.722" in text
+    assert "1.82%" in text
+    assert "Lambda_eps" in text
+
+
+TUTORIAL_FIGURES = (
+    "consumption_growth.svg",
+    "market_dd_vs_dc.svg",
+    "market_log_pd.svg",
+    "consumption_ma.svg",
+    "xt_proxy_filter.svg",
+    "sim_xt.svg",
+    "sim_dd.svg",
+    "sim_log_pd.svg",
+)
+
+
+def test_tutorial_figures_exist():
+    fig = ROOT / "figures"
+    for name in TUTORIAL_FIGURES:
+        path = fig / name
+        assert path.is_file(), name
+        assert path.stat().st_size > 500, name
 
 
 def test_value_versus_growth_chapter():

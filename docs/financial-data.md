@@ -66,6 +66,10 @@ dc = pl.read_csv("data/consumption_annual.csv")
 )
 ```
 
+![Real per-capita ND+S growth](figures/consumption_growth.svg)
+
+<p class="caption">Annual log growth of real per-capita nondurables plus services, 1930–2003.</p>
+
 The PCE deflator (`DPCERD3A086NBEA`) turns nominal CRSP dividends into reals. `lrr.load_deflator()` is the wrapper. The shipped panel is already deflated.
 
 ## CRSP, then Campbell–Shiller dividends
@@ -124,7 +128,15 @@ mkt = panel.filter(pl.col("claim") == "Market").join(dc, on="year")
 )
 ```
 
-The second chart is the price moment the Euler equation has to match later. There is no \(x_t\) on this page.
+![Market dividend growth against consumption growth](figures/market_dd_vs_dc.svg)
+
+<p class="caption">Market dividend growth against consumption growth. The objects are cash flows, not average returns.</p>
+
+![Market log price–dividend](figures/market_log_pd.svg)
+
+<p class="caption">Market $$\log(P/D)$$, 1930–2003. The Euler equation has to match this later.</p>
+
+There is no $$x_t$$ overlay on this page.
 
 ## Real T-bill and the annual panel
 
@@ -138,6 +150,14 @@ import lrrcs as lrr
 bm = lrr.build_annual_panel(refresh=False)
 print(lrr.table_i(bm))
 ```
+
+| claim | E[R] % | σ(R) % | E[Δd] % | σ(Δd) % | E[log P/D] |
+|:---|---:|---:|---:|---:|---:|
+| Growth | 7.49 (1.93) | 20.02 | 0.33 (1.16) | 14.35 | 3.62 (0.17) |
+| Value | 13.67 (1.63) | 29.67 | 3.53 (4.13) | 47.72 | 3.34 (0.19) |
+| Market | 8.52 (1.75) | 20.10 | 0.92 (0.94) | 11.02 | 3.33 (0.13) |
+
+Returns and dividend growth are percent per year. Numbers in parentheses are Newey–West standard errors. This is `lrr.table_i` on the shipped 1930–2003 panel.
 
 `refresh=True` hits WRDS again. The rest of this book reads `data/annual_panel.csv`, `data/consumption_annual.csv`, and `data/rf_annual.csv`.
 

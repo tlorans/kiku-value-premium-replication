@@ -53,6 +53,10 @@ plot_df = dc.with_columns(
 )
 ```
 
+![Consumption growth and two-year MA](figures/consumption_ma.svg)
+
+<p class="caption">Raw annual $$\Delta c$$ (black) and the two-year MA of lagged growth (blue). The blue line is the annual picture of $$x_t$$.</p>
+
 The blue line is the annual stand-in for $$x_t$$. Table II’s monthly $$\rho=0.98$$ is the same object on a finer clock.
 
 ## Estimate x_t
@@ -102,6 +106,15 @@ plot_df = dc.with_columns(
 )
 ```
 
+```text
+out["rho"]
+0.43
+```
+
+![MA proxy and filtered expected growth](figures/xt_proxy_filter.svg)
+
+<p class="caption">Consumption growth, the MA proxy (blue), and the Kalman filter $$\hat x_t$$ (orange). Filtered annual $$\rho\approx 0.43$$. The solver iterates the monthly counterpart $$0.98$$.</p>
+
 Do not take $$\phi$$ or Table II numbers from this filter. Calibration below uses the MA.
 
 ## Calibrate dividends
@@ -139,9 +152,16 @@ div = lrr.calibrate_from_data(
     window=2,
 )
 div["market"].mu, div["market"].phi, div["market"].phi_sigma, div["market"].alpha
+lrr.print_calibration_summary(div)
 ```
 
-Printed $$\tilde\phi$$ on the market is about $$0.66$$. That number is a *ranking check*. The solver wants monthly $$\phi$$. Table II locks market $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. Simulation and pricing below use `lrr.get_table_ii_params()`, not the annual slope as a monthly loading. Average returns never enter.
+```text
+Portfolio          μ (m)     φ (long-run)   φ_σ      α
+-------------------------------------------------------
+market              0.00076     0.722       5.33    0.57
+```
+
+Printed $$\tilde\phi$$ on the market is about $$0.72$$ in this replica file (about $$0.66$$ in Kiku’s Table VI). That number is a *ranking check*. The solver wants monthly $$\phi$$. Table II locks market $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. Simulation and pricing below use `lrr.get_table_ii_params()`, not the annual slope as a monthly loading. Average returns never enter.
 
 ## Simulate cash flows
 
@@ -159,9 +179,18 @@ params = lrr.get_table_ii_params()
 params.dividends["market"].phi  # 2.8
 params.cons.rho                 # 0.98
 print(lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=params))
+lrr.print_moments(
+    lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=params)
+)
 ```
 
-Prose target (1000 samples of 74 years): consumption mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; first autocorrelation 0.43 against 0.44. Market dividend moments print on the same object. If those fail, stop. The premium that comes next would then be a free parameter in disguise.
+```text
+Model-implied annual moments (compare to Tables III–IV):
+  Consumption: E=1.82%, vol=2.44%, AC1=0.16
+  market  : E=0.68%, vol=16.36%, AC1=0.03, corr(c,d)=0.57
+```
+
+Twenty simulated samples are noisy. Prose target (1000 samples of 74 years): consumption mean growth 1.86 percent against 1.96 in the data; volatility 2.16 against 2.20; first autocorrelation 0.43 against 0.44. Market dividend moments print on the same object. If those fail, stop. The premium that comes next would then be a free parameter in disguise.
 
 ## Solve and check returns and prices
 
@@ -176,6 +205,18 @@ solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
 lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
 ```
+
+```text
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.80%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.40%
+A1 (PD elasticity to x): growth=43.1, value=88.9
+Price of long-run risk Lambda_eps = 5.95
+```
+
+The Euler-equation check is both columns, returns **and** prices:
 
 |  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
 |:---|---:|---:|---:|---:|
@@ -220,5 +261,17 @@ pdf = sim.to_pandas()
     + p9.labs(x="Month", y="log(P/D)", title="Model price–dividend along the path")
 )
 ```
+
+![Simulated long-run risk](figures/sim_xt.svg)
+
+<p class="caption">One simulated monthly path of $$x_t$$.</p>
+
+![Simulated market dividend growth](figures/sim_dd.svg)
+
+<p class="caption">Market dividend growth along the same path.</p>
+
+![Model price–dividend along the path](figures/sim_log_pd.svg)
+
+<p class="caption">Model $$\log(P/D)$$ from $$z=\bar z+A_1 x+A_2(\sigma^2-\bar\sigma^2)$$. Returns and prices have to match together.</p>
 
 Value and growth are [Value versus growth]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.
