@@ -1,25 +1,103 @@
+import pandas as pd
 import pytest
-from lrrcs.empirical.wrds import EmpiricalDataError, connect_wrds
+from lrrcs.empirical.wrds import EmpiricalDataError, _wrds_connection
+from lrrcs.empirical.panel import _pull_wrds
 
 
-def test_connect_without_env_raises(monkeypatch, tmp_path):
+def test_wrds_connection_without_credentials_raises(monkeypatch, tmp_path):
+    monkeypatch.delenv("WRDS_USER", raising=False)
     monkeypatch.delenv("WRDS_USERNAME", raising=False)
     monkeypatch.delenv("WRDS_PASSWORD", raising=False)
     monkeypatch.chdir(tmp_path)
-    with pytest.raises(EmpiricalDataError):
-        connect_wrds()
+    with pytest.raises(EmpiricalDataError, match="set_wrds_credentials"):
+        _wrds_connection()
+
+
+def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
+    calls = []
+
+    def fake_download(**kwargs):
+        calls.append(kwargs)
+        domain = kwargs.get("domain")
+        dataset = kwargs.get("dataset")
+        if dataset == "crsp_monthly":
+            return pd.DataFrame(
+                {
+                    "permno": [1],
+                    "date": [pd.Timestamp("2000-06-30")],
+                    "calculation_date": [pd.Timestamp("2000-06-30")],
+                    "ret": [0.01],
+                    "retx": [0.005],
+                    "prc": [10.0],
+                    "shrout": [1000.0],
+                    "exchcd": [1],
+                }
+            )
+        if dataset == "compustat_annual":
+            return pd.DataFrame(
+                {
+                    "gvkey": ["001001"],
+                    "datadate": [pd.Timestamp("1999-12-31")],
+                    "seq": [100.0],
+                    "txditc": [0.0],
+                    "pstkrv": [0.0],
+                    "pstkl": [0.0],
+                    "pstk": [0.0],
+                }
+            )
+        if dataset == "ccm_links":
+            return pd.DataFrame(
+                {
+                    "permno": [1],
+                    "gvkey": ["001001"],
+                    "linkdt": [pd.Timestamp("1990-01-01")],
+                    "linkenddt": [pd.Timestamp("2099-01-01")],
+                }
+            )
+        raise AssertionError((domain, dataset))
+
+    monkeypatch.setattr("lrrcs.empirical.wrds.tf.download_data", fake_download)
+
+    class DummyConn:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(
+        "lrrcs.empirical.wrds._wrds_connection", lambda: DummyConn()
+    )
+    monkeypatch.setattr(
+        "lrrcs.empirical.wrds._read_sql",
+        lambda query, conn: pd.DataFrame(
+            {"date": [pd.Timestamp("2000-06-30")], "vwretd": [0.01], "vwretx": [0.005]}
+            if "msi" in query
+            else {
+                "caldt": [pd.Timestamp("2000-06-30")],
+                "t90ret": [0.004],
+                "cpi": [100.0],
+            }
+        ),
+    )
+    tables = _pull_wrds()
+    datasets = {c["dataset"] for c in calls}
+    assert "crsp_monthly" in datasets
+    assert "compustat_annual" in datasets
+    assert "ccm_links" in datasets
+    crsp_call = next(c for c in calls if c["dataset"] == "crsp_monthly")
+    assert crsp_call.get("version") == "v1"
+    assert "retx" in crsp_call.get("additional_columns", [])
+    assert "msf" in tables and "funda" in tables and "link" in tables
 
 
 @pytest.mark.wrds
 def test_live_panel_covers_1930_2003():
-    from lrrcs.empirical.goldens import END, START
     from lrrcs.empirical.panel import build_annual_panel
     bm = build_annual_panel(refresh=True)
-    sub = bm[(bm["year"] >= START) & (bm["year"] <= END)]
-    assert set(sub["claim"].unique()) == {"Growth", "Value", "Market"}
-    assert sub["year"].min() == START
-    assert sub["year"].max() == END
-    assert sub["ret"].notna().all()
+    assert set(bm["claim"].unique()) == {"Growth", "Value", "Market"}
+    assert bm["year"].min() == 1930
+    assert bm["year"].max() == 2003
+    assert bm["ret"].notna().all()
 
 
 @pytest.mark.wrds
@@ -39,7 +117,7 @@ def test_live_table_i_hard_gate_within_se():
     from lrrcs.empirical.tables import table_i, table_i_corr, within_se
 
     bm = build_annual_panel(refresh=not _cache_ready())
-    tab = table_i(bm, START, END).set_index("claim")
+    tab = table_i(bm).set_index("claim")
     for claim, stats in TABLE_I.items():
         for name in ("ret_mean", "ret_sd", "log_pd"):
             printed, se = stats[name]

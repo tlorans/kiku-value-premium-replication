@@ -12,7 +12,14 @@ from .construction import book_equity_frame, form_bm_quintiles, value_weight_mon
 from .consumption import load_consumption, load_deflator
 from .dividends import campbell_shiller_annual
 from .rates import real_rf_from_monthly
-from .wrds import EmpiricalDataError, connect_wrds
+from .wrds import (
+    EmpiricalDataError,
+    _download_ccm_links,
+    _download_compustat_annual,
+    _download_crsp_mcti,
+    _download_crsp_monthly,
+    _download_crsp_msi,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 RAW = ROOT / "data" / "raw"
@@ -22,8 +29,6 @@ RF_CSV = ROOT / "data" / "rf_annual.csv"
 
 WRDS_CACHE = ("msf", "funda", "names", "link", "mcti")
 
-_MSF_START = "1925-12-01"
-_MSF_END = "2003-12-31"
 _HIST_BE_URL = (
     "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Historical_BE_Data.zip"
 )
@@ -55,108 +60,28 @@ def _read_parquet(name: str) -> pd.DataFrame:
     return pd.read_parquet(path)
 
 
-def _lower(df: pd.DataFrame) -> pd.DataFrame:
-    out = df.copy()
-    out.columns = [str(c).lower() for c in out.columns]
-    return out
-
-
-def _sql(db, query: str, date_cols: list[str] | None = None) -> pd.DataFrame:
-    from sqlalchemy import text
-
-    with db.engine.connect() as conn:
-        result = conn.execute(text(query))
-        df = pd.DataFrame(result.fetchall(), columns=list(result.keys()))
-    if df is None or df.empty:
-        raise EmpiricalDataError("Required WRDS extract came back empty")
-    df = _lower(df)
-    for col in date_cols or []:
-        if col in df.columns:
-            df[col] = pd.to_datetime(df[col])
-    return df
-
-
-def _pull_msf(db) -> pd.DataFrame:
-    frames = []
-    for y0 in range(1925, 2004, 5):
-        y1 = min(y0 + 4, 2003)
-        start = _MSF_START if y0 <= 1925 else f"{y0}-01-01"
-        end = f"{y1}-12-31"
-        frames.append(
-            _sql(
-                db,
-                f"""
-                SELECT permno, date, ret, retx, prc, shrout
-                FROM crsp.msf
-                WHERE date BETWEEN '{start}' AND '{end}'
-                """,
-                date_cols=["date"],
-            )
-        )
-    return pd.concat(frames, ignore_index=True)
-
-
 def _pull_wrds() -> dict[str, pd.DataFrame]:
     try:
-        db = connect_wrds()
+        msf = _download_crsp_monthly()
+        funda = _download_compustat_annual()
+        link = _download_ccm_links()
+        msi = _download_crsp_msi()
+        mcti = _download_crsp_mcti()
     except EmpiricalDataError:
         raise
     except Exception as exc:
-        raise EmpiricalDataError("WRDS connection failed") from exc
-    try:
-        names = _sql(
-            db,
-            """
-            SELECT permno, namedt, nameendt, shrcd, exchcd
-            FROM crsp.msenames
-            """,
-            date_cols=["namedt", "nameendt"],
+        raise EmpiricalDataError("WRDS download failed") from exc
+    # tidyfinance v1 already keeps shrcd 10/11. Synthesize a names table
+    # so _filter_universe still runs.
+    names = (
+        msf[["permno", "exchcd"]]
+        .drop_duplicates("permno")
+        .assign(
+            namedt=pd.Timestamp("1925-01-01"),
+            nameendt=pd.Timestamp("2099-12-31"),
+            shrcd=11,
         )
-        link = _sql(
-            db,
-            """
-            SELECT gvkey, lpermno, linkdt, linkenddt, linktype, linkprim
-            FROM crsp.ccmxpf_linktable
-            WHERE linktype IN ('LU', 'LC') AND linkprim IN ('P', 'C')
-            """,
-            date_cols=["linkdt", "linkenddt"],
-        )
-        funda = _sql(
-            db,
-            """
-            SELECT gvkey, datadate, fyear, seq, txditc, pstkrv, pstkl, pstk,
-                   indfmt, datafmt, consol, popsrc
-            FROM comp.funda
-            WHERE indfmt = 'INDL' AND datafmt = 'STD'
-              AND consol = 'C' AND popsrc = 'D'
-              AND datadate BETWEEN '1925-01-01' AND '2003-12-31'
-            """,
-            date_cols=["datadate"],
-        )
-        mcti = _sql(
-            db,
-            """
-            SELECT caldt, t90ret, cpiind AS cpi
-            FROM crsp.mcti
-            WHERE caldt BETWEEN '1925-12-01' AND '2003-12-31'
-            """,
-            date_cols=["caldt"],
-        )
-        msi = _sql(
-            db,
-            """
-            SELECT date, vwretd, vwretx
-            FROM crsp.msi
-            WHERE date BETWEEN '1925-12-01' AND '2003-12-31'
-            """,
-            date_cols=["date"],
-        )
-        msf = _pull_msf(db)
-    finally:
-        try:
-            db.close()
-        except Exception:
-            pass
+    )
     return {
         "msf": msf,
         "names": names,
@@ -232,8 +157,11 @@ def _filter_universe(msf: pd.DataFrame, names: pd.DataFrame) -> pd.DataFrame:
     out = msf.copy()
     out["permno"] = pd.to_numeric(out["permno"], errors="coerce")
     out["date"] = pd.to_datetime(out["date"])
+    merge_cols = ["permno", "namedt", "nameendt", "shrcd"]
+    if "exchcd" not in out.columns:
+        merge_cols.append("exchcd")
     out = out.merge(
-        nm[["permno", "namedt", "nameendt", "shrcd", "exchcd"]],
+        nm[merge_cols],
         on="permno",
         how="inner",
     )
