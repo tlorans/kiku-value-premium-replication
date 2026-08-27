@@ -1,17 +1,38 @@
 ---
-title: Getting started
+title: From DCF to general equilibrium
 nav_order: 2
 ---
 
-# Getting started
+# From DCF to general equilibrium
 {: .no_toc }
 
 1. TOC
 {:toc}
 
-This book is a companion to [Tidy Finance](https://www.tidy-finance.org/). It implements a **general-equilibrium** long-run-risks economy whose objects are **asset prices and risk premia** — valuations (price–dividend ratios) and ex-ante compensations, not only average returns.
+You already know how to price a stock. Forecast the cash flows, pick a discount rate, divide. Every valuation you have ever built runs on those two numbers. This book is about where the two numbers come from — and why, in the end, they are really one number.
 
-tidyfinance gets CRSP, Compustat, and sorts. `lrrcs` maps the low-frequency risks embodied in cash flows into those prices and premia. Average returns never enter the cash-flow step. Run the chunks **in order**.
+## Two numbers you made up
+
+Start with the workhorse. If dividends grow at a constant rate $$g$$ and you discount at a constant rate $$r$$, the price–dividend ratio is
+
+$$\frac{P}{D} = \frac{1}{r - g}.$$
+
+Everything interesting in asset pricing hides inside $$r-g$$. And the DCF is silent about both halves. Where did you get $$r$$? A CAPM regression, a corporate hurdle rate, or "eight percent seems reasonable." Where did you get $$g$$? Analyst forecasts, a historical average, a terminal-value convention. Nothing in the framework stops you from pairing any $$g$$ with any $$r$$.
+
+The numbers are not innocent. At $$r-g = 4\%$$ the price–dividend ratio is 25. Shave the discount rate by one percentage point and the price jumps by a third. A third of the firm's value, riding on a number you made up.
+
+Worse, the two numbers are not independent, and the DCF cannot see why. A firm whose cash flows collapse in bad times *should* carry a high discount rate — the discount rate is compensation for exactly the risk that sits in the cash flows. Choose the numerator and the denominator separately and you have assumed away the entire question: why do risky cash flows command high expected returns, and how high?
+
+## One primitive instead
+
+General equilibrium replaces the two free numbers with one measurable primitive: aggregate consumption.
+
+Consumption growth, in this economy, is not white noise. It carries a small but highly persistent component $$x_t$$ — long-run risks — and its volatility moves over time. Two modelling decisions then split the DCF's job between them:
+
+- **The cash-flow model.** Each asset's dividend growth loads on $$x_t$$ with a leverage coefficient $$\phi$$. That loading is *estimated* from consumption and dividend data. This is where $$g$$ comes from — not a constant you assume, but a process tied to the macroeconomy.
+- **The discount-rate model.** A household with Epstein–Zin preferences owns every claim and fears news about long-run growth. Its marginal utility, driven by the *same* $$x_t$$, prices the cash flows. This is where $$r$$ comes from.
+
+One shock to $$x_t$$ moves expected dividends for decades and moves marginal utility at the same instant. That comovement — not either piece alone — is the risk premium. Prices and premia stop being inputs and become outputs, and outputs can be wrong. That is the point: the model is falsifiable, claim by claim, in both prices and premia. Average returns never enter the inputs.
 
 ## Install
 
@@ -25,17 +46,16 @@ uv pip install -e .
 
 ```python
 import numpy as np
-import tidyfinance as tf
 import lrrcs as lrr
 
-lrr.__version__, tf.__name__
+lrr.__version__
 ```
 
-You now have both packages. This first run uses only `lrrcs`. You will need tidyfinance in [Financial data]({{ '/financial-data.html' | relative_url }}) for CRSP and Compustat.
+Nothing below needs credentials or downloads. Data construction starts in [Financial data]({{ '/financial-data.html' | relative_url }}).
 
-## Table II, by hand
+## An economy in five lines
 
-Kiku (2006, Table II) is the default economy: time-non-separable Epstein–Zin preferences, a small but highly persistent component that governs consumption growth ($$x_t$$), time-variation in the conditional volatility of consumption (news about future economic uncertainty), and three claims (growth, value, market) distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. The numbers are monthly.
+Kiku (2006, Table II) is the default economy: Epstein–Zin preferences, a persistent component $$x_t$$ in consumption growth, time-varying consumption volatility, and three dividend claims — growth, value, market — that differ *only* in how hard their cash flows load on $$x_t$$. The numbers are monthly.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5
@@ -49,11 +69,11 @@ theta, rho, phi
 (-27.0, 0.98, {'growth': 2.6, 'value': 6.2, 'market': 2.8})
 ```
 
-$$\theta\neq 1$$ because Epstein–Zin preferences break the link between smoothing consumption over time ($$\psi$$) and across states ($$\gamma$$). The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio. Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations.
+Look at what is *not* in that block. No expected returns. No risk premia. No prices. Preferences ($$\delta,\gamma,\psi$$), a consumption process ($$\mu_c,\rho,\varphi_x,\sigma$$), and three cash-flow loadings. Value's dividends lever long-run consumption news at 6.2; growth's at 2.6. That dispersion in cash-flow risk — not the six-percent gap in average returns — is the only cross-sectional input the equilibrium gets.
 
-Value’s monthly loading on $$x_t$$ is 6.2; growth’s is 2.6. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That dispersion in long-run cash-flow exposure — not the six-percent return gap — is what the equilibrium turns into valuations and premia. Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
+Why $$\theta = -27$$? Because Epstein–Zin preferences separate aversion to risk ($$\gamma = 10$$) from aversion to substitution over time ($$\psi = 1.5$$), which power utility welds together. The household's marginal rate of substitution then depends not only on consumption tomorrow but on the return on total wealth — on news about the *entire future*. A small piece of bad news about $$x_t$$ lowers expected consumption for decades, and this household will pay dearly to avoid assets that fall on exactly that news.
 
-`lrr.get_table_ii_params()` is those numbers as a `ModelParams` object. `lrr.solve_analytical` linearizes log price–dividend in $$x_t$$ and returns both the elasticity of valuations and the long-run risk premium of each claim.
+Now solve the economy.
 
 ```python
 params = lrr.get_table_ii_params()
@@ -73,21 +93,15 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-**What that did.** It loaded Table II, solved the linearized general-equilibrium model, and printed the long-run risk premia and the elasticity of price–dividend ratios to $$x_t$$. You did not estimate anything.
+**What that did.** It solved for prices and premia jointly. The premia line is the discount-rate model at work: one price of long-run risk, $$\Lambda_\epsilon = 5.95$$, times each claim's exposure. The $$A_1$$ line is the same solution read as a valuation statement: value's price–dividend ratio is more than twice as elastic to long-run news as growth's. One solve, both objects — the DCF's $$r$$ and $$g$$, fused.
 
-**What that did not do.** It did not match those premia or those valuations to the data. Average returns never entered. It did not touch WRDS.
-
-The 0.40 percent here is only the long-run *piece* of the value premium. The full Euler-equation gap is about 5.3 percent against about 6 percent in the data, and value’s $$P/D$$ sits below growth’s — both prices and premia. That comparison is [The Cross Section]({{ '/cross-section.html' | relative_url }}).
-
-## Extras
-
-Numba (`[fast]`), matplotlib / polars / plotnine / parquet (`[data]`), and WRDS credentials live on [Installation]({{ '/installation.html' | relative_url }}). You do not need them for the five lines above.
+**What that did not do.** It estimated nothing and matched nothing. The loadings were Kiku's, taken on faith. The 0.40 percent is only the long-run *piece* of the value premium; the full Euler-equation spread is about 5.3 percent against roughly 6 in the data, and value's price–dividend ratio sits below growth's — that scoreboard is [The Cross Section]({{ '/cross-section.html' | relative_url }}). Getting from raw data to those loadings, honestly, is the work of the next three chapters.
 
 ## Key takeaways
 
-- Two imports: `tidyfinance as tf` and `lrrcs as lrr`.
-- Table II is a cash-flow calibration: a persistent growth-rate component, time-varying uncertainty, and dividend exposures. Returns are not in it.
-- Epstein–Zin breaks the link between smoothing over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio.
-- The equilibrium objects are asset prices and risk premia. `solve_analytical` is a first look at both, including value’s higher $$P/D$$ elasticity.
+- The DCF takes $$E[CF]$$ and $$r$$ as two independent inputs. The equilibrium derives both from one primitive — the consumption process — and they are not independent: the risk in cash flows *is* what the discount rate prices.
+- The cash-flow model lives in the dividend loadings on $$x_t$$; the discount-rate model lives in Epstein–Zin marginal utility. Both are disciplined by data before any return is looked at.
+- Assets differ only in cash-flow exposure. Prices and premia — value's low $$P/D$$ and high expected return together — are outputs, and can fail.
+- `lrr.solve_analytical` is the whole equilibrium in one call: risk premia and valuation elasticities from the same solution.
 
-Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we actually download NIPA and construct Campbell–Shiller dividends.
+Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we construct consumption, dividends, and the value and growth cash flows from the raw records.

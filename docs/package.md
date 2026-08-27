@@ -7,18 +7,17 @@ has_toc: false
 
 # Package
 
-`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. Long-run risks are a small but highly persistent component that governs consumption growth. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. Average returns never enter the cash-flow step.
+`lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. The inputs are consumption growth and dividend growth; the outputs are valuations and ex-ante compensations, for the aggregate market and for the legs of a sort. Average returns never enter the cash-flow step — they are what the model gets graded on.
 
 ```python
 import numpy as np
 import polars as pl
-import tidyfinance as tf
 import lrrcs as lrr
 ```
 
-Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The Time Series]({{ '/time-series.html' | relative_url }}), [The Cross Section]({{ '/cross-section.html' | relative_url }}).
+Start with the book: [From DCF to general equilibrium]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The Time Series]({{ '/time-series.html' | relative_url }}), [The Cross Section]({{ '/cross-section.html' | relative_url }}).
 
-A typical session after the data chapter: load the 1930–2003 sample, measure the market’s exposure to long-run consumption shocks, then read off Table II valuations and premia.
+A typical session after the data chapter: load the 1930–2003 sample, measure the market's exposure to long-run consumption shocks, then read off Table II valuations and premia.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")

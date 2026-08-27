@@ -6,7 +6,7 @@ nav_order: 2
 
 # API
 
-Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The equilibrium objects are asset prices and risk premia: `calibrate_from_data` measures dividend exposures, `solve_analytical` and `compute_asset_pricing_moments` turn those into valuations and premia. Both depend on the amount of low-frequency risks embodied in cash flows.
+Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The division of labor mirrors the model's two halves: `calibrate_from_data` measures cash-flow exposures (the cash-flow side), `solve_analytical` and `compute_asset_pricing_moments` let the household price them (the discount-rate side), and the outputs are valuations and risk premia together.
 
 ```python
 import numpy as np
@@ -28,7 +28,7 @@ import lrrcs as lrr
 | Cash-flow loadings | `lrr.calibrate_from_data` |
 | Valuations and risk premia | `lrr.compute_asset_pricing_moments` |
 
-tidyfinance downloads CRSP/Compustat/CCM and supplies NYSE breakpoints. `lrr.build_annual_panel` still builds Campbell–Shiller dividends and historical book equity.
+`lrr.build_annual_panel` downloads CRSP/Compustat/CCM through the `tidyfinance` WRDS client, forms NYSE-breakpoint quintiles, builds Campbell–Shiller dividends, and splices historical book equity.
 
 A new sort is the same loop as [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}): consumption and two dividend legs in, no returns.
 
@@ -54,7 +54,7 @@ div = lrr.calibrate_from_data(
 lrr.print_calibration_summary(div)
 ```
 
-`lrr.calibrate_from_data(..., long=..., short=..., market=...)` takes consumption growth and the two legs. No argument for returns.
+`lrr.calibrate_from_data(..., long=..., short=..., market=...)` takes consumption growth and the two legs. There is no argument for returns — by design, so the Euler equation stays a test.
 
 ```python
 lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))

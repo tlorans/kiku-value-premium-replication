@@ -40,7 +40,6 @@ def test_just_the_docs_and_title():
     assert "just-the-docs" in cfg
     assert "title: Long-run risks\n" in cfg
     assert "and the cross section" not in cfg
-    assert "calibrate cash flows" in cfg.lower()
     assert "superpowers" in cfg
 
 
@@ -52,8 +51,8 @@ def test_book_pages_exist():
 
 def test_new_chapter_front_matter():
     gs = _text("getting-started.md")
-    assert "title: Getting started" in gs
-    assert "# Getting started" in gs
+    assert "title: From DCF to general equilibrium" in gs
+    assert "# From DCF to general equilibrium" in gs
     assert _parent("getting-started.md") is None
     assert _front_nav_order("getting-started.md") == 2
 
@@ -86,18 +85,41 @@ def test_mathjax_and_sidebar_theme():
     assert (ROOT / "_sass" / "color_schemes" / "kiku.scss").exists()
 
 
-def test_package_pages_are_tidyfinance_companion():
+# The old Tidy Finance follow-along framing is banned from the book's prose.
+# `import tidyfinance as tf` and `tf.` utility calls in code stay legal.
+BANNED_PROSE = (
+    "Tidy Finance",
+    "tidy-finance.org",
+    "tidyfinance.org",
+    "follow-along",
+    "companion to",
+)
+
+
+def test_no_tidyfinance_branding():
+    for name in BOOK_PAGES:
+        text = _text(name)
+        for banned in BANNED_PROSE:
+            assert banned not in text, f"{name}: {banned}"
+    readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+    for banned in BANNED_PROSE:
+        assert banned not in readme, f"README.md: {banned}"
+
+
+def test_package_pages():
     for name in PACKAGE_PAGES:
         text = _text(name)
-        assert "import tidyfinance as tf" in text
         assert "import lrrcs as lrr" in text
         assert "kiku_value_premium" not in text
         assert "connect_wrds" not in text
         assert "from lrrcs.model import" not in text
         assert "from lrrcs.empirical import" not in text
+    # The WRDS client is documented where credentials and downloads live.
+    assert "import tidyfinance as tf" in _text("installation.md")
+    assert "import tidyfinance as tf" in _text("api.md")
+    assert "set_wrds_credentials" in _text("installation.md")
     readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
     assert "import lrrcs as lrr" in readme
-    assert "tidyfinance" in readme
     assert "kiku_value_premium" not in readme
 
 
@@ -127,7 +149,6 @@ def test_home_is_landing():
     assert "time-series" in text
     assert "cross-section" in text
     assert "```python" in text
-    assert "import tidyfinance as tf" in text
     assert "import lrrcs as lrr" in text
     assert "print_long_short_premium" in text
     for stem in (
@@ -145,15 +166,38 @@ def test_home_is_landing():
     assert "{{ '/model.html'" not in text
 
 
+# The book's arc: the reader arrives knowing DCF; the equilibrium derives
+# both of the DCF's inputs from the consumption process.
+def test_dcf_to_ge_arc():
+    home = _text("index.md")
+    gs = _text("getting-started.md")
+    for text, page in ((home, "index.md"), (gs, "getting-started.md")):
+        assert "discount rate" in text, page
+        assert "cash flow" in text, page
+    assert "Average returns never enter" in home
+    assert "consumption" in gs
+
+
+GS_H2S = (
+    "## Two numbers you made up",
+    "## One primitive instead",
+    "## Install",
+    "## An economy in five lines",
+    "## Key takeaways",
+)
+
+
 def test_getting_started():
     text = _text("getting-started.md")
+    positions = [text.index(h) for h in GS_H2S]
+    assert positions == sorted(positions)
     assert "uv pip install -e ." in text
-    assert "import tidyfinance as tf" in text
     assert "import lrrcs as lrr" in text
     assert "solve_analytical" in text
     assert "financial-data" in text
     assert "set_wrds_credentials" not in text
     assert "What that did not" in text
+    assert "r - g" in text or "r-g" in text
 
 
 def test_financial_data_chapter():
@@ -162,8 +206,6 @@ def test_financial_data_chapter():
     assert "# Financial data" in text
     assert _parent("financial-data.md") is None
     assert _front_nav_order("financial-data.md") == 3
-    assert "accessing-and-managing-financial-data" in text
-    assert "wrds-crsp-and-compustat" in text
     assert "data/consumption_annual.csv" in text
     assert "data/annual_panel.csv" in text
     assert "data/rf_annual.csv" in text
@@ -188,6 +230,9 @@ def test_financial_data_chapter():
     assert "figures/market_dd_vs_dc.svg" in text
     assert "figures/market_log_pd.svg" in text
     assert "8.52" in text and "13.67" in text
+    # Each data object is tagged with the side of the model it feeds.
+    assert "cash-flow side" in text
+    assert "discount-rate side" in text
 
 
 MODEL_H2S = (
@@ -214,7 +259,6 @@ def test_long_run_risks_model_chapter():
     assert "import polars as pl" in text
     assert "import plotnine as p9" in text
     assert "p9.ggplot" in text
-    assert "capital-asset-pricing-model" in text
     assert "Lambda_eps" in text or "A_1" in text
     assert "figures/lrr_sml.svg" in text
     assert "figures/lrr_state.svg" in text
@@ -278,8 +322,11 @@ def test_market_chapter():
     assert "kalman_filter" in text
     assert "one_path" in text
     assert "# ... Kalman" not in text
+    assert "2.36 percent" not in text  # the printed output says 2.37
     assert "## Key takeaways" in text
     assert "## Exercises" in text
+    # The chapter's standard, stated in the lede.
+    assert "wrong price–dividend ratio is a fail" in text
 
 
 TUTORIAL_FIGURES = (
@@ -346,6 +393,10 @@ def test_value_versus_growth_chapter():
     assert "figures/figure1.svg" not in text
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
+    # The household is not re-tuned across assets, and the model reproduces
+    # the CAPM anomaly rather than a beta story.
+    assert "nothing about the household changes" in text.lower()
+    assert "0.92" in text
 
 
 DELETED = (
@@ -389,114 +440,4 @@ def test_readme_matches_landing():
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
     assert "import lrrcs as lrr" in text
-
-
-# Distinctive cores of Kiku (2006) introduction, used throughout the book.
-C1 = "small but highly persistent component that governs consumption growth"
-C2A = "time-variation in the conditional volatility"
-C2B = "news about future economic uncertainty"
-C3_VARIANTS = ("low- versus high-frequency", "low- and high-frequency")
-C4A = "break the link"
-C4B = "over time"
-C4C = "across states"
-C5 = "forward-looking return on the aggregate wealth"
-C6A = "far into the future"
-C6B = "sizable risk compensations"
-C7 = "low-frequency risks embodied"
-C8A = "highly exposed to long-run consumption shocks"
-C8B = "short-lived fluctuations"
-C9A = "higher elasticity of their price–dividend"
-C9B = "high ex-ante compensation"
-
-
-def _has_c3(text: str) -> bool:
-    return any(v in text for v in C3_VARIANTS)
-
-
-def _has_c4(text: str) -> bool:
-    return C4A in text and C4B in text and C4C in text
-
-
-def test_kiku_introduction_spine():
-    home = _text("index.md")
-    gs = _text("getting-started.md")
-    fd = _text("financial-data.md")
-    model = _text("long-run-risks-model.md")
-    market = _text("time-series.md")
-    vvg = _text("cross-section.md")
-    readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
-    pkg = _text("package.md")
-    api = _text("api.md")
-    cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
-
-    for page, text in (("index.md", home), ("long-run-risks-model.md", model)):
-        assert C1 in text, page
-        assert C2A in text, page
-        assert C2B in text, page
-        assert _has_c3(text), page
-        assert _has_c4(text), page
-        assert C5 in text, page
-        assert C6A in text, page
-        assert C6B in text, page
-        assert C7 in text, page
-        assert C8A in text, page
-        assert C8B in text, page
-        assert C9A in text, page
-        assert C9B in text, page
-
-    assert "## Introduction" not in home
-
-    assert C1 in gs
-    assert C2A in gs
-    assert C2B in gs
-    assert _has_c3(gs)
-    assert _has_c4(gs)
-    assert C5 in gs
-    assert C6A in gs
-    assert C6B in gs
-    assert C8A in gs
-    assert C9A in gs
-    assert C9B in gs
-
-    assert C1 in fd
-    assert C2A in fd
-    assert C2B in fd
-    assert _has_c3(fd)
-    assert C7 in fd
-    assert C8A in fd
-    assert C8B in fd
-    assert C5 in fd
-
-    assert C1 in market
-    assert C2A in market
-    assert C2B in market
-    assert C5 in market
-    assert C6A in market
-    assert C6B in market
-    assert C7 in market
-
-    assert C7 in vvg
-    assert C8A in vvg
-    assert C8B in vvg
-    assert C9A in vvg
-    assert C9B in vvg
-    assert C5 in vvg
-
-    assert "small but highly persistent" in readme
-    assert C2A in readme
-    assert C2B in readme
-    assert _has_c4(readme)
-    assert C5 in readme
-    assert C7 in readme
-    assert C8A in readme
-    assert C8B in readme
-    assert C9A in readme
-    assert C9B in readme
-
-    assert C1 in pkg
-    assert C7 in pkg
-    assert C8A in pkg
-
-    assert C7 in api
-    assert C7 in cfg
-    assert "calibrate cash flows" in cfg.lower()
+    assert "discount rate" in text

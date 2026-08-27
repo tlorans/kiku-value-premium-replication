@@ -9,11 +9,7 @@ nav_order: 3
 1. TOC
 {:toc}
 
-This is a general-equilibrium model of asset prices and risk premia. Before any Euler equation you need the cash flows in which low-frequency risks are embodied: how consumption grows, how each claim’s dividends are exposed to low- and high-frequency consumption shocks, and a real safe rate.
-
-Long-run risks are a small but highly persistent component that governs consumption growth, plus time-variation in the conditional volatility of consumption — news about future economic uncertainty. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows. Average stock returns are a fact the equilibrium has to explain. They are not an input here. Later pages price these cash flows with time-non-separable Epstein–Zin preferences, whose marginal rate of substitution depends on the forward-looking return on the aggregate wealth portfolio.
-
-Tidy Finance already shows CRSP, Compustat, CCM, and how to store downloads: [Accessing and managing financial data](https://www.tidy-finance.org/chapters/accessing-and-managing-financial-data.html) and [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). Credentials are `tf.set_wrds_credentials()`; see [Installation]({{ '/installation.html' | relative_url }}). This page does not redo those extracts. It builds the series Tidy Finance does not: NIPA consumption, Campbell–Shiller dividends, the PCE deflator, a real T-bill, and the 1930–2003 claims panel.
+A model whose inputs cannot be measured is not a model; it is an opinion with equations. So before any Euler equation, this chapter builds every input from public records, and each series has a job. Consumption growth feeds *both* halves of the model — it is the endowment the household eats (the discount-rate side) and the trend that dividends are levered to (the cash-flow side). Dividends of the market, value, and growth claims are pure cash-flow-side objects. The real T-bill belongs to the discount-rate side: it pins the level against which every premium is measured. And the price–dividend ratios and average returns we tabulate at the end are neither — they are the *outputs* the equilibrium will be graded on. Average returns are a fact to explain, not an input; they enter nothing below.
 
 The pricing chapters use 1930–2003 (Kiku 2006 / Bansal and Yaron 2004). Live FRED continues past 2003; after constructing we cut to that window. Run the chunks **in order**.
 
@@ -33,7 +29,7 @@ start, end = 1930, 2003
 
 ## Consumption
 
-The representative agent consumes real per-capita *nondurables plus services*. Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron). We divide by population so headcount growth is not a consumption shock. Long-run risks are a small but highly persistent component that governs consumption growth in *this* series, together with time-variation in its conditional volatility. The NIPA quantity indexes are on FRED — public, no WRDS.
+The representative agent consumes real per-capita *nondurables plus services*. Why not total consumption? Durables look more like investment (Hall; Mehra and Prescott; Bansal and Yaron): buying a car this year is not eating a car this year. We divide by population so headcount growth is not a consumption shock. This one series carries the whole model — the household's marginal utility and the trend in every claim's cash flows both run through it. The NIPA quantity indexes are on FRED — public, no credentials.
 
 ```python
 def fred_annual(series_id: str) -> pl.DataFrame:
@@ -83,7 +79,7 @@ print(dc["dc"].mean() * 100, dc["dc"].std() * 100, dc.height)
 1.75  2.37  74
 ```
 
-1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930–2003 is 1.75 percent, volatility 2.37 percent, 74 years.
+1932 is the Depression trough: consumption falls almost nine percent. Mean growth 1930–2003 is 1.75 percent, volatility 2.37 percent, 74 years. Hold on to that volatility number — 2.37 percent. The equity premium puzzle is the claim that a series this smooth cannot scare anyone into demanding six extra points of return, and the model's answer is that the scary part is not the wiggles but the slow component hiding under them.
 
 ```python
 (
@@ -106,7 +102,7 @@ dc_pkg = lrr.load_consumption().loc[start:end]
 dc_pkg.mean(), float(dc["dc"].mean())
 ```
 
-CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) converts them into consumption units. Download it the same way as the quantity indexes, or call `lrr.load_deflator()`.
+CRSP prices and dividends are nominal. The PCE implicit price deflator (`DPCERD3A086NBEA`) converts them into consumption units — the household cares about real cash flows, so the cash-flow side needs it too. Download it the same way as the quantity indexes, or call `lrr.load_deflator()`.
 
 ```python
 defl_pl = fred_annual("DPCERD3A086NBEA").rename({"value": "defl"})
@@ -120,13 +116,13 @@ defl.loc[start:end].head()
 
 ## Market dividends
 
-CRSP stores *returns*, not a dividend file. The return with dividends is `ret`. The capital-gain return is `retx`. Campbell and Shiller (1988) recover the dividend as the gap, scaled by a cumulated price index $$V$$:
+Now the cash-flow side proper. Here is an inconvenient fact: CRSP stores *returns*, not a dividend file. The return with dividends is `ret`; the capital-gain return is `retx`. Campbell and Shiller (1988) recover the dividend as the gap, scaled by a cumulated price index $$V$$:
 
 $$
 D_t=(r_t-r_t^{x})\,V_{t-1},\qquad V_t=V_{t-1}(1+r_t^{x}).
 $$
 
-Tidy Finance’s CRSP extract is in [WRDS, CRSP, and Compustat](https://www.tidy-finance.org/chapters/wrds-crsp-and-compustat.html). For this identity you also need `retx` and the 1925–2003 file (`version="v1"`):
+In words: whatever the with-dividend return earned beyond the price return, that was the dividend, paid on last month's value. The monthly CRSP file comes from WRDS; the `tidyfinance` package's `download_data` is one convenient client (any WRDS client works), and this identity needs `retx` and the 1925–2003 file (`version="v1"`):
 
 ```python
 tf.set_wrds_credentials()
@@ -168,7 +164,7 @@ pd.DataFrame(
  2000  2.54  112.68  44.42
 ```
 
-The price index compounds at 1% per month to 112.68. Year-end $$P/D$$ is 44.4. Deflate `div` and `v` by the PCE index, then take log differences of real dividends for $$\Delta d$$. `lrr.campbell_shiller_annual(ret, retx, defl)` is that loop plus deflation. Tidy Finance does not ship this.
+The price index compounds at 1% per month to 112.68. Year-end $$P/D$$ is 44.4. Deflate `div` and `v` by the PCE index, then take log differences of real dividends for $$\Delta d$$. `lrr.campbell_shiller_annual(ret, retx, defl)` is that loop plus deflation.
 
 On CRSP, pass the value-weighted `ret` / `retx` of ordinary shares the same way. `lrr.build_annual_panel` does it for growth, value, and the market, and writes `data/annual_panel.csv`. `refresh=False` reuses `data/raw/*.parquet` when present.
 
@@ -209,7 +205,7 @@ mkt.select("year", "ret", "dgrowth", "pd", "dc").head()
 
 ## Real T-bill
 
-The model’s safe rate is a *real* T-bill, not Ken French’s nominal `RF`. CRSP `mcti` has the 90-day bill (`t90ret`) and a CPI index. Subtract a twelve-month moving average of log inflation, then average inside the year:
+The discount-rate side needs its anchor: the model's safe rate is a *real* T-bill, not a nominal `RF` series. CRSP `mcti` has the 90-day bill (`t90ret`) and a CPI index. Subtract a twelve-month moving average of log inflation, then average inside the year:
 
 ```python
 idx = pd.date_range("2000-01-31", periods=24, freq="ME")
@@ -230,9 +226,9 @@ The first year is missing because of the twelve-month inflation window. `lrr.rea
 
 ## Value, growth, and the panel
 
-Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993). In the data, as in the model, value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations in consumption. That is the cash-flow fact the equilibrium will turn into valuations and premia. Tidy Finance’s `assign_portfolio(..., breakpoint_options=tf.breakpoint_options(n_portfolios=5, breakpoints_exchanges="NYSE"))` is the sort. Book equity is Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM.
+Finally, the cross section's cash flows. Value and growth are June book-to-market quintiles of ordinary shares, NYSE breakpoints (Fama and French 1993): growth is the bottom fifth, value the top. The sort needs book equity — Compustat (`seq`, `ceq`, preferred stock, deferred taxes) merged through CCM — and the whole point of sorting is to hand the model two claims whose *dividends* behave differently, so that any difference in prices and premia must be earned by cash-flow risk, not assumed.
 
-Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody’s book equity. That file is public:
+Compustat is thin before the 1960s. Davis, Fama, and French backfill Moody's book equity. That file is public:
 
 ```python
 url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Historical_BE_Data.zip"
@@ -258,14 +254,14 @@ print(lrr.table_i(panel))
 | Value | 13.67 (1.63) | 29.67 | 3.53 (4.13) | 47.72 | 3.34 (0.19) |
 | Market | 8.52 (1.75) | 20.10 | 0.92 (0.94) | 11.02 | 3.33 (0.13) |
 
-Returns and dividend growth are percent per year. Newey–West standard errors in parentheses. Value earned more *and* was cheaper: higher risk premia and lower valuations. Those are the two objects of the general equilibrium. Neither entered the cash-flow construction.
+Returns and dividend growth are percent per year, Newey–West standard errors in parentheses. Look at the middle columns before the first one. Value's dividend growth is wilder — a volatility of 48 percent against growth's 14 — and that is a *cash-flow* statement, constructed without a single average return. The return columns then record the facts to explain: value earned more *and* was cheaper. Higher risk premia and lower valuations, the two outputs of the general equilibrium, and neither entered the construction.
 
 ## Key takeaways
 
-- Consumption is real per-capita ND+S from FRED. Long-run risks are a small but highly persistent component that governs this series, plus time-variation in its conditional volatility.
-- CRSP stores returns. Dividends — the cash flows in which low- versus high-frequency risks are embodied — are Campbell–Shiller from `ret` minus `retx`.
-- Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. That ranking is in the dividends, not in average returns.
-- Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
-- The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose *valuations and risk premia* [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) have to match.
+- Every input is measurable and public or WRDS-standard: NIPA consumption, CRSP returns, Compustat book equity, a Ken French zip for pre-1960 book equity.
+- Consumption serves both halves of the model: the household's endowment (discount-rate side) and the trend dividends are levered to (cash-flow side). Its volatility — 2.37 percent — is why the premium is a puzzle.
+- CRSP stores returns, so dividends are recovered by the Campbell–Shiller identity from `ret` minus `retx`. These are the cash flows in which low- versus high-frequency risks are embodied.
+- The real T-bill anchors the discount-rate side; the value and growth quintiles hand the cross section its two cash-flow claims.
+- The 1930–2003 files this pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample whose valuations and risk premia [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) have to match.
 
 Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
