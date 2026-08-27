@@ -156,6 +156,29 @@ def test_getting_started():
     assert "What that did not" in text
 
 
+def test_financial_data_chapter():
+    text = _text("financial-data.md")
+    assert "title: Financial data" in text
+    assert "# Financial data" in text
+    assert _parent("financial-data.md") is None
+    assert _front_nav_order("financial-data.md") == 3
+    assert "accessing-and-managing-financial-data" in text
+    assert "wrds-crsp-and-compustat" in text
+    assert "data/consumption_annual.csv" in text
+    assert "data/annual_panel.csv" in text
+    assert "data/rf_annual.csv" in text
+    assert "import polars as pl" in text
+    assert "import plotnine as p9" in text
+    assert "import tidyfinance as tf" in text
+    assert "import lrrcs as lrr" in text
+    assert "load_consumption" in text
+    assert "campbell_shiller_annual" in text
+    assert "build_annual_panel" in text
+    assert "from lrrcs.model import" not in text
+    assert "kiku_value_premium" not in text
+    assert "time-series" in text
+
+
 def test_cash_flows_then_prices():
     text = _text("cash-flows-then-prices.md")
     assert "Calibrate cash flows" in text
