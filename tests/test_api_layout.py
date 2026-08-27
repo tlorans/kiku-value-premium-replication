@@ -1,8 +1,34 @@
-import lrrcs as k
+from pathlib import Path
+import lrrcs as lrr
 
 
-def test_version_is_0_4_0():
-    assert k.__version__ == "0.4.0"
+def test_version_is_0_5_0():
+    assert lrr.__version__ == "0.5.0"
+
+
+def test_tidyfinance_is_a_runtime_dependency():
+    import tidyfinance as tf
+    assert callable(tf.download_data)
+    assert callable(tf.set_wrds_credentials)
+    assert callable(tf.get_backend)
+
+
+def test_pyproject_companion_metadata():
+    import tomllib
+    data = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    project = data["project"]
+    deps = "\n".join(project["dependencies"])
+    extras = project["optional-dependencies"]
+    extra_blob = "\n".join(x for group in extras.values() for x in group)
+    assert project["name"] == "lrrcs"
+    assert project["version"] == "0.5.0"
+    assert project["requires-python"] == ">=3.11"
+    assert "tidyfinance>=0.5.0" in deps
+    assert "numpy>=1.26" in deps
+    assert "pandas>=2.2" in deps
+    assert "wrds" not in deps and "wrds" not in extra_blob
+    assert "python-dotenv" not in deps and "python-dotenv" not in extra_blob
+
 
 
 def test_section_exports_exist():

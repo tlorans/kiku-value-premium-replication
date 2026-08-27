@@ -3,7 +3,7 @@
 Preferred import: ``lrrcs``. ``kiku_value_premium`` remains a compatibility name.
 """
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 from .empirical import START, END
 from .model import (
