@@ -195,11 +195,12 @@ def test_cash_flows_then_prices():
     assert "13.88" not in text
 
 
-H2S = (
-    "## Data",
-    "## Calibrate cash flows",
-    "## Solve",
-    "## Compare pricing moments",
+MARKET_H2S = (
+    "## What long-run risk is",
+    "## Estimate x_t",
+    "## Calibrate dividends",
+    "## Simulate cash flows",
+    "## Solve and check returns and prices",
 )
 
 
@@ -209,13 +210,20 @@ def test_market_chapter():
     assert "# The market" in text
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
-    positions = [text.index(h) for h in H2S]
+    positions = [text.index(h) for h in MARKET_H2S]
     assert positions == sorted(positions)
+    assert "## Data" not in text
     assert "8.56" in text and "7.53" in text
-    assert "```python" in text
-    assert "import lrrcs as lrr" in text
-    assert "build_annual_panel" in text or "get_table_ii_params" in text
+    assert "expected_growth_proxy" in text
+    assert "filter_expected_growth" in text
     assert "simulate_cashflow_moments" in text
+    assert "compute_asset_pricing_moments" in text
+    assert "import polars as pl" in text
+    assert "import plotnine as p9" in text
+    assert "import lrrcs as lrr" in text
+    assert "```python" in text
+    assert "from lrrcs.model import" not in text
+    assert "kiku_value_premium" not in text
     assert "Melin" not in text
     assert "other-risk-premia" not in text
     assert "cross-section" in text
