@@ -146,3 +146,19 @@ def test_getting_started():
     assert "cash-flows-then-prices" in text
     assert "set_wrds_credentials" not in text
     assert "What that did not" in text
+
+
+def test_cash_flows_then_prices():
+    text = _text("cash-flows-then-prices.md")
+    assert "Calibrate cash flows" in text
+    assert "Compare pricing moments" in text
+    assert "M_{t+1}" in text or "m_{t+1}" in text
+    assert "import tidyfinance as tf" in text
+    assert "import lrrcs as lrr" in text
+    assert "get_table_ii_params" in text
+    assert "calibrate_from_data" in text
+    assert "compute_asset_pricing_moments" in text or "print_long_short_premium" in text
+    assert "time-series" in text
+    assert "cross-section" in text
+    assert "8.56" not in text
+    assert "13.88" not in text
