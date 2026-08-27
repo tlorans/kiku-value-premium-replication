@@ -31,32 +31,47 @@ def test_pyproject_companion_metadata():
 
 
 
-def test_section_exports_exist():
-    from lrrcs.empirical import (
-        START,
-        END,
-        connect_wrds,
-        build_annual_panel,
-        table_i,
-        table_vi_data,
-        figure1,
-        figure2,
-        figure3,
-        figure4,
-    )
-    from lrrcs.model import ModelSolver, solve_analytical, get_table_ii_params, print_long_short_premium
-    from lrrcs.calibration import calibrate_from_data, simulate_cashflow_moments
-    from lrrcs.implications import compute_asset_pricing_moments
-    assert START == 1930 and END == 2003
-    assert callable(connect_wrds)
-    assert callable(build_annual_panel)
-    assert callable(table_i)
-    assert callable(table_vi_data)
-    assert callable(figure1) and callable(figure2) and callable(figure3) and callable(figure4)
-    assert callable(solve_analytical)
-    assert callable(print_long_short_premium)
-    assert callable(calibrate_from_data)
-    assert callable(compute_asset_pricing_moments)
+def test_root_api_has_companion_names():
+    for name in (
+        "solve_analytical",
+        "get_table_ii_params",
+        "print_long_short_premium",
+        "ModelSolver",
+        "calibrate_from_data",
+        "compute_asset_pricing_moments",
+        "build_annual_panel",
+        "table_i",
+        "table_vi_data",
+        "figure1",
+        "EmpiricalDataError",
+    ):
+        assert hasattr(lrr, name), name
+        assert name in lrr.__all__
+
+
+def test_root_api_dropped_names():
+    for name in (
+        "connect_wrds",
+        "print_value_premium",
+        "START",
+        "END",
+        "FIGURE2_START",
+        "ROLE_ALIASES",
+        "download_data",
+        "set_wrds_credentials",
+    ):
+        assert name not in lrr.__all__
+        assert name not in dir(lrr)
+
+
+def test_table_helpers_default_to_1930_2003():
+    import inspect
+    sig = inspect.signature(lrr.table_i)
+    assert sig.parameters["start"].default == 1930
+    assert sig.parameters["end"].default == 2003
+    sig = inspect.signature(lrr.build_annual_panel)
+    assert sig.parameters["start"].default == 1930
+    assert sig.parameters["end"].default == 2003
 
 
 def test_old_flat_modules_are_gone():

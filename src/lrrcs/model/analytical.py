@@ -29,7 +29,20 @@ class AnalyticalSolution:
 
 def solve_analytical(params: ModelParams | None = None,
                      mean_zc: float = 3.5) -> AnalyticalSolution:
-    """Solve the approximate analytical model."""
+    """Solve the approximate analytical model of Kiku (2006, Section 3.4).
+
+    Log-linear price-dividend elasticities and the long-run component of
+    premia follow from the consumption and cash-flow parameters. The spread
+    between two claims is compensation for differential loading on expected
+    consumption growth.
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    sol = lrr.solve_analytical(lrr.get_table_ii_params())
+    ```
+    """
     if params is None:
         params = get_default_params()
     p = params.prefs
@@ -101,6 +114,18 @@ def print_long_short_premium(
     long: str | None = None,
     short: str | None = None,
 ) -> None:
+    """Print annualized long-run risk premia and the long-short spread.
+
+    Paper names ``value`` / ``growth`` print as a value-growth spread;
+    otherwise the spread is labeled long-short.
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
+    ```
+    """
     print("Approximate annualized long-run risk premia:")
     for name, prem in sol.premium_lr.items():
         print(f"  {name:8s}: {prem:7.2%}")
@@ -114,6 +139,3 @@ def print_long_short_premium(
         f"{long_key}={sol.A1[long_key]:.1f}"
     )
     print(f"Price of long-run risk Lambda_eps = {sol.Lambda_eps:.2f}")
-
-
-print_value_premium = print_long_short_premium

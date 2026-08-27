@@ -11,7 +11,6 @@ import pandas as pd
 from .construction import book_equity_frame, form_bm_quintiles, value_weight_monthly
 from .consumption import load_consumption, load_deflator
 from .dividends import campbell_shiller_annual
-from .goldens import END, START
 from .rates import real_rf_from_monthly
 from .wrds import EmpiricalDataError, connect_wrds
 
@@ -310,7 +309,11 @@ def _to_cs_series(frame: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
 
 
 def _annualize(
-    monthly: pd.DataFrame, market: pd.DataFrame, deflator: pd.Series
+    monthly: pd.DataFrame,
+    market: pd.DataFrame,
+    deflator: pd.Series,
+    start: int = 1930,
+    end: int = 2003,
 ) -> pd.DataFrame:
     rows = []
     for q, name in _CLAIMS.items():
@@ -324,26 +327,47 @@ def _annualize(
     rows.append(ann[["year", "claim", "ret", "dgrowth", "pd"]])
     out = pd.concat(rows, ignore_index=True)
     out["year"] = out["year"].astype(int)
-    out = out[(out["year"] >= START) & (out["year"] <= END)]
+    out = out[(out["year"] >= start) & (out["year"] <= end)]
     out["claim"] = pd.Categorical(
         out["claim"], categories=["Growth", "Value", "Market"], ordered=True
     )
     return out.sort_values(["claim", "year"]).reset_index(drop=True)
 
 
-def _write_outputs(panel: pd.DataFrame, dc: pd.Series, rf: pd.Series) -> None:
+def _write_outputs(
+    panel: pd.DataFrame,
+    dc: pd.Series,
+    rf: pd.Series,
+    start: int = 1930,
+    end: int = 2003,
+) -> None:
     PANEL_CSV.parent.mkdir(parents=True, exist_ok=True)
     panel[["year", "claim", "ret", "dgrowth", "pd"]].to_csv(PANEL_CSV, index=False)
-    dc_out = dc.loc[(dc.index >= START) & (dc.index <= END)].rename("dc")
+    dc_out = dc.loc[(dc.index >= start) & (dc.index <= end)].rename("dc")
     dc_out.index.name = "year"
     dc_out.reset_index().to_csv(DC_CSV, index=False)
-    rf_out = rf.loc[(rf.index >= START) & (rf.index <= END)].rename("rf")
+    rf_out = rf.loc[(rf.index >= start) & (rf.index <= end)].rename("rf")
     rf_out.index.name = "year"
     rf_out.reset_index().to_csv(RF_CSV, index=False)
 
 
-def build_annual_panel(refresh: bool = False) -> pd.DataFrame:
-    """CRSP/Compustat BM quintiles, Campbell–Shiller annual panel, 1930–2003."""
+def build_annual_panel(
+    refresh: bool = False, start: int = 1930, end: int = 2003
+) -> pd.DataFrame:
+    """Build the annual book-to-market claims panel for 1930–2003 by default.
+
+    Pulls CRSP from 1925, forms NYSE book-to-market quintiles, and
+    Campbell–Shiller annualizes returns, dividend growth, and price-dividend
+    ratios. ``start`` / ``end`` cut the public sample; they do not change the
+    raw extract window.
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    panel = lrr.build_annual_panel()
+    ```
+    """
     raw = _load_raw(refresh)
     msf = _filter_universe(raw["msf"], raw["names"])
     if msf.empty:
@@ -355,11 +379,13 @@ def build_annual_panel(refresh: bool = False) -> pd.DataFrame:
     monthly = value_weight_monthly(msf, assignments)
     market = _market_monthly(raw["msi"])
     deflator = load_deflator()
-    panel = _annualize(monthly, market, deflator)
+    panel = _annualize(monthly, market, deflator, start=start, end=end)
     if panel.empty or set(panel["claim"].unique()) != {"Growth", "Value", "Market"}:
         raise EmpiricalDataError("Annual panel is missing Growth/Value/Market")
     if panel["ret"].isna().any():
-        raise EmpiricalDataError("Annual panel has missing returns in 1930–2003")
+        raise EmpiricalDataError(
+            f"Annual panel has missing returns in {start}–{end}"
+        )
     dc = load_consumption()
     mcti = raw["mcti"].copy()
     if "cpi" not in mcti.columns and "cpiind" in mcti.columns:
@@ -378,5 +404,5 @@ def build_annual_panel(refresh: bool = False) -> pd.DataFrame:
     rf = real_rf_from_monthly(t90, cpi)
     rf = pd.Series(rf.to_numpy(), index=pd.Index(rf.index.year.astype(int), name="year"), name="rf")
     rf = rf[~rf.index.duplicated(keep="last")].sort_index()
-    _write_outputs(panel, dc, rf)
+    _write_outputs(panel, dc, rf, start=start, end=end)
     return panel

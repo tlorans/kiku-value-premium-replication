@@ -6,7 +6,7 @@ from lrrcs.model import (
     get_table_ii_params,
     resolve_legs,
     solve_analytical,
-    print_value_premium,
+    print_long_short_premium,
     ModelSolver,
 )
 from lrrcs.implications import compute_asset_pricing_moments
@@ -59,7 +59,7 @@ def test_analytical_and_moments_accept_long_short():
     )
     sol = solve_analytical(params)
     assert sol.premium_lr["long"] > sol.premium_lr["short"]
-    print_value_premium(sol)
+    print_long_short_premium(sol)
     solver = ModelSolver(params, n_x=5, n_s=2, n_quad=3)
     solver.solve()
     mom = compute_asset_pricing_moments(solver)

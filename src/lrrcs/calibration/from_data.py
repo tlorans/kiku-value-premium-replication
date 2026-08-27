@@ -38,11 +38,18 @@ def calibrate_from_data(
     short: np.ndarray | None = None,
     market: np.ndarray | None = None,
 ) -> Dict[str, DividendParams]:
-    """
-    Full data-driven calibration of DividendParams for an arbitrary set of portfolios.
+    """Calibrate cash-flow ``DividendParams`` from consumption and dividend growth.
 
-    Pass the high-return leg as ``long=`` and the low-return leg as ``short=``.
-    Paper names ``value`` / ``growth`` in ``dd_dict`` remain valid aliases.
+    Never targets cross-sectional return premia. Pass the high-return leg as
+    ``long=`` and the low-return leg as ``short=``. Paper names ``value`` /
+    ``growth`` in ``dd_dict`` remain valid aliases.
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    div = lrr.calibrate_from_data(dc, long=dd_value, short=dd_growth, market=dd_mkt)
+    ```
     """
     series: Dict[str, np.ndarray] = dict(dd_dict or {})
     if long is not None:

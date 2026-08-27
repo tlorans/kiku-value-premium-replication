@@ -1,61 +1,53 @@
 """Long-run risks in the time series and the cross section.
 
-Preferred import: ``lrrcs``. ``kiku_value_premium`` remains a compatibility name.
+Companion to tidyfinance. Documented import::
+
+    import tidyfinance as tf
+    import lrrcs as lrr
 """
+
+from __future__ import annotations
+
+import importlib
+import pkgutil
+import types
 
 __version__ = "0.5.0"
 
-from .empirical import START, END
-from .model import (
-    ModelParams,
-    PreferencesParams,
-    ConsumptionParams,
-    DividendParams,
-    get_table_ii_params,
-    EpsteinZinPreferences,
-    Dynamics,
-    StateGrid,
-    ModelSolver,
-    solve_analytical,
-    print_long_short_premium,
-    resolve_legs,
-)
-from .calibration import (
-    estimate_long_run_leverage,
-    calibrate_from_data,
-    get_table_ii_dividends,
-    simulate_cashflow_moments,
-)
-from .implications import (
-    compute_asset_pricing_moments,
-    print_asset_pricing_moments,
-    figure_lr_premium,
-    figure_mean_pd,
-    figure5,
-)
+_EXCLUDE = {"annotations"}
+__all__: list[str] = []
+_seen: set[str] = set()
 
-__all__ = [
-    "START",
-    "END",
-    "ModelParams",
-    "PreferencesParams",
-    "ConsumptionParams",
-    "DividendParams",
-    "get_table_ii_params",
-    "EpsteinZinPreferences",
-    "Dynamics",
-    "StateGrid",
-    "ModelSolver",
-    "solve_analytical",
-    "print_long_short_premium",
-    "resolve_legs",
-    "estimate_long_run_leverage",
-    "calibrate_from_data",
-    "get_table_ii_dividends",
-    "simulate_cashflow_moments",
-    "compute_asset_pricing_moments",
-    "print_asset_pricing_moments",
-    "figure_lr_premium",
-    "figure_mean_pd",
-    "figure5",
-]
+if "__path__" in globals():
+    for _finder, _module_name, _ispkg in pkgutil.iter_modules(__path__):
+        if _module_name.startswith("_"):
+            continue
+        _module = importlib.import_module(f".{_module_name}", package=__name__)
+        for _name in dir(_module):
+            if _name.startswith("__") and _name.endswith("__"):
+                continue
+            if _name.startswith("_"):
+                continue
+            if _name in _EXCLUDE or _name in _seen:
+                continue
+            _obj = getattr(_module, _name)
+            if not isinstance(_obj, (types.FunctionType, type)):
+                continue
+            if not getattr(_obj, "__module__", "").startswith(__name__):
+                continue
+            globals()[_name] = _obj
+            __all__.append(_name)
+            _seen.add(_name)
+
+del importlib, pkgutil, types
+del _seen
+for _leaked in (
+    "_finder",
+    "_ispkg",
+    "_module_name",
+    "_module",
+    "_name",
+    "_obj",
+    "_leaked",
+):
+    globals().pop(_leaked, None)

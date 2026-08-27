@@ -113,7 +113,7 @@ def _ar1_residual(dc: pd.Series) -> pd.Series:
     return pd.Series(eta, index=s.index[1:], name="eta")
 
 
-def table_i(bm: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
+def table_i(bm: pd.DataFrame, start: int = 1930, end: int = 2003) -> pd.DataFrame:
     """Table I Panel A: means and vols. Returns and Δd in percent; log(P/D) in logs."""
     sub = _slice_window(bm, start, end)
     rows = []
@@ -145,7 +145,7 @@ def table_i(bm: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def table_i_corr(bm: pd.DataFrame, start: int, end: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def table_i_corr(bm: pd.DataFrame, start: int = 1930, end: int = 2003) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Table I Panel B: return and dividend-growth correlations."""
     sub = _slice_window(bm, start, end)
 
@@ -170,7 +170,7 @@ def table_i_corr(bm: pd.DataFrame, start: int, end: int) -> tuple[pd.DataFrame, 
 
 
 def table_vi_data(
-    bm: pd.DataFrame, dc: pd.Series, start: int, end: int
+    bm: pd.DataFrame, dc: pd.Series, start: int = 1930, end: int = 2003
 ) -> pd.DataFrame:
     """Table VI data column: eq. (19) φ̃ (NW 4 lags) and innovation correlations."""
     sub = _slice_window(bm, start, end)

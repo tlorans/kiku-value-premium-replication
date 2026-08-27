@@ -14,7 +14,6 @@ from .solver import ModelSolver
 from .analytical import (
     AnalyticalSolution,
     print_long_short_premium,
-    print_value_premium,
     solve_analytical,
 )
 
@@ -34,5 +33,4 @@ __all__ = [
     "AnalyticalSolution",
     "solve_analytical",
     "print_long_short_premium",
-    "print_value_premium",
 ]

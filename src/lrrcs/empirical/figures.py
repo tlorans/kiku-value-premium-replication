@@ -6,7 +6,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .goldens import FIGURE2_START
 from .tables import _ar1_residual
 
 
@@ -156,7 +155,7 @@ def figure1(bm: pd.DataFrame, path) -> None:
     plt.close(fig)
 
 
-def figure2(bm: pd.DataFrame, dc: pd.Series, path) -> None:
+def figure2(bm: pd.DataFrame, dc: pd.Series, path, start: int = 1952) -> None:
     """Expected value premium vs rescaled 3-year MA of squared AR(1) Δc residuals."""
     plt = _pyplot()
     w_ret = _wide(bm, "ret")
@@ -170,9 +169,9 @@ def figure2(bm: pd.DataFrame, dc: pd.Series, path) -> None:
     vol = _ma3(eta.pow(2))
     prem, vol = prem.align(vol, join="inner")
     vol = _rescale(vol, prem)
-    if (prem.index >= FIGURE2_START).any():
-        prem = prem[prem.index >= FIGURE2_START]
-        vol = vol[vol.index >= FIGURE2_START]
+    if (prem.index >= start).any():
+        prem = prem[prem.index >= start]
+        vol = vol[vol.index >= start]
     fig, ax = plt.subplots(figsize=(7.5, 3.2))
     ax.plot(prem.index, 100.0 * prem, color="k", lw=1.2, label="Value premium")
     ax.plot(vol.index, 100.0 * vol, color="0.5", lw=1.0, ls="--", label="Consumption uncertainty")
