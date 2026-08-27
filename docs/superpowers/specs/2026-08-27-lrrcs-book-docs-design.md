@@ -37,13 +37,13 @@ If cash-flow moments fail, stop. A later match on returns would be a free parame
 
 ## Shape
 
-A one-page recipe map, then two full passes of the same four steps.
+A one-page map, then two full passes of the same four steps.
 
 | Part | Page | File | URL |
 |---|---|---|---|
 | Landing | Home | `docs/index.md` | `/` |
 | Start | Getting started | `docs/getting-started.md` (new) | `/getting-started.html` |
-| Map | The recipe | `docs/recipe.md` (new) | `/recipe.html` |
+| Map | Cash flows, then prices | `docs/cash-flows-then-prices.md` (new) | `/cash-flows-then-prices.html` |
 | Pass 1 | The market | `docs/time-series.md` (rewrite) | `/time-series.html` |
 | Pass 2 | Value versus growth | `docs/cross-section.md` (rewrite) | `/cross-section.html` |
 | Reference | Package | `docs/package.md` | `/package.html` |
@@ -56,7 +56,7 @@ Sidebar order (Just the Docs `nav_order`, no parent unless noted):
 |---|---|---|
 | Home | 1 | — |
 | Getting started | 2 | — |
-| The recipe | 3 | — |
+| Cash flows, then prices | 3 | — |
 | The market | 4 | — |
 | Value versus growth | 5 | — |
 | Package | 6 | — (`has_children: true`, `has_toc: false`) |
@@ -76,7 +76,7 @@ Both claim chapters use these H2s, in this order, with these names:
 3. Solve
 4. Compare pricing moments
 
-The recipe page names the same four steps but is a map, not a third pass.
+The Cash flows, then prices page names the same four steps but is a map, not a third pass.
 
 Code rules (unchanged from the companion spec):
 
@@ -87,7 +87,7 @@ Code rules (unchanged from the companion spec):
 
 Each claim chapter opens with a one-paragraph question (what this pass asks the household). Printed 1930–2003 numbers stay (market 8.56 / 7.53; value 13.88 vs growth 7.81; model value premium about 5.3 vs about 6 in the data; Table II \(\phi\) 6.2 / 2.6 / 2.8). Existing SVGs that those two chapters still need stay under `docs/figures/`.
 
-The recipe page states the IMRS and Euler equation once, compactly. Claim chapters do not re-derive the model; the Solve section shows the code plus a short reminder.
+Cash flows, then prices states the IMRS and Euler equation once, compactly. Claim chapters do not re-derive the model; the Solve section shows the code plus a short reminder.
 
 ## Homepage
 
@@ -98,7 +98,7 @@ The recipe page states the IMRS and Euler equation once, compactly. Claim chapte
 - Companion line: tidyfinance gets data and sorts; `lrrcs` calibrates cash-flow loadings and prices claims
 - Hero code: the five-line Table II solve (`tf` + `lrr` + `print_long_short_premium(solve_analytical(get_table_ii_params()))`)
 - CTA: Start here → Getting started
-- Four-step recipe preview (names only, link to The recipe)
+- Four-step preview (names only, link to Cash flows, then prices)
 - Two claim links: The market, Value versus growth
 - Package / Installation / API / GitHub
 
@@ -115,13 +115,13 @@ New `docs/getting-started.md`. The first book chapter.
 - What that did not do: did not match that premium; did not touch WRDS
 - Package split (one short paragraph)
 - Link to Installation for `[fast]`, `[data]`, and `tf.set_wrds_credentials()`
-- Next: The recipe
+- Next: Cash flows, then prices
 
 Do not dump extras and WRDS into this chapter. `docs/installation.md` remains the reference.
 
-## The recipe
+## Cash flows, then prices
 
-New `docs/recipe.md`. One screen, almost no original results.
+New `docs/cash-flows-then-prices.md`. One screen, almost no original results.
 
 - The four steps, each one short block
 - Target vs test (cash-flow moments vs asset-pricing moments)
@@ -153,7 +153,7 @@ Rewrite `docs/cross-section.md`. Two legs, same household. Kiku (2006) is the wo
 
 ## Package pages
 
-Keep companion framing. Light edits only: links point at Getting started / The recipe / the two claims, not at deleted paper sections. `docs/generalization.md` is deleted; the “other portfolios” idea is out of this version.
+Keep companion framing. Light edits only: links point at Getting started / Cash flows, then prices / the two claims, not at deleted paper sections. `docs/generalization.md` is deleted; the “other portfolios” idea is out of this version.
 
 Installation and API content stay as they are except for title/description consistency with the new site title.
 
@@ -170,7 +170,7 @@ Installation and API content stay as they are except for title/description consi
 
 - Title **Long-run risks**
 - Companion one-liner and the five-line solve
-- Docs table: Getting started, The recipe, The market, Value versus growth
+- Docs table: Getting started, Cash flows, then prices, The market, Value versus growth
 - Install unchanged (`uv`, Python 3.11+)
 
 ## Files to delete
@@ -197,7 +197,7 @@ Rewrite `tests/test_docs.py` so it encodes this book. Drop assertions that the s
 Must pass:
 
 - `_config.yml` still uses Just the Docs; title is `Long-run risks` (not “and the cross section”)
-- Required pages exist: `index.md`, `getting-started.md`, `recipe.md`, `time-series.md`, `cross-section.md`, `package.md`, `installation.md`, `api.md`
+- Required pages exist: `index.md`, `getting-started.md`, `cash-flows-then-prices.md`, `time-series.md`, `cross-section.md`, `package.md`, `installation.md`, `api.md`
 - Deleted files listed above do not exist
 - Home does not link the deleted stems (`empirical`, `model`, `calibration`, `implications`, `climate`, `further`, `other-risk-premia`, `generalization`, `replica`)
 - Home H1 is `# Long-run risks`; no `## Introduction`; Start here links to Getting started
@@ -207,7 +207,8 @@ Must pass:
 - Package pages still show `import tidyfinance as tf`
 - README title and links match the landing
 - MathJax and `kiku.scss` still present
-- `getting-started.md`, `recipe.md`, `time-series.md`, and `cross-section.md` have no parent; `installation.md` and `api.md` parent Package
+- `getting-started.md`, `cash-flows-then-prices.md`, `time-series.md`, and `cross-section.md` have no parent; `installation.md` and `api.md` parent Package
+- `cash-flows-then-prices.md` title/H1 is Cash flows, then prices; `docs/recipe.md` does not exist
 - README does not contain “six-step” / “6-step”
 
 Keep `test_mathjax_and_sidebar_theme`. Keep companion import checks on package pages.
