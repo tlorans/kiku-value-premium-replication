@@ -30,7 +30,7 @@ import lrrcs as lrr
 
 tidyfinance downloads CRSP/Compustat/CCM and supplies NYSE breakpoints. `lrr.build_annual_panel` still builds Campbell–Shiller dividends and historical book equity.
 
-A new sort is the same loop as [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}): consumption and two dividend legs in, no returns.
+A new sort is the same loop as [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}): consumption and two dividend legs in, no returns.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()

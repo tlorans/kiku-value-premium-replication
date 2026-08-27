@@ -11,7 +11,7 @@ nav_order: 5
 
 In this chapter we take the consumption and market-dividend series from [Financial data]({{ '/financial-data.html' | relative_url }}) and ask whether a long-run-risks household can price the *market* — the value-weighted claim on all listed stocks — year after year. That is the test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
 
-The CAPM says expected returns line up with market beta. Here the priced factor is not the market return. It is news about *expected consumption growth*, a small persistent component $$x_t$$. Claims that load more on $$x_t$$ earn more. We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) load market dividends on that proxy, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** average returns and price–dividend ratios. Average returns never enter (iii). The recipe is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).
+The CAPM says expected returns line up with market beta. Here the priced factor is not the market return. It is news about *expected consumption growth*, a small persistent component $$x_t$$. Claims that load more on $$x_t$$ earn more. We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) load market dividends on that proxy, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** average returns and price–dividend ratios. Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
 
 We use the following packages. Run the chunks **in order**, as on [Tidy Finance’s beta-estimation chapter](https://www.tidy-finance.org/chapters/beta-estimation.html): later snippets reuse `dc`, `mkt`, and `y`.
 
@@ -322,7 +322,7 @@ Twenty samples of 74 years are noisy (annual AC1 in particular). With 1000 sampl
 
 ## Solve and check returns and prices
 
-The Euler equation is $$E_t[M_{t+1}R_{i,t+1}]=1$$ with the Epstein–Zin IMRS from [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}). We do not re-derive it. The log-linear price–dividend ratio of a claim is affine in the state,
+The Euler equation is $$E_t[M_{t+1}R_{i,t+1}]=1$$ with the Epstein–Zin IMRS from [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). We do not re-derive it. The log-linear price–dividend ratio of a claim is affine in the state,
 
 $$
 z_t=\bar z+A_1 x_t+A_2(\sigma_t^2-\bar\sigma^2),

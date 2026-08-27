@@ -6,7 +6,7 @@ BOOK_PAGES = (
     "index.md",
     "getting-started.md",
     "financial-data.md",
-    "cash-flows-then-prices.md",
+    "long-run-risks-model.md",
     "time-series.md",
     "cross-section.md",
     "package.md",
@@ -63,11 +63,11 @@ def test_new_chapter_front_matter():
     assert _parent("financial-data.md") is None
     assert _front_nav_order("financial-data.md") == 3
 
-    cf = _text("cash-flows-then-prices.md")
-    assert "title: Cash flows, then prices" in cf
-    assert "# Cash flows, then prices" in cf
-    assert _parent("cash-flows-then-prices.md") is None
-    assert _front_nav_order("cash-flows-then-prices.md") == 4
+    cf = _text("long-run-risks-model.md")
+    assert "title: The long-run risks model" in cf
+    assert "# The long-run risks model" in cf
+    assert _parent("long-run-risks-model.md") is None
+    assert _front_nav_order("long-run-risks-model.md") == 4
 
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
@@ -123,7 +123,7 @@ def test_home_is_landing():
     assert "Start here" in text
     assert "getting-started" in text
     assert "financial-data" in text
-    assert "cash-flows-then-prices" in text
+    assert "long-run-risks-model" in text
     assert "time-series" in text
     assert "cross-section" in text
     assert "```python" in text
@@ -142,7 +142,7 @@ def test_home_is_landing():
     ):
         assert f"{stem}.html" not in text
         assert f"{stem}.md" not in text
-    assert "model.html" not in text
+    assert "{{ '/model.html'" not in text
 
 
 def test_getting_started():
@@ -190,22 +190,28 @@ def test_financial_data_chapter():
     assert "8.52" in text and "13.67" in text
 
 
-def test_cash_flows_then_prices():
-    text = _text("cash-flows-then-prices.md")
-    assert "Calibrate cash flows" in text
-    assert "Compare pricing moments" in text
+def test_long_run_risks_model_chapter():
+    text = _text("long-run-risks-model.md")
+    assert "title: The long-run risks model" in text
+    assert "# The long-run risks model" in text
+    assert _parent("long-run-risks-model.md") is None
+    assert _front_nav_order("long-run-risks-model.md") == 4
     assert "M_{t+1}" in text or "m_{t+1}" in text
-    assert "import tidyfinance as tf" in text
+    assert "Bansal" in text
+    assert "Epstein" in text
     assert "import lrrcs as lrr" in text
-    assert "get_table_ii_params" in text
-    assert "calibrate_from_data" in text
-    assert "compute_asset_pricing_moments" in text or "print_long_short_premium" in text
+    assert "import polars as pl" in text
+    assert "import plotnine as p9" in text
+    assert "capital-asset-pricing-model" in text
+    assert "Lambda_eps" in text or "A_1" in text
+    assert "figures/lrr_sml.svg" in text
+    assert "figures/lrr_state.svg" in text
+    assert "## Key takeaways" in text
     assert "time-series" in text
     assert "cross-section" in text
-    assert "phi_hat" in text
-    assert "## Key takeaways" in text
     assert "8.56" not in text
     assert "13.88" not in text
+    assert "cash-flows-then-prices" not in text
 
 
 MARKET_H2S = (
@@ -263,6 +269,9 @@ TUTORIAL_FIGURES = (
     "sim_xt.svg",
     "sim_dd.svg",
     "sim_log_pd.svg",
+    "lrr_sml.svg",
+    "lrr_state.svg",
+    "lrr_consumption_paths.svg",
 )
 
 
@@ -313,6 +322,7 @@ DELETED = (
     "replica.md",
     "value.md",
     "recipe.md",
+    "cash-flows-then-prices.md",
 )
 
 
@@ -324,7 +334,7 @@ def test_deleted_pages_gone():
 def test_package_page_points_at_the_book():
     text = _text("package.md")
     assert "generalization" not in text
-    assert "getting-started" in text or "time-series" in text or "cash-flows-then-prices" in text
+    assert "getting-started" in text or "time-series" in text or "long-run-risks-model" in text
     assert "financial-data" in text
 
 
@@ -335,7 +345,7 @@ def test_readme_matches_landing():
     assert "six-step" not in text.lower() and "6-step" not in text.lower()
     assert "getting-started" in text
     assert "financial-data" in text
-    assert "cash-flows-then-prices" in text
+    assert "long-run-risks-model" in text
     assert "time-series" in text
     assert "cross-section" in text
     assert "other-risk-premia" not in text

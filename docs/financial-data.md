@@ -265,4 +265,4 @@ Returns and dividend growth are percent per year. Newey–West standard errors i
 - Historical book equity is a public Ken French zip, because Compustat is thin before 1960.
 - The 1930–2003 files that pipeline writes (`data/consumption_annual.csv`, `data/annual_panel.csv`, `data/rf_annual.csv`) are the sample [The market]({{ '/time-series.html' | relative_url }}) prices.
 
-Next: [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}).
+Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).

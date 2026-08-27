@@ -19,13 +19,11 @@ lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 
 [Start here]({{ '/getting-started.html' | relative_url }})
 
-## The four steps
+## The book
 
-1. Form the claim(s) from data.
-2. Calibrate cash-flow dynamics.
-3. Solve the long-run risks model.
-4. Compare model asset-pricing moments to the data.
-
-Series are on [Financial data]({{ '/financial-data.html' | relative_url }}). The loop is [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}). Then we run it twice: [The market]({{ '/time-series.html' | relative_url }}) and [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+1. [Financial data]({{ '/financial-data.html' | relative_url }}) — consumption, Campbell–Shiller dividends, the panel.
+2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — what $$x_t$$ is, and why it is priced.
+3. [The market]({{ '/time-series.html' | relative_url }}) — one claim, time series.
+4. [Value versus growth]({{ '/cross-section.html' | relative_url }}) — two legs, same household.
 
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [GitHub](https://github.com/tlorans/kiku-value-premium-replication)

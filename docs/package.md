@@ -16,7 +16,7 @@ import tidyfinance as tf
 import lrrcs as lrr
 ```
 
-Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [Cash flows, then prices]({{ '/cash-flows-then-prices.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
+Start with the book: [Getting started]({{ '/getting-started.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [The market]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
 A typical session after the data chapter: load the 1930–2003 sample, slope of market $$\Delta d$$ on the two-year MA of lagged $$\Delta c$$, then Table II prices.
 
