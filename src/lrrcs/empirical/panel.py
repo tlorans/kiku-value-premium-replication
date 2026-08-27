@@ -19,6 +19,7 @@ from .wrds import (
     _download_crsp_mcti,
     _download_crsp_monthly,
     _download_crsp_msi,
+    _is_credentials_failure,
 )
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -70,6 +71,11 @@ def _pull_wrds() -> dict[str, pd.DataFrame]:
     except EmpiricalDataError:
         raise
     except Exception as exc:
+        if _is_credentials_failure(exc):
+            raise EmpiricalDataError(
+                "WRDS credentials missing or rejected. "
+                "Call tidyfinance.set_wrds_credentials()."
+            ) from exc
         raise EmpiricalDataError("WRDS download failed") from exc
     # tidyfinance v1 already keeps shrcd 10/11. Synthesize a names table
     # so _filter_universe still runs.

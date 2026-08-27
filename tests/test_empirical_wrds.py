@@ -67,18 +67,29 @@ def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
     monkeypatch.setattr(
         "lrrcs.empirical.wrds._wrds_connection", lambda: DummyConn()
     )
-    monkeypatch.setattr(
-        "lrrcs.empirical.wrds._read_sql",
-        lambda query, conn: pd.DataFrame(
-            {"date": [pd.Timestamp("2000-06-30")], "vwretd": [0.01], "vwretx": [0.005]}
-            if "msi" in query
-            else {
+    def fake_read_sql(query, conn):
+        q = query.lower()
+        if "msedelist" in q or "dlret" in q:
+            return pd.DataFrame(
+                columns=["permno", "dlstdt", "dlret", "dlretx", "dlstcd"]
+            )
+        if "msi" in q:
+            return pd.DataFrame(
+                {
+                    "date": [pd.Timestamp("2000-06-30")],
+                    "vwretd": [0.01],
+                    "vwretx": [0.005],
+                }
+            )
+        return pd.DataFrame(
+            {
                 "caldt": [pd.Timestamp("2000-06-30")],
                 "t90ret": [0.004],
                 "cpi": [100.0],
             }
-        ),
-    )
+        )
+
+    monkeypatch.setattr("lrrcs.empirical.wrds._read_sql", fake_read_sql)
     tables = _pull_wrds()
     datasets = {c["dataset"] for c in calls}
     assert "crsp_monthly" in datasets

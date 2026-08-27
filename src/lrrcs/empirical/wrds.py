@@ -7,10 +7,18 @@ import pandas as pd
 import tidyfinance as tf
 
 from lrrcs._backend import to_pandas
+from lrrcs.empirical.construction import apply_delisting_returns
 
 
 class EmpiricalDataError(RuntimeError):
     pass
+
+
+def _is_credentials_failure(exc: BaseException) -> bool:
+    if not isinstance(exc, ValueError):
+        return False
+    msg = str(exc).lower()
+    return any(tok in msg for tok in ("wrds_user", "wrds_password", "credential"))
 
 
 def _wrds_connection():
@@ -48,17 +56,29 @@ def _read_sql(query: str, conn) -> pd.DataFrame:
 def _download_crsp_monthly(
     start_date: str = "1925-12-01", end_date: str = "2003-12-31"
 ) -> pd.DataFrame:
-    raw = to_pandas(
-        tf.download_data(
-            domain="WRDS",
-            dataset="crsp_monthly",
-            start_date=start_date,
-            end_date=end_date,
-            version="v1",
-            additional_columns=["retx", "prc"],
+    try:
+        raw = to_pandas(
+            tf.download_data(
+                domain="WRDS",
+                dataset="crsp_monthly",
+                start_date=start_date,
+                end_date=end_date,
+                version="v1",
+                additional_columns=["retx", "prc"],
+            )
         )
-    )
-    return _normalize_crsp_monthly(raw)
+    except EmpiricalDataError:
+        raise
+    except Exception as exc:
+        if _is_credentials_failure(exc):
+            raise EmpiricalDataError(
+                "WRDS credentials missing or rejected. "
+                "Call tidyfinance.set_wrds_credentials()."
+            ) from exc
+        raise
+    msf = _normalize_crsp_monthly(raw)
+    delist = _download_crsp_msedelist(start_date, end_date)
+    return apply_delisting_returns(msf, delist)
 
 
 def _normalize_crsp_monthly(df: pd.DataFrame) -> pd.DataFrame:
@@ -104,6 +124,25 @@ def _download_ccm_links() -> pd.DataFrame:
     out = to_pandas(tf.download_data(domain="WRDS", dataset="ccm_links"))
     if "lpermno" not in out.columns and "permno" in out.columns:
         out = out.rename(columns={"permno": "lpermno"})
+    return out
+
+
+def _download_crsp_msedelist(
+    start_date: str = "1925-12-01", end_date: str = "2003-12-31"
+) -> pd.DataFrame:
+    conn = _wrds_connection()
+    try:
+        out = _read_sql(
+            f"""
+            SELECT permno, dlstdt, dlret, dlretx, dlstcd
+            FROM crsp.msedelist
+            WHERE dlstdt BETWEEN '{start_date}' AND '{end_date}'
+            """,
+            conn,
+        )
+    finally:
+        tf.disconnect_connection(conn)
+    out.columns = [str(c).lower() for c in out.columns]
     return out
 
 
