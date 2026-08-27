@@ -9,34 +9,9 @@ nav_order: 2
 1. TOC
 {:toc}
 
-You already know how to price a stock. Forecast the cash flows, pick a discount rate, divide. Every valuation you have ever built runs on those two numbers. This book is about where the two numbers come from — and why, in the end, they are really one number.
+You already know how to price a stock. Forecast the cash flows, pick a discount rate, divide. Every valuation you have ever built runs on those two numbers. This book is about where the two numbers come from — and why they are two outputs of one process, not two free inputs.
 
-## Two numbers you made up
-
-Start with the workhorse. If dividends grow at a constant rate $$g$$ and you discount at a constant rate $$r$$, the price–dividend ratio is
-
-$$\frac{P}{D} = \frac{1}{r - g}.$$
-
-Everything interesting in asset pricing hides inside $$r-g$$. And the DCF is silent about both halves. Where did you get $$r$$? A CAPM regression, a corporate hurdle rate, or "eight percent seems reasonable." Where did you get $$g$$? Analyst forecasts, a historical average, a terminal-value convention. Nothing in the framework stops you from pairing any $$g$$ with any $$r$$.
-
-The numbers are not innocent. At $$r-g = 4\%$$ the price–dividend ratio is 25. Shave the discount rate by one percentage point and the price jumps by a third. A third of the firm's value, riding on a number you made up.
-
-Worse, the two numbers are not independent, and the DCF cannot see why. A firm whose cash flows collapse in bad times *should* carry a high discount rate — the discount rate is compensation for exactly the risk that sits in the cash flows. Choose the numerator and the denominator separately and you have assumed away the entire question: why do risky cash flows command high expected returns, and how high?
-
-## One primitive instead
-
-General equilibrium replaces the two free numbers with one measurable primitive: aggregate consumption.
-
-Consumption growth, in this economy, is not white noise. It carries a small but highly persistent component $$x_t$$ — long-run risks — and its volatility moves over time. Two modelling decisions then split the DCF's job between them:
-
-- **The cash-flow model.** Each asset's dividend growth loads on $$x_t$$ with a leverage coefficient $$\phi$$. That loading is *estimated* from consumption and dividend data. This is where $$g$$ comes from — not a constant you assume, but a process tied to the macroeconomy.
-- **The discount-rate model.** A household with Epstein–Zin preferences owns every claim and fears news about long-run growth. Its marginal utility, driven by the *same* $$x_t$$, prices the cash flows. This is where $$r$$ comes from.
-
-One shock to $$x_t$$ moves expected dividends for decades and moves marginal utility at the same instant. That comovement — not either piece alone — is the risk premium. Prices and premia stop being inputs and become outputs, and outputs can be wrong. That is the point: the model is falsifiable, claim by claim, in both prices and premia. Average returns never enter the inputs.
-
-## Install
-
-Python 3.11+. Clone the repository and install in editable mode with `uv`.
+Python 3.11+. Clone and `uv pip install -e .`. Nothing below needs credentials.
 
 ```bash
 git clone https://github.com/tlorans/kiku-value-premium-replication.git
@@ -51,7 +26,30 @@ import lrrcs as lrr
 lrr.__version__
 ```
 
-Nothing below needs credentials or downloads. Extras and WRDS live on [Installation]({{ '/installation.html' | relative_url }}). Rebuilding the panel from the raw records is [Financial data]({{ '/financial-data.html' | relative_url }}), off the argument path.
+Extras and WRDS live on [Installation]({{ '/installation.html' | relative_url }}). Rebuilding the panel from the raw records is [Financial data]({{ '/financial-data.html' | relative_url }}), off the argument path.
+
+## Two numbers you made up
+
+Start with the workhorse. If dividends grow at a constant rate $$g$$ and you discount at a constant rate $$r$$, the price–dividend ratio is
+
+$$\frac{P}{D} = \frac{1}{r - g}.$$
+
+Everything interesting in asset pricing hides inside $$r-g$$. And the DCF is silent about both halves. Where did you get $$r$$? A CAPM regression, a corporate hurdle rate, or "eight percent seems reasonable." Where did you get $$g$$? Analyst forecasts, a historical average, a terminal-value convention. Nothing in the framework stops you from pairing any $$g$$ with any $$r$$.
+
+The numbers are not innocent. At $$r-g = 4\%$$ the price–dividend ratio is 25. Shave the discount rate by one percentage point and the price jumps by a third. A third of the firm's value, riding on a number you made up.
+
+Worse, the two numbers are not independent, and the DCF cannot see why. A firm whose cash flows collapse in bad times *should* carry a high discount rate — the discount rate is compensation for exactly the risk that sits in the cash flows. Choose the numerator and the denominator separately and you have assumed away the entire question: why do risky cash flows command high expected returns, and how high?
+
+## One process instead
+
+General equilibrium replaces the two free numbers with one measurable process: aggregate consumption.
+
+Consumption growth, in this economy, is not white noise. It carries a small but highly persistent component $$x_t$$ — long-run risks — and its volatility moves over time. Two modelling decisions then split the DCF's job between them:
+
+- **The cash-flow model.** Each asset's dividend growth loads on $$x_t$$ with a leverage coefficient $$\phi$$. That loading is *estimated* from consumption and dividend data. This is where $$g$$ comes from — not a constant you assume, but a process tied to the macroeconomy.
+- **The discount-rate model.** A household with Epstein–Zin preferences owns every claim and fears news about long-run growth. Its marginal utility, driven by the *same* $$x_t$$, prices the cash flows. This is where $$r$$ comes from.
+
+One shock to $$x_t$$ moves expected dividends for decades and moves marginal utility at the same instant. That comovement — not either piece alone — is the risk premium. Prices and premia stop being inputs and become outputs, and outputs can be wrong. That is the point: the model is falsifiable, claim by claim, in both prices and premia. Average returns never enter the inputs.
 
 ## An economy in five lines
 
@@ -95,9 +93,9 @@ Price of long-run risk Lambda_eps = 5.95
 
 **What that did.** It solved for prices and premia jointly. The premia line is the discount-rate model at work: one price of long-run risk, $$\Lambda_\epsilon = 5.95$$, times each claim's exposure. The $$A_1$$ line is the same solution read as a valuation statement: value's price–dividend ratio is more than twice as elastic to long-run news as growth's. One solve, both objects — the DCF's $$r$$ and $$g$$, fused.
 
-**What that did not do.** It estimated nothing and matched nothing. The loadings were Kiku's, taken on faith. The 0.40 percent is only the long-run *piece* of the value premium. The Euler equation prices the whole claim. Kiku's Table VII (1,000 samples) is the scoreboard — premia *and* valuations, together. A match on one with a miss on the other is a fail.
+**What that did not do.** It estimated nothing and matched nothing. The loadings were Kiku's, taken on faith. And the 0.40 percent is not the 5.3 percent in the table below. The 0.40 is only compensation for news about $$x_t$$. The 5.3 is the Euler equation on the whole claim — short-run shocks and volatility news included. Kiku's Table VII (1,000 samples) is the scoreboard — premia *and* valuations, together. A match on one with a miss on the other is a fail.
 
-|  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
+|  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
 | Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
 | Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
@@ -119,16 +117,24 @@ params.dividends["growth"].phi = 2.6
 lrr.print_long_short_premium(lrr.solve_analytical(params))
 ```
 
-The long-run spread collapses. That is the whole identification in one cell: nothing about preferences changed.
+```text
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.39%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.00%
+```
+
+The long-run spread is gone. Nothing about preferences changed. That is the identification in one cell.
 
 How those \(\phi\) are measured from dividends — not from returns — is [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}). Why a small persistent piece of consumption growth can move prices this much is [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). Rebuilding the 1930–2003 files from WRDS is [Financial data]({{ '/financial-data.html' | relative_url }}), and you do not need it to run anything above.
 
 ## Key takeaways
 
-- The DCF takes $$E[CF]$$ and $$r$$ as two independent inputs. The equilibrium derives both from one primitive — the consumption process — and they are not independent: the risk in cash flows *is* what the discount rate prices.
+- The DCF takes $$E[CF]$$ and $$r$$ as two independent inputs. The equilibrium derives both from one process — consumption growth — and they are not independent: the risk in cash flows *is* what the discount rate prices.
 - The cash-flow model lives in the dividend loadings on $$x_t$$; the discount-rate model lives in Epstein–Zin marginal utility. Both are disciplined by data before any return is looked at.
 - Assets differ only in cash-flow exposure. Prices and premia — value's low $$P/D$$ and high expected return together — are outputs, and can fail.
-- `lrr.solve_analytical` is the whole equilibrium in one call: risk premia and valuation elasticities from the same solution.
+- `lrr.solve_analytical` is the whole equilibrium in one call: risk premia and valuation elasticities from the same solution. The 0.40 it prints is the long-run piece; Table VII is the full Euler pair.
 - Equalize \(\phi\) across legs and the ranking disappears. The household was never the free parameter.
 
 Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), where \(A_1\) is the place the DCF's two halves meet.
