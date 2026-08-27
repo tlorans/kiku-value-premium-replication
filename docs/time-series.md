@@ -1,6 +1,6 @@
 ---
 title: Time series
-nav_order: 2
+nav_order: 4
 ---
 
 # Time series

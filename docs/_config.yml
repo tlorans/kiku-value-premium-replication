@@ -1,5 +1,5 @@
-title: Long-run risks and the cross section
-description: Time-series and cross-sectional properties of asset prices and returns.
+title: Long-run risks
+description: Calibrate cash flows, then ask whether the model matches asset-pricing moments.
 url: https://tlorans.github.io
 baseurl: /kiku-value-premium-replication
 
@@ -16,7 +16,7 @@ search:
 heading_anchors: true
 back_to_top: true
 back_to_top_text: Back to top
-footer_content: "Time-series and cross-sectional properties of prices and returns. MIT License."
+footer_content: "Calibrate cash flows, then ask whether asset-pricing moments match. MIT License."
 
 aux_links:
   GitHub:
