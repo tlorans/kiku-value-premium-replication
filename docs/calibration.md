@@ -47,10 +47,9 @@ Dividends (bottom panel of Table II):
 Residual correlations of orthogonalized dividend shocks: GV 0.20, GM 0.80, VM 0.45. Those help match Table V (comovement of dividend growth), not Table VII (mean returns).
 
 ```python
-from kiku_value_premium.calibration import get_table_ii_dividends
-from kiku_value_premium.model import get_table_ii_params
-get_table_ii_dividends()["value"].phi  # 6.2
-get_table_ii_params().cons.rho         # 0.98
+import lrrcs as lrr
+lrr.get_table_ii_dividends()["value"].phi  # 6.2
+lrr.get_table_ii_params().cons.rho         # 0.98
 ```
 
 ## 4.2 Equation (19) and monthly $$\phi$$
@@ -77,17 +76,14 @@ I pick monthly $$\phi$$ so that, when the model is simulated monthly and time-av
 There is no returns argument.
 
 ```python
-from kiku_value_premium.calibration import (
-    estimate_long_run_leverage, calibrate_from_data, simulate_cashflow_moments,
-)
-from kiku_value_premium.model import get_table_ii_params
+import lrrcs as lrr
 
-phi = estimate_long_run_leverage(dc, dd_value, window=2)
-dividends = calibrate_from_data(
-    dc, {"growth": dd_growth, "value": dd_value, "market": dd_market},
+phi = lrr.estimate_long_run_leverage(dc, dd_value, window=2)
+dividends = lrr.calibrate_from_data(
+    dc, long=dd_value, short=dd_growth, market=dd_market,
     frequency="annual", window=2,
 )
-print(simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=get_table_ii_params()))
+print(lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=lrr.get_table_ii_params()))
 ```
 
 ## 4.3 Tables III–V: cash-flow moments under the model

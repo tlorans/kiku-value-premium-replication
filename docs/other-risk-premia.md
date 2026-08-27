@@ -87,16 +87,15 @@ Same household. Same consumption process. Four numbers.
 | Industry | low $$\tilde\phi$$ industry | high $$\tilde\phi$$ industry |
 
 ```python
-from lrrcs.calibration import calibrate_from_data, estimate_long_run_leverage
-from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
+import lrrcs as lrr
 
 phis = {
-    name: estimate_long_run_leverage(dc, dd, window=2)
+    name: lrr.estimate_long_run_leverage(dc, dd, window=2)
     for name, dd in industry_dividends.items()
 }
 lo, hi = min(phis, key=phis.get), max(phis, key=phis.get)
 
-dividends = calibrate_from_data(
+dividends = lrr.calibrate_from_data(
     dc, frequency="annual", window=2,
     short=industry_dividends[lo],
     long=industry_dividends[hi],
@@ -104,9 +103,9 @@ dividends = calibrate_from_data(
 )
 for name, d in dividends.items():
     print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
-params = get_table_ii_params()
+params = lrr.get_table_ii_params()
 params.dividends = dividends
-print_long_short_premium(solve_analytical(params))
+lrr.print_long_short_premium(lrr.solve_analytical(params))
 ```
 
 Read `long.phi` against `short.phi` and `long.mu` against `short.mu` before you read the printed spread. Construction detail: [further.html]({{ '/further.html' | relative_url }}).

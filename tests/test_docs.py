@@ -146,3 +146,43 @@ def test_climate_risk_premia_page():
     assert "Melin" in text and "Zhang" in text
     assert "long=" in text and "short=" in text
     assert "calibrate_from_data" in text
+
+
+PACKAGE_PAGES = ("installation.md", "api.md", "package.md")
+CODE_PAGES = SECTIONS + ("index.md",)
+
+
+def test_package_pages_are_tidyfinance_companion():
+    for name in PACKAGE_PAGES:
+        text = (ROOT / name).read_text(encoding="utf-8")
+        assert "import tidyfinance as tf" in text
+        assert "import lrrcs as lrr" in text
+        assert "kiku_value_premium" not in text
+        assert "connect_wrds" not in text
+        assert "from lrrcs.model import" not in text
+        assert "from lrrcs.empirical import" not in text
+    readme = (ROOT.parent / "README.md").read_text(encoding="utf-8")
+    assert "import lrrcs as lrr" in readme
+    assert "tidyfinance" in readme
+    assert "kiku_value_premium" not in readme
+
+
+def test_replica_code_uses_flat_lrr():
+    for name in CODE_PAGES:
+        text = (ROOT / name).read_text(encoding="utf-8")
+        if "```python" not in text:
+            continue
+        assert "kiku_value_premium" not in text
+        assert "from lrrcs.model import" not in text
+        assert "from lrrcs.empirical import" not in text
+        assert "from lrrcs.calibration import" not in text
+        assert "from lrrcs.implications import" not in text
+        assert "print_value_premium" not in text
+        assert "lrr." in text or "import lrrcs as lrr" in text
+
+
+def test_empirical_page_shows_tidyfinance_plumbing():
+    text = (ROOT / "empirical.md").read_text(encoding="utf-8")
+    assert "set_wrds_credentials" in text
+    assert "import tidyfinance as tf" in text
+    assert "lrr.build_annual_panel" in text

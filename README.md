@@ -1,8 +1,11 @@
 # Long-run risks and the cross section
 
-Python package `lrrcs`. The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences. Kiku (2006) is the first cross-sectional column.
+Python package `lrrcs`, a companion to [tidyfinance](https://github.com/tidy-finance/py-tidyfinance).
+The model is Bansal and Yaron (2004) long-run risks with Epstein–Zin preferences.
+Kiku (2006) is the first cross-sectional column.
 
-Once cash flows are calibrated to consumption and dividends, the model is asked to account for both **time-series and cross-sectional properties of assets’ prices and returns**. The time-series object is the market claim. The cross-sectional object is a pair of claims that differ only in cash-flow loadings. Value is the first pair. Size, profitability, investment, industries, and climate sorts are later pairs. Average returns never enter the cash-flow step.
+tidyfinance gets data and sorts. `lrrcs` calibrates cash-flow loadings and prices claims.
+Average returns never enter the cash-flow step.
 
 **Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
@@ -15,6 +18,8 @@ Once cash flows are calibrated to consumption and dividends, the model is asked 
 
 ## Install
 
+Python 3.11+.
+
 ```bash
 git clone https://github.com/tlorans/kiku-value-premium-replication.git
 cd kiku-value-premium-replication
@@ -22,12 +27,13 @@ uv pip install -e .
 ```
 
 ```python
-from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
+import tidyfinance as tf
+import lrrcs as lrr
 
-print_long_short_premium(solve_analytical(get_table_ii_params()))
+lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 
-`kiku_value_premium` still imports. Use `lrrcs`.
+WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()`.
 
 ## License
 

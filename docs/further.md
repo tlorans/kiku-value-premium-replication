@@ -103,30 +103,25 @@ The model prices a high-return sort if three implications hold together. First, 
 A reversal on $$\phi$$ means the factor is not a long-run cash-flow factor. A reversal on $$\mu$$, with $$\phi$$ intact, means the model can match the premium and will miss the price. A reversal on the premium, with both cash-flow rankings intact, means the Table II investor cannot be recycled. For the leftover corner, a *large* estimated $$\phi$$ is already a reversal: the model would then predict a high return where the five-factor residual is negative.
 
 ```python
-from kiku_value_premium.calibration import calibrate_from_data, estimate_long_run_leverage
-from kiku_value_premium.model import get_table_ii_params, ModelSolver, solve_analytical, print_value_premium
-from kiku_value_premium.implications import compute_asset_pricing_moments, print_asset_pricing_moments
+import lrrcs as lrr
 
-print(estimate_long_run_leverage(dc, dd_small, window=2))
-print(estimate_long_run_leverage(dc, dd_big, window=2))
+print(lrr.estimate_long_run_leverage(dc, dd_small, window=2))
+print(lrr.estimate_long_run_leverage(dc, dd_big, window=2))
 
-dividends = calibrate_from_data(
-    dc,
-    {"growth": dd_big, "value": dd_small, "market": dd_market},
-    frequency="annual",
-    window=2,
+dividends = lrr.calibrate_from_data(
+    dc, long=dd_small, short=dd_big, market=dd_market,
+    frequency="annual", window=2,
 )
-for name in ("growth", "value", "market"):
-    d = dividends[name]
+for name, d in dividends.items():
     print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
 
-params = get_table_ii_params()
+params = lrr.get_table_ii_params()
 params.dividends = dividends
-print_value_premium(solve_analytical(params))
+lrr.print_long_short_premium(lrr.solve_analytical(params))
 
-solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
+solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
-print_asset_pricing_moments(compute_asset_pricing_moments(solver))
+lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
 ```
 
 The four printed numbers on each leg are the whole mapping. Compare `value.mu` to `growth.mu` and `value.phi` to `growth.phi` before reading the premium. Replace the size series with weak/robust for RMW, aggressive/conservative for CMA, or the two small corner portfolios for the five-factor leftover. Returns do not enter. Campbell–Shiller construction follows [Section 2]({% link empirical.md %}).

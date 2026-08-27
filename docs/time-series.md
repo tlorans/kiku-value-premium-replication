@@ -56,9 +56,9 @@ $$
 That is the whole theory. Table II of Kiku (2006) uses $$\delta=0.999$$, $$\gamma=10$$, $$\psi=1.5$$, so $$\theta\neq 1$$.
 
 ```python
-from lrrcs.model import get_table_ii_params, EpsteinZinPreferences
-params = get_table_ii_params()
-ez = EpsteinZinPreferences(params.prefs)
+import lrrcs as lrr
+params = lrr.get_table_ii_params()
+ez = lrr.EpsteinZinPreferences(params.prefs)
 ```
 
 ## Cash flows of the market
@@ -90,8 +90,8 @@ $$
 $$\kappa_{c,1}$$ is a linearization weight near one. Power utility sets $$\Lambda_\epsilon=0$$. Then $$\phi_m=2.8$$ does not produce an equity premium worth talking about. With $$\gamma=10$$ and $$\psi=1.5$$, $$\Lambda_\epsilon\neq 0$$.
 
 ```python
-from lrrcs.model import get_table_ii_params
-params = get_table_ii_params()
+import lrrcs as lrr
+params = lrr.get_table_ii_params()
 params.dividends["market"].phi  # 2.8
 params.cons.rho                 # 0.98
 ```
@@ -121,9 +121,8 @@ Market dividends: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha
 If those fail, stop. The premium that comes next would then be a free parameter in disguise.
 
 ```python
-from lrrcs.calibration import simulate_cashflow_moments
-from lrrcs.model import get_table_ii_params
-print(simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=get_table_ii_params()))
+import lrrcs as lrr
+print(lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=lrr.get_table_ii_params()))
 ```
 
 ## The pricing test
@@ -140,14 +139,13 @@ print(simulate_cashflow_moments(n_sims=20, years=74, seed=1, params=get_table_ii
 **Result.** Market return volatility is 20.1 percent in both. The safe rate is about seventy basis points too high. The equity premium is a little short of the sample. Close enough to ask a second question.
 
 ```python
-from lrrcs.model import get_table_ii_params, ModelSolver, solve_analytical, print_long_short_premium
-from lrrcs.implications import compute_asset_pricing_moments, print_asset_pricing_moments
+import lrrcs as lrr
 
-params = get_table_ii_params()
-print_long_short_premium(solve_analytical(params))
-solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
+params = lrr.get_table_ii_params()
+lrr.print_long_short_premium(lrr.solve_analytical(params))
+solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
-print_asset_pricing_moments(compute_asset_pricing_moments(solver))
+lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
 ```
 
 The market column on that printout is this page. Value and growth are the [cross section]({{ '/cross-section.html' | relative_url }}).

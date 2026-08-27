@@ -36,9 +36,9 @@ Each June, sort ordinary shares on NYSE, AMEX, and NASDAQ by book-to-market, usi
 Value dividend growth is higher (3.63 percent against 0.68) and more volatile. Dividend growth comoves much less across the two claims than returns do. Prices share a discount-rate factor that dividends do not.
 
 ```python
-from lrrcs.empirical import START, END, build_annual_panel, table_i
-bm = build_annual_panel(refresh=False)
-print(table_i(bm, START, END))
+import lrrcs as lrr
+bm = lrr.build_annual_panel(refresh=False)
+print(lrr.table_i(bm))
 ```
 
 ## Measuring exposure to slow consumption
@@ -56,9 +56,9 @@ $$\Delta d_t$$ is log dividend growth. $$\Delta c$$ is log consumption growth. $
 **Result.** Printed $$\tilde\phi$$: growth $$-0.38$$ (1.34), value $$2.16$$ (1.44), market $$0.66$$ (1.20). Value’s dividends move with the slow part of consumption. Growth’s do not. Three-year average dividend growth tracks consumption at 0.52 for value and 0.25 for growth.
 
 ```python
-from lrrcs.calibration import estimate_long_run_leverage
-print(estimate_long_run_leverage(dc, dd_value, window=2))
-print(estimate_long_run_leverage(dc, dd_growth, window=2))
+import lrrcs as lrr
+print(lrr.estimate_long_run_leverage(dc, dd_value, window=2))
+print(lrr.estimate_long_run_leverage(dc, dd_growth, window=2))
 ```
 
 ## Four numbers per claim
@@ -79,16 +79,15 @@ Table II: $$\phi_{\text{value}}=6.2$$, $$\phi_{\text{growth}}=2.6$$; $$\mu_{\tex
 In this sort both $$\mu$$ and $$\phi$$ are larger on value. $$\phi$$ wins the valuation ranking: value stays cheap.
 
 ```python
-from lrrcs.calibration import calibrate_from_data
-from lrrcs.model import get_table_ii_params
+import lrrcs as lrr
 
-dividends = calibrate_from_data(
+dividends = lrr.calibrate_from_data(
     dc, frequency="annual", window=2,
     long=dd_value, short=dd_growth, market=dd_market,
 )
 for name, d in dividends.items():
     print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
-params = get_table_ii_params()
+params = lrr.get_table_ii_params()
 params.dividends["value"].phi   # 6.2 at Table II
 params.dividends["growth"].phi  # 2.6
 ```
@@ -111,14 +110,13 @@ High return and low price together. That is what extra loading on $$x_t$$ is sup
 Do not confuse $$\phi$$ with a CAPM beta. The model’s ratio of value to growth CAPM betas is 0.92. For consumption betas — slopes on consumption growth — 0.85. Value’s market beta is *lower*, as in the data. The priced risk is exposure to $$x_t$$, not to the market return.
 
 ```python
-from lrrcs.model import get_table_ii_params, ModelSolver, solve_analytical, print_long_short_premium
-from lrrcs.implications import compute_asset_pricing_moments, print_asset_pricing_moments
+import lrrcs as lrr
 
-params = get_table_ii_params()
-print_long_short_premium(solve_analytical(params))
-solver = ModelSolver(params, n_x=15, n_s=4, n_quad=7)
+params = lrr.get_table_ii_params()
+lrr.print_long_short_premium(lrr.solve_analytical(params))
+solver = lrr.ModelSolver(params, n_x=15, n_s=4, n_quad=7)
 solver.solve()
-print_asset_pricing_moments(compute_asset_pricing_moments(solver))
+lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
 ```
 
 ## What would count as failure

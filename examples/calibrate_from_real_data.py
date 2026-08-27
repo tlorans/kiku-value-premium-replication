@@ -20,24 +20,11 @@ series and then demonstrates the exact call the user must make once they have
 their own Δd arrays.
 """
 from __future__ import annotations
+import lrrcs as lrr
 import io
 import urllib.request
 import numpy as np
 import pandas as pd
-
-from lrrcs.calibration import (
-    calibrate_from_data,
-    estimate_long_run_leverage,
-    get_table_ii_dividends,
-    print_calibration_summary,
-)
-from lrrcs.model import (
-    ConsumptionParams,
-    ModelParams,
-    PreferencesParams,
-    print_value_premium,
-    solve_analytical,
-)
 
 
 def download_fred_pce_growth() -> pd.Series:
@@ -100,19 +87,14 @@ def main():
     print()
     print("Once you have annual arrays of the same length as dc, call:")
     print()
-    print("  div_params = calibrate_from_data(")
+    print("  div_params = lrr.calibrate_from_data(")
     print("      dc_values,")
-    print("      {")
-    print("          'growth': dd_growth_portfolio,")
-    print("          'value' : dd_value_portfolio,")
-    print("          'market': dd_market,")
-    print("      },")
+    print("      long=dd_value_portfolio,")
+    print("      short=dd_growth_portfolio,")
+    print("      market=dd_market,")
     print("      frequency='annual',")
     print("      window=2,")
     print("  )")
-    print()
-    print("  Keys must be growth/value/market for solve_analytical and")
-    print("  compute_asset_pricing_moments.")
     print()
 
     # ------------------------------------------------------------------
@@ -122,7 +104,7 @@ def main():
     print("3. For illustration we now use the paper’s own calibrated parameters")
     print("   (which were estimated on real data via the same regression).")
     print("-" * 50)
-    print_calibration_summary(get_table_ii_dividends())
+    lrr.print_calibration_summary(lrr.get_table_ii_dividends())
 
     # Show the regression on the real consumption series alone is well-defined
     print("\nSanity check on the real consumption series:")
@@ -134,9 +116,9 @@ def main():
     # ------------------------------------------------------------------
     print("\n4. Long-run risk premia that result from the real-data calibration")
     print("-" * 50)
-    params = ModelParams()
-    sol = solve_analytical(params)
-    print_value_premium(sol)
+    params = lrr.ModelParams()
+    sol = lrr.solve_analytical(params)
+    lrr.print_long_short_premium(sol)
 
     print("\n" + "=" * 70)
     print("How to repeat the exercise with *your* portfolios")
@@ -146,14 +128,12 @@ def main():
 2. Align them with the consumption series (same years).
 3. Run:
 
-   from lrrcs.calibration import calibrate_from_data
-   div_params = calibrate_from_data(
+   import lrrcs as lrr
+   div_params = lrr.calibrate_from_data(
        dc_series.values,
-       {
-           "growth": my_growth_dd,
-           "value":  my_value_dd,
-           "market": my_market_dd,
-       },
+       long=my_value_dd,
+       short=my_growth_dd,
+       market=my_market_dd,
        frequency="annual",
        window=2,
    )

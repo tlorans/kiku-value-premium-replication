@@ -2,11 +2,11 @@
 """
 Quick demonstration of Kiku (2006) value-premium mechanism.
 
-Run from the repository root after `pip install -e .`:
+Run from the repository root after `uv pip install -e .`:
     python examples/demo.py
 """
-from lrrcs.model import solve_analytical, print_long_short_premium
-from lrrcs.calibration import simulate_cashflow_moments, print_moments
+import lrrcs as lrr
+
 
 def main():
     print("=" * 60)
@@ -15,14 +15,14 @@ def main():
 
     print("\n1. Analytical long-run risk premia (Section 3.4)")
     print("-" * 50)
-    sol = solve_analytical()
-    print_long_short_premium(sol)
+    sol = lrr.solve_analytical()
+    lrr.print_long_short_premium(sol)
 
     print("\n2. Monte-Carlo cash-flow moments (Tables III–IV targets)")
     print("-" * 50)
     # Fewer sims for a quick demo; increase for better precision
-    mom = simulate_cashflow_moments(n_sims=50, years=74, seed=123)
-    print_moments(mom)
+    mom = lrr.simulate_cashflow_moments(n_sims=50, years=74, seed=123)
+    lrr.print_moments(mom)
 
     print("\nDone. The analytical spread already shows the paper's key result:")
     print("value firms earn a large premium because of higher exposure to")

@@ -32,20 +32,21 @@ where $$y_{t+1}$$ is the dividend yield implied by $$R_{t+1}-H_{t+1}$$. I time-a
 
 The sample is 1930–2003. Table I uses Newey–West standard errors with eight lags. Table VI uses four. Figure 2 is 1952–2003, as in the paper caption.
 
-```python
-from kiku_value_premium.empirical import (
-    START, END, build_annual_panel, table_i, table_vi_data,
-    figure1, figure2, figure3, figure4,
-)
-import pandas as pd
+tidyfinance supplies CRSP, Compustat, CCM, and NYSE breakpoints. `lrrcs` still builds Campbell–Shiller dividends and historical book equity.
 
-bm = build_annual_panel(refresh=False)
-print(table_i(bm, START, END))
+```python
+import pandas as pd
+import tidyfinance as tf
+import lrrcs as lrr
+
+tf.set_wrds_credentials()
+bm = lrr.build_annual_panel(refresh=False)
+print(lrr.table_i(bm))
 dc = pd.read_csv("data/consumption_annual.csv").set_index("year")["dc"]
-print(table_vi_data(bm, dc, START, END))
+print(lrr.table_vi_data(bm, dc))
 ```
 
-`START, END = 1930, 2003`. `refresh=True` rebuilds the extracts from WRDS.
+Defaults are 1930–2003. `refresh=True` rebuilds the extracts.
 
 ## 2.2 The value premium
 

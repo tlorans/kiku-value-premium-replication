@@ -33,16 +33,12 @@ The paper avoids all three.
 The solver returns log price–dividend $$z$$ at each state $$(x,\sigma^2)$$. The Markov chain has a stationary distribution. I average the one-period returns implied by $$z$$ under that distribution, integrating the short-run shock with the same Gauss–Hermite rule as the Euler loop. That is Table VII’s model column (mean and standard deviation across 1000 simulated 74-year histories in the paper).
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, ModelSolver
-from kiku_value_premium.implications import (
-    compute_asset_pricing_moments, print_asset_pricing_moments,
-    figure_lr_premium, figure_mean_pd, figure5,
-)
+import lrrcs as lrr
 
-params = get_table_ii_params()
-solver = ModelSolver(params, n_x=30, n_s=4, n_quad=7)
+params = lrr.get_table_ii_params()
+solver = lrr.ModelSolver(params, n_x=30, n_s=4, n_quad=7)
 solver.solve()
-print_asset_pricing_moments(compute_asset_pricing_moments(solver))
+lrr.print_asset_pricing_moments(lrr.compute_asset_pricing_moments(solver))
 ```
 
 `solve_analytical` is the Section 3.4 shortcut used for the long-run premium figure. On a tiny $$5\times 2$$ grid the Euler map floors numerical $$\log(P/D)$$; the published mean-P/D figure uses the linearization points 3.65 / 3.10 / 3.24.

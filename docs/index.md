@@ -31,9 +31,10 @@ The first pair is value versus growth. *Book-to-market* is the accounting book v
 Two ingredients, both required. Consumption growth is not independent from year to year, or there is no $$x_t$$. Preferences are recursive, or news about $$x_t$$ is not priced. Under power utility that price is zero. Then a gap in how dividends load on $$x_t$$ does nothing.
 
 ```python
-from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
+import tidyfinance as tf
+import lrrcs as lrr
 
-print_long_short_premium(solve_analytical(get_table_ii_params()))
+lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 
 [Time series]({{ '/time-series.html' | relative_url }}) is the usual test: can this household price the market? [Cross section]({{ '/cross-section.html' | relative_url }}) is the overlooked test: can the same household rank value above growth? [Other risk premia]({{ '/other-risk-premia.html' | relative_url }}) asks the same question of size, profitability, investment, and industries. [Climate]({{ '/climate.html' | relative_url }}) asks it after climate is put into consumption. A 20 percent rise in the *market* premium is still a time-series statement. It does not rank firms.

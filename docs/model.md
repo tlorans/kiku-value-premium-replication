@@ -43,9 +43,9 @@ When $$\gamma=1/\psi$$, $$\theta=1$$ and the wealth-return term drops: power uti
 Any asset satisfies $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. That is the entire pricing theory of the paper.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, EpsteinZinPreferences
-params = get_table_ii_params()
-ez = EpsteinZinPreferences(params.prefs)
+import lrrcs as lrr
+params = lrr.get_table_ii_params()
+ez = lrr.EpsteinZinPreferences(params.prefs)
 # Table II: δ=0.999, γ=10, ψ=1.5, so θ ≠ 1
 ```
 
@@ -67,11 +67,11 @@ $$\phi$$ scales how hard a shift in the outlook hits this asset’s dividends. V
 I give value a larger $$\phi$$ because Section 2 found a larger annual $$\tilde\phi$$, not because value had a larger average return.
 
 ```python
-from kiku_value_premium.model import get_table_ii_params, Dynamics
-params = get_table_ii_params()
+import lrrcs as lrr
+params = lrr.get_table_ii_params()
 params.dividends["value"].phi   # 6.2
 params.dividends["growth"].phi  # 2.6
-path = Dynamics(params, seed=42).simulate_cashflows(T=12 * 74)
+path = lrr.Dynamics(params, seed=42).simulate_cashflows(T=12 * 74)
 ```
 
 ## 3.3 Numerical solution
@@ -79,8 +79,8 @@ path = Dynamics(params, seed=42).simulate_cashflows(T=12 * 74)
 Cash-flow laws are given. The unknowns are the price–consumption and price–dividend ratios as functions of $$(x,\sigma^2)$$. I replace the continuous state by a discrete Markov chain (Tauchen and Hussey 1991): 30 Gauss–Hermite nodes on $$x$$, four points on $$\sigma^2$$. At each grid point the Euler equation must hold. The short-run innovation $$\eta$$ is integrated with a 7-point Gauss–Hermite rule inside every Euler evaluation.
 
 ```python
-from kiku_value_premium.model import ModelSolver, get_table_ii_params
-solver = ModelSolver(get_table_ii_params(), n_x=30, n_s=4, n_quad=7)
+import lrrcs as lrr
+solver = lrr.ModelSolver(lrr.get_table_ii_params(), n_x=30, n_s=4, n_quad=7)
 solver.solve()
 # solver.z["value"] is log(P/D) on the grid
 ```
@@ -115,8 +115,8 @@ With Table II ($$\gamma=10$$, $$\psi=1.5$$), $$\Lambda_\epsilon\neq 0$$. Under p
 Two consequences follow from the same gap in $$\phi$$. Value’s dividends fall harder when the outlook turns bad, which is when $$M_{t+1}$$ is high, so the Euler equation requires a higher average return. The investor pays less today per unit of current dividend, so value’s price–dividend ratio is lower.
 
 ```python
-from kiku_value_premium.model import solve_analytical, print_value_premium, get_table_ii_params
-print_value_premium(solve_analytical(get_table_ii_params()))
+import lrrcs as lrr
+lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 
 `solve_analytical` is this linearization. It already ranks value’s long-run premium above growth’s. Campbell–Shiller points for $$\log(P/D)$$: 3.65 (growth), 3.10 (value), 3.24 (market). The 5.3 percent in Table VII comes from the numerical solver after the cash-flow parameters are locked.

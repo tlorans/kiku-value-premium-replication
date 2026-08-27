@@ -107,22 +107,21 @@ The tildes are annual slopes, as in equation (19) on the cross-section page. The
 **What would count as success.** Four things at once. The high-return leg has the larger climate loading. The $$\mu$$ ranking matches the price–dividend pattern. Setting $$\Omega^i=\Gamma^i=0$$ does not already absorb the premium through $$\phi$$. The Euler equation then produces a premium of the right sign and a $$\log(P/D)$$ ranking that does not fight the data.
 
 ```python
-from lrrcs.calibration import calibrate_from_data, estimate_long_run_leverage
-from lrrcs.model import get_table_ii_params, solve_analytical, print_long_short_premium
+import lrrcs as lrr
 
-print(estimate_long_run_leverage(dc, dd_brown, window=2))
-print(estimate_long_run_leverage(dc, dd_green, window=2))
+print(lrr.estimate_long_run_leverage(dc, dd_brown, window=2))
+print(lrr.estimate_long_run_leverage(dc, dd_green, window=2))
 
-dividends = calibrate_from_data(
+dividends = lrr.calibrate_from_data(
     dc, frequency="annual", window=2,
     short=dd_green, long=dd_brown, market=dd_market,
 )
 for name, d in dividends.items():
     print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
 
-params = get_table_ii_params()
+params = lrr.get_table_ii_params()
 params.dividends = dividends
-print_long_short_premium(solve_analytical(params))
+lrr.print_long_short_premium(lrr.solve_analytical(params))
 ```
 
 {: .package }

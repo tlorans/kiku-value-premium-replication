@@ -13,23 +13,17 @@ The time-series object is the market. The cross-sectional object is any pair of 
 `calibrate_from_data(dc, long=..., short=..., market=...)` names the legs. `value` / `growth` remain aliases. `solve_analytical` and `compute_asset_pricing_moments` resolve either pair. The market key is the time-series check. The long and short keys are the cross-section.
 
 ```python
-from kiku_value_premium.calibration import calibrate_from_data
-from kiku_value_premium.model import get_table_ii_params, ModelSolver
-from kiku_value_premium.implications import compute_asset_pricing_moments
+import lrrcs as lrr
 
-dividends = calibrate_from_data(
-    dc,
-    long=dd_value, short=dd_growth, market=dd_market,
-    frequency="annual",
-    window=2,
+dividends = lrr.calibrate_from_data(
+    dc, long=dd_value, short=dd_growth, market=dd_market,
+    frequency="annual", window=2,
 )
-for name, d in dividends.items():
-    print(name, d.mu, d.phi, d.phi_sigma, d.alpha)
-params = get_table_ii_params()
+params = lrr.get_table_ii_params()
 params.dividends = dividends
-solver = ModelSolver(params)
+solver = lrr.ModelSolver(params)
 solver.solve()
-moments = compute_asset_pricing_moments(solver)
+print(lrr.compute_asset_pricing_moments(solver))
 ```
 
 - [`examples/calibrate_any_portfolio.py`](https://github.com/tlorans/kiku-value-premium-replication/blob/main/examples/calibrate_any_portfolio.py)

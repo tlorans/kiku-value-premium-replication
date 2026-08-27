@@ -7,7 +7,12 @@ has_toc: false
 
 # Package
 
-Import `lrrcs`. `market` is the time-series claim. `long` and `short` are the cross-sectional pair. `value` / `growth` remain aliases. `print_long_short_premium` prints the spread.
+`lrrcs` is a companion to tidyfinance. tidyfinance gets data and sorts; `lrrcs` calibrates cash-flow loadings and prices claims.
+
+```python
+import tidyfinance as tf
+import lrrcs as lrr
+```
 
 - [Installation]({{ '/installation.html' | relative_url }})
 - [API]({{ '/api.html' | relative_url }})
