@@ -64,6 +64,7 @@ def test_argument_nav_order():
     assert _front_nav_order("package.md") == 7
     assert _parent("installation.md") == "Package"
     assert _parent("api.md") == "Package"
+    assert _parent("financial-data.md") == "Package"
 
 
 def test_mathjax_and_sidebar_theme():
@@ -141,7 +142,6 @@ def test_home_is_landing():
     assert "5.3" in text
     assert "0.92" in text
     assert "figures/lrr_sml.svg" in text
-    assert "figures/vg_log_pd.svg" in text
     assert "## The argument" in text
     for stem in (
         "empirical",
@@ -170,8 +170,7 @@ def test_dcf_to_ge_arc():
 
 GS_H2S = (
     "## Two numbers you made up",
-    "## One primitive instead",
-    "## Install",
+    "## One process instead",
     "## An economy in five lines",
     "## What if the loadings are equal",
     "## Key takeaways",
@@ -231,7 +230,7 @@ def test_financial_data_chapter():
 MODEL_H2S = (
     "## The consumption process",
     "## The household",
-    "## The security market line",
+    "## Compensation versus cash-flow leverage",
 )
 
 
@@ -299,17 +298,17 @@ def test_measuring_leverage_chapter():
 
 MARKET_H2S = (
     "## Preparing the sample",
-    "## Extract expected growth",
-    "## One cash-flow exposure",
+    "## The loadings are already measured",
     "## Simulate cash flows",
     "## Solve and check returns and prices",
+    "## Appendix: extracting",
 )
 
 
 def test_market_chapter():
     text = _text("time-series.md")
-    assert "title: The Time Series" in text
-    assert "# The Time Series" in text
+    assert "title: Does the market still fit?" in text
+    assert "# Does the market still fit?" in text
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
     positions = [text.index(h) for h in MARKET_H2S]
@@ -357,7 +356,7 @@ def test_tutorial_figures_exist():
 
 CROSS_H2S = (
     "## Preparing the sample",
-    "## Two cash-flow exposures",
+    "## The loadings are already measured",
     "## Elasticity of price\u2013dividend to x_t",
     "## Solve and check rankings",
 )
@@ -365,8 +364,8 @@ CROSS_H2S = (
 
 def test_value_versus_growth_chapter():
     text = _text("cross-section.md")
-    assert "title: The Cross Section" in text
-    assert "# The Cross Section" in text
+    assert "title: Value versus growth" in text
+    assert "# Value versus growth" in text
     positions = [text.index(h) for h in CROSS_H2S]
     assert positions == sorted(positions)
     assert "7.81" in text and "13.88" in text
