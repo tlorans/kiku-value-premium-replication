@@ -1,9 +1,9 @@
 ---
-title: From DCF to general equilibrium
+title: The result
 nav_order: 2
 ---
 
-# From DCF to general equilibrium
+# The result
 {: .no_toc }
 
 1. TOC
@@ -51,7 +51,7 @@ import lrrcs as lrr
 lrr.__version__
 ```
 
-Nothing below needs credentials or downloads. Data construction starts in [Financial data]({{ '/financial-data.html' | relative_url }}).
+Nothing below needs credentials or downloads. Extras and WRDS live on [Installation]({{ '/installation.html' | relative_url }}). Rebuilding the panel from the raw records is [Financial data]({{ '/financial-data.html' | relative_url }}), off the argument path.
 
 ## An economy in five lines
 
@@ -95,7 +95,33 @@ Price of long-run risk Lambda_eps = 5.95
 
 **What that did.** It solved for prices and premia jointly. The premia line is the discount-rate model at work: one price of long-run risk, $$\Lambda_\epsilon = 5.95$$, times each claim's exposure. The $$A_1$$ line is the same solution read as a valuation statement: value's price–dividend ratio is more than twice as elastic to long-run news as growth's. One solve, both objects — the DCF's $$r$$ and $$g$$, fused.
 
-**What that did not do.** It estimated nothing and matched nothing. The loadings were Kiku's, taken on faith. The 0.40 percent is only the long-run *piece* of the value premium; the full Euler-equation spread is about 5.3 percent against roughly 6 in the data, and value's price–dividend ratio sits below growth's — that scoreboard is [The Cross Section]({{ '/cross-section.html' | relative_url }}). Getting from raw data to those loadings, honestly, is the work of the next three chapters.
+**What that did not do.** It estimated nothing and matched nothing. The loadings were Kiku's, taken on faith. The 0.40 percent is only the long-run *piece* of the value premium. The Euler equation prices the whole claim. Kiku's Table VII (1,000 samples) is the scoreboard — premia *and* valuations, together. A match on one with a miss on the other is a fail.
+
+|  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
+|:---|---:|---:|---:|---:|
+| Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
+| Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
+| Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
+| Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
+
+The model gap is about 5.3 percent against about 6 in the data. Mean price–dividend levels come out near 24.7 on value versus 39.8 on growth. The market row is not a separate model: the same household still prices the index. The visible blemish is the safe rate, about seventy basis points too high.
+
+And the result that pays for the book: the model's ratio of value to growth CAPM betas is 0.92. Value's market beta is *lower* while its premium is five points higher. An econometrician running CAPM regressions inside this economy would print the same puzzle the data printed. The household sees no puzzle. It is paid for the low-frequency consumption risk embodied in cash flows, which market betas — dominated by transitory price fluctuations — cannot see.
+
+## What if the loadings are equal
+
+The only cross-sectional input was \(\phi_V=6.2\) against \(\phi_G=2.6\). Equalize them and the ranking has to die.
+
+```python
+params = lrr.get_table_ii_params()
+params.dividends["value"].phi = 2.6
+params.dividends["growth"].phi = 2.6
+lrr.print_long_short_premium(lrr.solve_analytical(params))
+```
+
+The long-run spread collapses. That is the whole identification in one cell: nothing about preferences changed.
+
+How those \(\phi\) are measured from dividends — not from returns — is [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}). Why a small persistent piece of consumption growth can move prices this much is [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}). Rebuilding the 1930–2003 files from WRDS is [Financial data]({{ '/financial-data.html' | relative_url }}), and you do not need it to run anything above.
 
 ## Key takeaways
 
@@ -103,5 +129,6 @@ Price of long-run risk Lambda_eps = 5.95
 - The cash-flow model lives in the dividend loadings on $$x_t$$; the discount-rate model lives in Epstein–Zin marginal utility. Both are disciplined by data before any return is looked at.
 - Assets differ only in cash-flow exposure. Prices and premia — value's low $$P/D$$ and high expected return together — are outputs, and can fail.
 - `lrr.solve_analytical` is the whole equilibrium in one call: risk premia and valuation elasticities from the same solution.
+- Equalize \(\phi\) across legs and the ranking disappears. The household was never the free parameter.
 
-Next: [Financial data]({{ '/financial-data.html' | relative_url }}), where we construct consumption, dividends, and the value and growth cash flows from the raw records.
+Next: [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), where \(A_1\) is the place the DCF's two halves meet.
