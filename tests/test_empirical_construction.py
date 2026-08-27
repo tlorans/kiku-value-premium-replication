@@ -146,18 +146,19 @@ def test_form_bm_quintiles_uses_assign_portfolio(monkeypatch):
 
     idx = pd.date_range("1999-12-31", periods=2, freq="6ME")
     # two dates: Dec 1999 and Jun 2000 so the June sort can see lagged Dec ME
+    permnos = [1, 2, 3, 4, 5]
     msf = pd.DataFrame(
         {
-            "permno": [1, 1],
-            "date": idx,
-            "ret": [0.0, 0.0],
-            "retx": [0.0, 0.0],
-            "prc": [10.0, 10.0],
-            "shrout": [1000.0, 1000.0],
-            "exchcd": [1, 1],
+            "permno": [p for p in permnos for _ in idx],
+            "date": [d for _ in permnos for d in idx],
+            "ret": [0.0] * 10,
+            "retx": [0.0] * 10,
+            "prc": [10.0] * 10,
+            "shrout": [1000.0] * 10,
+            "exchcd": [1] * 10,
         }
     )
-    book = pd.DataFrame({"permno": [1], "year": [1999], "be": [50.0]})
+    book = pd.DataFrame({"permno": permnos, "year": 1999, "be": 50.0})
     out = form_bm_quintiles(msf, book)
     assert seen["sorting_variable"] == "bm"
     assert seen["n_portfolios"] == 5

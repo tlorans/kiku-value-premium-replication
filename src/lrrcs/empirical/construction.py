@@ -151,6 +151,10 @@ def form_bm_quintiles(msf: pd.DataFrame, book: pd.DataFrame) -> pd.DataFrame:
     asg["bm"] = asg["be"] / asg["me_dec"]
     rows = []
     for _, g in asg.groupby("sort_year"):
+        nyse = g.loc[g["exchcd"] == 1, "bm"].to_numpy(dtype=float)
+        nyse = nyse[np.isfinite(nyse)]
+        if nyse.size < 5:
+            continue
         labeled = g.copy()
         labeled["exchange"] = labeled["exchcd"].map(
             {1: "NYSE", 2: "AMEX", 3: "NASDAQ"}
