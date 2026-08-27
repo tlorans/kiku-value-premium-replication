@@ -29,6 +29,11 @@ def test_pyproject_companion_metadata():
     assert "wrds" not in deps and "wrds" not in extra_blob
     assert "python-dotenv" not in deps and "python-dotenv" not in extra_blob
 
+    data_extra = "\n".join(extras["data"])
+    assert "matplotlib" in data_extra
+    assert "pyarrow" in data_extra
+    assert "polars" in data_extra
+    assert "plotnine" in data_extra
 
 
 def test_root_api_has_companion_names():
@@ -44,6 +49,8 @@ def test_root_api_has_companion_names():
         "table_vi_data",
         "figure1",
         "EmpiricalDataError",
+        "expected_growth_proxy",
+        "filter_expected_growth",
     ):
         assert hasattr(lrr, name), name
         assert name in lrr.__all__

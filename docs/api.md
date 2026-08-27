@@ -20,6 +20,7 @@ Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empiric
 | Book-to-market panel, 1930–2003 | `lrr.build_annual_panel` |
 | Table I / Table VI | `lrr.table_i`, `lrr.table_vi_data` |
 | IMRS, dynamics, solver | `lrr.get_table_ii_params`, `lrr.ModelSolver`, `lrr.solve_analytical` |
+| Expected growth \(x_t\) | `lrr.expected_growth_proxy`, `lrr.filter_expected_growth` |
 | Cash-flow loadings | `lrr.calibrate_from_data` |
 | Prices and returns | `lrr.compute_asset_pricing_moments` |
 

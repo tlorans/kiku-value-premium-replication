@@ -16,7 +16,7 @@ uv pip install -e ".[fast]"
 uv pip install -e ".[data]"
 ```
 
-`[fast]` is Numba. `[data]` is matplotlib and pyarrow.
+`[fast]` is Numba. `[data]` is matplotlib, pyarrow, polars, and plotnine.
 
 ```python
 import tidyfinance as tf

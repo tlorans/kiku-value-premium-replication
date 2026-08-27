@@ -21,7 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 fast = ["numba>=0.56"]
-data = ["matplotlib", "pyarrow"]
+data = ["matplotlib", "pyarrow", "polars", "plotnine"]
 dev = ["pytest", "matplotlib", "numba>=0.56"]
 
 [tool.pytest.ini_options]
