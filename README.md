@@ -1,26 +1,19 @@
 # Long-run risks
 
-Python package `lrrcs`: a general-equilibrium long-run-risks model (Bansal and Yaron 2004; Kiku 2006).
-The objects of the equilibrium are **asset prices and risk premia**.
+Python package `lrrcs`. Kiku (2006) in code: cash-flow leverage on long-run consumption risk prices the value premium. Average returns never enter the cash-flow step.
 
-A DCF takes expected cash flows and a discount rate as two independent inputs.
-This model derives both from one primitive — the consumption process.
-Consumption growth carries a small but highly persistent component, plus time-varying volatility;
-dividends load on that component with estimated leverage (the cash-flow model), and an Epstein–Zin
-household whose marginal utility responds to news about the entire future prices them (the discount-rate model).
-Value firms' cash flows are highly exposed to long-run consumption shocks; growth firms' are driven more
-by short-lived fluctuations — so the same household prices the aggregate market and the value premium.
-Average returns never enter the cash-flow step.
+A DCF takes expected cash flows and a discount rate as two independent inputs. This model derives both from one primitive — the consumption process. Dividends load on a small, highly persistent component of consumption growth; an Epstein–Zin household prices those loadings. Value firms are more exposed to that component than growth firms, so the same household returns value's high premium and low price–dividend ratio together.
 
 **Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
 | Page | What it is |
-|---|---|
-| [From DCF to general equilibrium](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install, Table II by hand, a first solve |
-| [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Consumption, Campbell–Shiller dividends, the annual panel |
-| [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | General equilibrium: valuations and risk premia |
-| [The Time Series](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | One claim, year after year |
+| --- | --- |
+| [The result](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install, Table II, the scoreboard |
+| [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | Where growth and the discount rate come from |
+| [Measuring leverage](https://tlorans.github.io/kiku-value-premium-replication/measuring-leverage.html) | Equation (19), no returns |
+| [The Time Series](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | Does the market still fit? |
 | [The Cross Section](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, same household |
+| [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Rebuild 1930–2003 from the raw records |
 
 ## Install
 
@@ -38,7 +31,7 @@ import lrrcs as lrr
 lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 
-WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package).
+WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package). Details live on the [installation](https://tlorans.github.io/kiku-value-premium-replication/installation.html) page.
 
 ## License
 
