@@ -11,11 +11,11 @@ nav_order: 5
 
 In this chapter we take the consumption and market-dividend series from [Financial data]({{ '/financial-data.html' | relative_url }}) and ask whether the general equilibrium can match the **valuations and risk premia** of the aggregate claim — the value-weighted market — year after year. That is the time-series test Bansal and Yaron (2004) wrote the model for. One claim. Not a ranking of firms.
 
-Long-run risks are a small but highly persistent component that governs consumption growth ($$x_t$$), plus time-variation in the conditional volatility of consumption — news about future economic uncertainty. The market’s dividends are one claim’s exposure to those low-frequency shocks. Time-non-separable Epstein–Zin preferences break the link between smoothing consumption over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Coupled with those preferences, the market’s exposure entails a significant risk premium and large reactions in the price–dividend ratio: shocks to the growth-rate component alter expectations far into the future, leading to sizable risk compensations. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.
+Long-run risks are a small but highly persistent component that governs consumption growth ($$x_t$$), plus time-variation in the conditional volatility of consumption — news about future economic uncertainty. The market’s dividends are one claim’s exposure to those low-frequency shocks. Time-non-separable Epstein–Zin preferences break the link between smoothing consumption over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Coupled with those preferences, the market’s exposure entails a significant risk premium and large reactions in the price–dividend ratio: shocks to the growth-rate component alter expectations far into the future, leading to sizable risk compensations. Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows. The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}): we do not re-derive them. Average returns never enter the cash-flow step.
 
-We (i) show that consumption growth is persistent, (ii) extract $$x_t$$ two ways, (iii) measure the market’s cash-flow exposure to long-run consumption news, (iv) simulate the cash-flow process, and (v) check whether the Euler equation matches **both** the equity premium and the valuation (mean $$\log P/D$$). Average returns never enter (iii). The objects are those of [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}).
+We extract expected growth two ways, measure the market’s cash-flow exposure, simulate, and check **both** the equity premium and the valuation (mean $$\log P/D$$).
 
-We use the following packages. Run the chunks **in order**, as on [Tidy Finance’s beta-estimation chapter](https://www.tidy-finance.org/chapters/beta-estimation.html): later snippets reuse `dc`, `mkt`, and `y`.
+We use the following packages. Run the chunks **in order**, as on [Tidy Finance’s beta-estimation chapter](https://www.tidy-finance.org/python/beta-estimation.html): later snippets reuse `dc`, `mkt`, and `y`.
 
 ```python
 import numpy as np
@@ -24,17 +24,17 @@ import polars as pl
 import plotnine as p9
 import lrrcs as lrr
 
-start, end = 1930, 2003
+dc = pl.read_csv("data/consumption_annual.csv").sort("year")
+panel = pl.read_csv("data/annual_panel.csv")
+rf = pl.read_csv("data/rf_annual.csv")
+y = dc["dc"].to_numpy()
 ```
 
 ## Preparing the sample
 
-[Financial data]({{ '/financial-data.html' | relative_url }}) wrote annual consumption growth and Campbell–Shiller market dividends for 1930–2003. We join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price–dividend ratio.
+[Financial data]({{ '/financial-data.html' | relative_url }}) already wrote annual consumption growth and Campbell–Shiller market dividends for 1930–2003. We do not rebuild those series. Join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price–dividend ratio.
 
 ```python
-dc = pl.read_csv("data/consumption_annual.csv").sort("year")
-panel = pl.read_csv("data/annual_panel.csv")
-rf = pl.read_csv("data/rf_annual.csv")
 mkt = (
     panel.filter(pl.col("claim") == "Market")
     .join(dc, on="year")
@@ -53,18 +53,19 @@ mkt.head()
  1935  Market  0.419     0.077     30.34   0.042
 ```
 
-Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.36 percent. The first autocorrelation is 0.41 — not white noise. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33).
+Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.36 percent. The first autocorrelation is 0.41 — not white noise. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33). The real T-bill on this reconstruction is near zero; Kiku’s printed sample is 0.91 percent.
 
 ```python
-y = dc["dc"].to_numpy()
 print(len(y), y.mean() * 100, y.std(ddof=1) * 100)
 print(np.corrcoef(y[:-1], y[1:])[0, 1])
+print(round(float(rf["rf"].mean() * 100), 2))
 mkt.select("ret", "dgrowth", "pd").describe()
 ```
 
 ```text
 74 1.75 2.37
 0.41
+0.07
 ```
 
 | statistic | ret | dgrowth | pd |
@@ -74,23 +75,54 @@ mkt.select("ret", "dgrowth", "pd").describe()
 | min | −0.377 | −0.433 | 10.52 |
 | max | 0.632 | 0.422 | 88.07 |
 
-## What long-run risk is
-
-If consumption growth were i.i.d., only the current shock $$\eta_{t+1}$$ would be priced. Bansal and Yaron (2004) split growth into a small persistent piece $$x_t$$ and a transitory shock:
-
-$$
-\Delta c_{t+1}=\mu+x_t+\sigma_t\eta_{t+1},\qquad
-x_{t+1}=\rho x_t+\varphi_x\sigma_t e_{t+1}.
-$$
-
-$$x_t$$ is the small but highly persistent component that governs consumption growth; $$\sigma_t$$ allows time-variation in the conditional volatility of consumption — news about future economic uncertainty. A shock to the growth-rate component significantly alters investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Time-non-separable Epstein–Zin preferences break the link between smoothing over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio and that news is priced. A claim’s loading $$\phi$$ is the amount of low-frequency risks embodied in its cash flows.
-
-You can already *see* $$x_t$$ in the annual data. Average the last two years of consumption growth. Raw $$\Delta c$$ is jagged. The moving average is the slow component.
+The Euler equation has to match this valuation, not only the average return.
 
 ```python
-plot_df = dc.with_columns(
-    pl.col("dc").shift(1).rolling_mean(window_size=2).alias("ma")
+(
+    p9.ggplot(
+        mkt.with_columns(pl.col("pd").log().alias("log_pd")).to_pandas(),
+        p9.aes("year", "log_pd"),
+    )
+    + p9.geom_line()
+    + p9.labs(x="Year", y="log(P/D)", title="Market price–dividend, 1930–2003")
 )
+```
+
+![Market log price–dividend](figures/market_log_pd.svg)
+
+<p class="caption">Market $$\log(P/D)$$ from Campbell–Shiller on CRSP. Valuations and risk premia have to match together.</p>
+
+## Extract expected growth
+
+[The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) split consumption growth into a small persistent piece $$x_t$$ and a transitory shock. Here we need that object in the annual sample. If consumption growth were i.i.d., only the current shock would be priced. It is not: AC1 is 0.41.
+
+You can already *see* $$x_t$$. Average the last two years of consumption growth. Raw $$\Delta c$$ is jagged. The moving average is the slow component — the annual picture of the small but highly persistent component that governs consumption growth.
+
+Kiku’s equation (19) uses that two-year MA as the regressor for dividend growth. Write it without the package: at date $$t$$, average $$\Delta c_{t-2}$$ and $$\Delta c_{t-1}$$ (not the current year). Then the shortcut.
+
+```python
+window = 2
+ma = np.full(len(y), np.nan)
+for t in range(window, len(y)):
+    ma[t] = float(np.mean(y[t - window : t]))
+dc.with_columns(pl.Series("ma", ma)).head(6)
+lrr.expected_growth_proxy(y, window=2)[:6]
+```
+
+```text
+ year     dc      ma
+ 1930  -0.053     NA
+ 1931  -0.024     NA
+ 1932  -0.088  -0.038
+ 1933  -0.021  -0.056
+ 1934   0.062  -0.055
+ 1935   0.042   0.020
+```
+
+The first two years are missing by construction. Plot the same `ma` we will regress on.
+
+```python
+plot_df = dc.with_columns(pl.Series("ma", ma))
 (
     p9.ggplot(plot_df.to_pandas(), p9.aes("year"))
     + p9.geom_line(p9.aes(y="dc"))
@@ -108,34 +140,6 @@ plot_df = dc.with_columns(
 <p class="caption">Raw annual $$\Delta c$$ (black) and the two-year MA of lagged growth (blue). The blue line is the annual picture of $$x_t$$.</p>
 
 Table II of Kiku (2006) puts this object on a monthly clock with $$\rho=0.98$$ (about $$0.98^{12}\approx 0.78$$ per year in a simple compounding sense; the annual MA is the counterpart we can plot).
-
-## Estimate x_t
-
-### A moving-average proxy
-
-Kiku’s equation (19) uses exactly that two-year MA as the regressor for dividend growth. Write it without the package: at date $$t$$, average $$\Delta c_{t-2}$$ and $$\Delta c_{t-1}$$ (not the current year).
-
-```python
-window = 2
-ma = np.full(len(y), np.nan)
-for t in range(window, len(y)):
-    ma[t] = float(np.mean(y[t - window : t]))
-dc.with_columns(pl.Series("ma", ma)).head(6)
-```
-
-```text
- year     dc      ma
- 1930  -0.053     NA
- 1931  -0.024     NA
- 1932  -0.088  -0.038
- 1933  -0.021  -0.056
- 1934   0.062  -0.055
- 1935   0.042   0.020
-```
-
-The first two years are missing by construction. The same array is `lrr.expected_growth_proxy(y, window=2)`.
-
-### A Kalman filter
 
 The solver does not iterate a two-year MA. It iterates an AR(1) state. The annual analogue is the linear Gaussian system
 
@@ -213,7 +217,7 @@ plot_df = dc.with_columns(
 
 Do **not** take $$\phi$$ or Table II numbers from this filter. Calibration uses the MA, as in the paper.
 
-## Calibrate dividends
+## One cash-flow exposure
 
 Kiku (2006) equation (19) is a regression of dividend growth on the two-year MA of lagged consumption:
 
@@ -221,7 +225,7 @@ $$
 \Delta d_t=d_0+\tilde\phi\,\mathrm{MA}(\Delta c,2)+\varepsilon_t.
 $$
 
-No return on the right-hand side. Align the market `dgrowth` series with `ma` and run OLS with an intercept.
+No return on the right-hand side. Align the market `dgrowth` series with the same `ma` and run OLS with an intercept.
 
 ```python
 dd = mkt["dgrowth"].to_numpy()
@@ -230,7 +234,6 @@ x = ma[mask] - ma[mask].mean()
 e = dd[mask] - dd[mask].mean()
 phi_tilde = float(np.dot(x, e) / np.dot(x, x))
 resid = dd[mask] - (dd[mask].mean() + phi_tilde * (ma[mask] - ma[mask].mean()))
-# short-run correlation with the consumption innovation
 innov = np.empty_like(y)
 innov[0] = 0.0
 rho_c = float(np.corrcoef(y[:-1], y[1:])[0, 1])
@@ -245,7 +248,28 @@ phi_tilde, mu_d_annual, phi_sigma, alpha
 (0.722, 0.0092, 5.33, 0.57)
 ```
 
-The slope $$\tilde\phi=0.72$$ is the *ranking check* (Kiku’s Table VI prints about 0.66 for the market, with a large standard error). `lrr.estimate_long_run_leverage` and `lrr.calibrate_from_data` wrap the same arithmetic.
+The slope $$\tilde\phi=0.72$$ is the *ranking check* (Kiku’s Table VI prints about 0.66 for the market, with a large standard error). Plot the same regression.
+
+```python
+plot_df = mkt.with_columns(pl.Series("ma", ma)).filter(
+    pl.col("ma").is_finite() & pl.col("dgrowth").is_finite()
+)
+(
+    p9.ggplot(plot_df.to_pandas(), p9.aes("ma", "dgrowth"))
+    + p9.geom_point()
+    + p9.labs(
+        x="Two-year MA of lagged Δc",
+        y="Market Δd",
+        title="Market cash-flow exposure, not returns",
+    )
+)
+```
+
+![Market dividend growth against the MA](figures/market_dd_vs_ma.svg)
+
+<p class="caption">Market dividend growth against the two-year MA of lagged consumption. Average returns never entered.</p>
+
+`lrr.estimate_long_run_leverage` and `lrr.calibrate_from_data` wrap the same arithmetic.
 
 ```python
 lrr.estimate_long_run_leverage(y, dd, window=2)
@@ -264,7 +288,7 @@ The solver wants *monthly* $$\phi$$. Table II locks $$\mu=0.0012$$, $$\phi=2.8$$
 
 ## Simulate cash flows
 
-The monthly recursion is the same split we plotted, now at Table II values. Write one path, annualize by summing twelve log-growths, then repeat.
+The monthly recursion is the same split, now at Table II values. Write one path, annualize by summing twelve log-growths, then repeat. Then the shortcut.
 
 ```python
 mu_c, rho, phi_x, sigma = 0.0015, 0.98, 0.032, 0.0064
@@ -423,3 +447,9 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 - The general equilibrium is a joint test of the equity premium and the valuation. Table II is close on both for the market.
 
 Value and growth are [The Cross Section]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.
+
+## Exercises
+
+1. Replace the two-year MA with `lrr.expected_growth_proxy(y, window=3)` and recompute $$\tilde\phi$$. Does the market’s slope stay in the same ballpark?
+2. Lower $$\rho$$ from 0.98 to 0.90 in the $$A_1$$ arithmetic for $$\phi=2.8$$. How much of the market’s elasticity came from persistence?
+3. Call `lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)` and compare annual AC1 to the 1000-sample numbers in the text. How noisy is persistence in a 74-year sample?

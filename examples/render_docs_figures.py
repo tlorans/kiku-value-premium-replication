@@ -49,6 +49,20 @@ def main() -> None:
         + p9.labs(x="Year", y="log(P/D)", title="Market price–dividend, 1930–2003"),
         "market_log_pd.svg",
     )
+    ma_mkt = lrr.expected_growth_proxy(dc["dc"].to_numpy(), window=2)
+    mkt_ma = mkt.with_columns(pl.Series("ma", ma_mkt)).filter(
+        pl.col("ma").is_finite() & pl.col("dgrowth").is_finite()
+    )
+    _save(
+        p9.ggplot(mkt_ma.to_pandas(), p9.aes("ma", "dgrowth"))
+        + p9.geom_point()
+        + p9.labs(
+            x="Two-year MA of lagged Δc",
+            y="Market Δd",
+            title="Market cash-flow exposure, not returns",
+        ),
+        "market_dd_vs_ma.svg",
+    )
 
     plot_df = dc.with_columns(
         pl.col("dc").shift(1).rolling_mean(window_size=2).alias("ma")
@@ -109,6 +123,56 @@ def main() -> None:
         + p9.geom_line()
         + p9.labs(x="Month", y="log(P/D)", title="Model price–dividend along the path"),
         "sim_log_pd.svg",
+    )
+
+    vg = panel.filter(pl.col("claim").is_in(["Growth", "Value"])).join(dc, on="year")
+    spread = (
+        panel.pivot(index="year", on="claim", values="ret")
+        .with_columns((pl.col("Value") - pl.col("Growth")).alias("spread"))
+        .select("year", "spread")
+        .drop_nulls()
+    )
+    _save(
+        p9.ggplot(spread.to_pandas(), p9.aes("year", "spread"))
+        + p9.geom_col()
+        + p9.geom_hline(yintercept=0, color="#888888")
+        + p9.labs(
+            x="Year",
+            y="Value − growth return",
+            title="Realized value minus growth, 1930–2003",
+        ),
+        "vg_spread.svg",
+    )
+    _save(
+        p9.ggplot(
+            vg.with_columns(pl.col("pd").log().alias("log_pd")).to_pandas(),
+            p9.aes("year", "log_pd", color="claim"),
+        )
+        + p9.geom_line()
+        + p9.labs(
+            x="Year",
+            y="log(P/D)",
+            title="Value and growth price–dividend, 1930–2003",
+        ),
+        "vg_log_pd.svg",
+    )
+    ma = lrr.expected_growth_proxy(dc["dc"].to_numpy(), window=2)
+    dd_ma = (
+        vg.join(
+            dc.with_columns(pl.Series("ma", ma)).select("year", "ma"),
+            on="year",
+        )
+        .filter(pl.col("ma").is_finite() & pl.col("dgrowth").is_finite())
+    )
+    _save(
+        p9.ggplot(dd_ma.to_pandas(), p9.aes("ma", "dgrowth", color="claim"))
+        + p9.geom_point()
+        + p9.labs(
+            x="Two-year MA of lagged Δc",
+            y="Δd",
+            title="Cash-flow exposure, not returns",
+        ),
+        "vg_dd_vs_ma.svg",
     )
 
     print("\n=== table_i ===")

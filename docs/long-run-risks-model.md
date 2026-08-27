@@ -9,13 +9,13 @@ nav_order: 4
 1. TOC
 {:toc}
 
-This chapter is the general-equilibrium counterpart of Tidy Finance’s [capital asset pricing model](https://www.tidy-finance.org/chapters/capital-asset-pricing-model.html). There the priced risk is covariance with the market return, and the objects are expected excess returns. Here the economy is Bansal and Yaron (2004) / Kiku (2006): the objects of the equilibrium are **asset prices and risk premia** — valuations and ex-ante compensations together.
+In this chapter we write the household and the consumption process, then the general-equilibrium analogue of the security market line. Tidy Finance’s [capital asset pricing model](https://www.tidy-finance.org/chapters/capital-asset-pricing-model.html) prices covariance with the market return; the objects are expected excess returns. Here the economy is Bansal and Yaron (2004) / Kiku (2006): the objects of the equilibrium are **asset prices and risk premia** — valuations and ex-ante compensations together.
 
-Long-run risks are a small but highly persistent component that governs consumption growth. In addition, the model allows for time-variation in the conditional volatility of consumption — news about future economic uncertainty. Firms are distinguished by the exposure of their dividends to low- and high-frequency shocks in consumption, as well as news about future economic uncertainty. Time-non-separable Epstein and Zin (1989) preferences break the link between smoothing consumption over time and across states. The marginal rate of substitution then depends not only on present and future consumption, as under power utility, but also on the forward-looking return on the aggregate wealth portfolio.
+Long-run risks are a small but highly persistent component that governs consumption growth. The model also allows for time-variation in the conditional volatility of consumption — news about future economic uncertainty. Firms are distinguished by the exposure of their dividends to low- versus high-frequency consumption shocks. Time-non-separable Epstein–Zin preferences break the link between smoothing consumption over time and across states, so the MRS depends on the forward-looking return on the aggregate wealth portfolio. Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Valuations and risk premia therefore depend on the amount of low-frequency risks embodied in cash flows. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
 
-What drives a premium in this economy? Shocks to the persistent growth-rate component significantly alter investors’ expectations about consumption far into the future, leading to large reactions in stock prices and sizable risk compensations. Assets’ valuations and risk premia therefore depend on the amount of low-frequency risks embodied in cash flows. Value firms are highly exposed to long-run consumption shocks; growth firms are driven more by short-lived fluctuations. Value firms exhibit higher elasticity of their price–dividend ratios to long-run consumption news, and have to provide investors with high ex-ante compensation.
+We (i) write the consumption process and see $$x_t$$, (ii) write the intertemporal marginal rate of substitution, (iii) draw compensation against cash-flow leverage. [The Time Series]({{ '/time-series.html' | relative_url }}) and [The Cross Section]({{ '/cross-section.html' | relative_url }}) test those objects on the market and on two legs. We do not extract $$x_t$$ from NIPA or match Table VII here.
 
-We write those objects, simulate them, and look at the analogue of the security market line. Run the chunks **in order**.
+We use the following packages. Run the chunks **in order**. Later snippets reuse `paths` and `sol`.
 
 ```python
 import numpy as np
@@ -25,39 +25,9 @@ import plotnine as p9
 import lrrcs as lrr
 ```
 
-## Consumption is not white noise
+## The consumption process
 
-The Mehra–Prescott equity-premium puzzle is usually stated under i.i.d. consumption growth and power utility. Annual U.S. consumption is not i.i.d. Load the NIPA series from [Financial data]({{ '/financial-data.html' | relative_url }}) and look at persistence.
-
-```python
-dc = pl.read_csv("data/consumption_annual.csv").sort("year")
-y = dc["dc"].to_numpy()
-len(y), round(float(y.mean() * 100), 2), round(float(y.std(ddof=1) * 100), 2)
-round(float(np.corrcoef(y[:-1], y[1:])[0, 1]), 2)
-```
-
-```text
-(74, 1.75, 2.37)
-0.41
-```
-
-Seventy-four years, 1930–2003. Mean growth 1.75 percent, volatility 2.4 percent, first autocorrelation **0.41**. White noise would have autocorrelation near zero. That 0.41 is the fact the model is built around.
-
-```python
-(
-    p9.ggplot(dc.to_pandas(), p9.aes("year", "dc"))
-    + p9.geom_line()
-    + p9.labs(x="Year", y="Δc", title="Annual consumption growth, 1930–2003")
-)
-```
-
-![Real per-capita ND+S growth](figures/consumption_growth.svg)
-
-<p class="caption">Log growth of real per-capita nondurables plus services. The series is positively autocorrelated. That is not a market return.</p>
-
-## A persistent expected-growth state
-
-Bansal and Yaron split consumption growth into a small persistent piece $$x_t$$ and a transitory shock:
+[Financial data]({{ '/financial-data.html' | relative_url }}) showed that annual U.S. consumption growth is not white noise: first autocorrelation about 0.41. The Mehra–Prescott equity-premium puzzle is usually stated under i.i.d. growth and power utility. That consumption process is the wrong one. Bansal and Yaron split growth into a small persistent piece $$x_t$$ and a transitory shock:
 
 $$
 \Delta c_{t+1}=\mu+x_t+\sigma_t\eta_{t+1},\qquad
@@ -117,9 +87,9 @@ paths = pd.DataFrame({
 
 <p class="caption">$$x_t$$ is small (a few tenths of a percent per month) and highly persistent. That is the low-frequency risk embodied in cash flows.</p>
 
-In the CAPM the factor is $$R_m-r_f$$. Here the factor is news in the persistent growth-rate component — and, separately, news about future economic uncertainty.
+In the CAPM the factor is $$R_m-r_f$$. Here the factor is news in the persistent growth-rate component — and, separately, news about future economic uncertainty. Extracting $$x_t$$ from the annual sample is [The Time Series]({{ '/time-series.html' | relative_url }}).
 
-## Time-non-separable preferences
+## The household
 
 Power utility forces risk aversion and the EIS to be reciprocals: $$\gamma=1/\psi$$. That ties agents’ attitude towards smoothing consumption over time to their attitude across states of nature. Epstein and Zin (1989) / Weil (1989) break that link. The intertemporal marginal rate of substitution is
 
@@ -128,6 +98,8 @@ M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
 \qquad
 \theta=\frac{1-\gamma}{1-1/\psi}.
 $$
+
+Table II: $$\delta=0.999$$, $$\gamma=10$$, $$\psi=1.5$$.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5
@@ -143,7 +115,7 @@ $$\theta\neq 1$$. The term $$R_{c,t+1}^{\theta-1}$$ is the forward-looking retur
 
 The Euler equation is still the whole pricing theory: $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$. The objects it delivers are **valuations and risk premia**.
 
-## Low-frequency risks in cash flows
+## The security market line
 
 CAPM beta is the slope of asset excess returns on market excess returns. Long-run leverage $$\phi$$ is the exposure of *dividends* to the persistent growth-rate component:
 
@@ -157,7 +129,9 @@ $$
 A_1=\frac{\phi-1/\psi}{1-\kappa_1\rho}.
 $$
 
-Because $$\rho$$ is close to one, $$A_1$$ is large: valuations react strongly to long-run consumption news. The long-run risk premium is $$A_1$$ times the price of that news. Assets’ valuations and risk premia, therefore, depend on the amount of low-frequency risk embodied in their cash flows.
+Because $$\rho$$ is close to one, $$A_1$$ is large: valuations react strongly to long-run consumption news. The long-run risk premium is $$A_1$$ times the price of that news. Assets’ valuations and risk premia, therefore, depend on the amount of low-frequency risks embodied in cash flows.
+
+This is the CAPM chapter’s security market line with a different horizontal axis. Draw compensation against $$\phi$$, then the shortcut.
 
 ```python
 psi, rho, gamma = 1.5, 0.98, 10.0
@@ -205,11 +179,9 @@ Value’s $$A_1$$ is about twice growth’s: value firms exhibit higher elastici
 
 `lrr.solve_analytical` is this linearization for every claim in `ModelParams`. The points on the figure come from Table II: $$\phi_G=2.6$$, $$\phi_m=2.8$$, $$\phi_V=6.2$$.
 
-## Cash flows in, prices and premia out
+Do **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure. Average returns, Sharpe ratios, and CAPM betas stay out of that step. The Euler equation is then a *test*: given those cash-flow numbers, do valuations and risk premia look like the data?
 
-In the CAPM chapter you estimate $$\beta_i$$ from returns. Here you must **not** estimate $$\phi$$ from returns. $$\phi$$ is a cash-flow exposure (dividend growth on the persistent consumption component). Average returns, Sharpe ratios, and CAPM betas stay out of that step. The Euler equation is then a *test* of the general equilibrium: given those cash-flow numbers, do **valuations and risk premia** look like the data?
-
-That test is the rest of the book. [The Time Series]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, measures the market’s exposure to long-run consumption shocks, and checks the market’s price–dividend ratio and equity premium. [The Cross Section]({{ '/cross-section.html' | relative_url }}) does the same for two legs: value highly exposed to low-frequency shocks, growth driven more by short-lived fluctuations.
+That test is the rest of the book. [The Time Series]({{ '/time-series.html' | relative_url }}) extracts $$x_t$$, measures the market’s exposure to long-run consumption shocks, and checks the market’s price–dividend ratio and equity premium. [The Cross Section]({{ '/cross-section.html' | relative_url }}) does the same for two legs: value highly exposed to long-run consumption shocks, growth driven more by short-lived fluctuations.
 
 ## Key takeaways
 
@@ -228,4 +200,4 @@ That test is the rest of the book. [The Time Series]({{ '/time-series.html' | re
 
 1. Set $$\psi=1/\gamma=0.1$$ so that $$\theta=1$$. Recompute the premium-versus-$$\phi$$ line. What happens to the slope?
 2. Lower $$\rho$$ from 0.98 to 0.90 and recompute $$A_1$$ for $$\phi=6.2$$. How much of the value claim’s elasticity came from persistence?
-3. Using the 1930–2003 consumption series, replace the two-year MA of lags with a three-year MA. Does the market’s OLS slope on that proxy stay in the same ballpark?
+3. Set $$\varphi_x=0$$ (no long-run risk in consumption) and recompute the premium-versus-$$\phi$$ line. Where did the slope go?

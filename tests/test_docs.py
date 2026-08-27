@@ -190,34 +190,50 @@ def test_financial_data_chapter():
     assert "8.52" in text and "13.67" in text
 
 
+MODEL_H2S = (
+    "## The consumption process",
+    "## The household",
+    "## The security market line",
+)
+
+
 def test_long_run_risks_model_chapter():
     text = _text("long-run-risks-model.md")
     assert "title: The long-run risks model" in text
     assert "# The long-run risks model" in text
     assert _parent("long-run-risks-model.md") is None
     assert _front_nav_order("long-run-risks-model.md") == 4
+    positions = [text.index(h) for h in MODEL_H2S]
+    assert positions == sorted(positions)
+    assert "## Consumption is not white noise" not in text
+    assert "figures/consumption_growth.svg" not in text
     assert "M_{t+1}" in text or "m_{t+1}" in text
     assert "Bansal" in text
     assert "Epstein" in text
     assert "import lrrcs as lrr" in text
     assert "import polars as pl" in text
     assert "import plotnine as p9" in text
+    assert "p9.ggplot" in text
     assert "capital-asset-pricing-model" in text
     assert "Lambda_eps" in text or "A_1" in text
     assert "figures/lrr_sml.svg" in text
     assert "figures/lrr_state.svg" in text
+    assert "figures/lrr_consumption_paths.svg" in text
     assert "## Key takeaways" in text
+    assert "## Exercises" in text
     assert "time-series" in text
     assert "cross-section" in text
     assert "8.56" not in text
     assert "13.88" not in text
     assert "cash-flows-then-prices" not in text
+    assert "expected_growth_proxy" not in text
+    assert "kalman_filter" not in text
 
 
 MARKET_H2S = (
-    "## What long-run risk is",
-    "## Estimate x_t",
-    "## Calibrate dividends",
+    "## Preparing the sample",
+    "## Extract expected growth",
+    "## One cash-flow exposure",
     "## Simulate cash flows",
     "## Solve and check returns and prices",
 )
@@ -232,6 +248,8 @@ def test_market_chapter():
     positions = [text.index(h) for h in MARKET_H2S]
     assert positions == sorted(positions)
     assert "## Data" not in text
+    assert "## What long-run risk is" not in text
+    assert "## Calibrate dividends" not in text
     assert "8.56" in text and "7.53" in text
     assert "expected_growth_proxy" in text
     assert "filter_expected_growth" in text
@@ -239,6 +257,7 @@ def test_market_chapter():
     assert "compute_asset_pricing_moments" in text
     assert "import polars as pl" in text
     assert "import plotnine as p9" in text
+    assert "p9.ggplot" in text
     assert "import lrrcs as lrr" in text
     assert "```python" in text
     assert "from lrrcs.model import" not in text
@@ -248,6 +267,8 @@ def test_market_chapter():
     assert "cross-section" in text
     assert "figures/consumption_ma.svg" in text
     assert "figures/xt_proxy_filter.svg" in text
+    assert "figures/market_log_pd.svg" in text
+    assert "figures/market_dd_vs_ma.svg" in text
     assert "figures/sim_xt.svg" in text
     assert "figures/sim_dd.svg" in text
     assert "figures/sim_log_pd.svg" in text
@@ -258,12 +279,14 @@ def test_market_chapter():
     assert "one_path" in text
     assert "# ... Kalman" not in text
     assert "## Key takeaways" in text
+    assert "## Exercises" in text
 
 
 TUTORIAL_FIGURES = (
     "consumption_growth.svg",
     "market_dd_vs_dc.svg",
     "market_log_pd.svg",
+    "market_dd_vs_ma.svg",
     "consumption_ma.svg",
     "xt_proxy_filter.svg",
     "sim_xt.svg",
@@ -272,6 +295,9 @@ TUTORIAL_FIGURES = (
     "lrr_sml.svg",
     "lrr_state.svg",
     "lrr_consumption_paths.svg",
+    "vg_spread.svg",
+    "vg_log_pd.svg",
+    "vg_dd_vs_ma.svg",
 )
 
 
@@ -283,29 +309,41 @@ def test_tutorial_figures_exist():
         assert path.stat().st_size > 500, name
 
 
+CROSS_H2S = (
+    "## Preparing the sample",
+    "## Two cash-flow exposures",
+    "## Elasticity of price–dividend to x_t",
+    "## Solve and check rankings",
+)
+
+
 def test_value_versus_growth_chapter():
     text = _text("cross-section.md")
     assert "title: The Cross Section" in text
     assert "# The Cross Section" in text
     assert _parent("cross-section.md") is None
     assert _front_nav_order("cross-section.md") == 6
-    h2s = (
-        "## Data",
-        "## Calibrate cash flows",
-        "## Solve",
-        "## Compare pricing moments",
-    )
-    positions = [text.index(h) for h in h2s]
+    positions = [text.index(h) for h in CROSS_H2S]
     assert positions == sorted(positions)
+    assert "## Data" not in text
     assert "7.81" in text and "13.88" in text
     assert "5.3" in text
     assert "calibrate_from_data" in text
+    assert "expected_growth_proxy" in text
+    assert "compute_asset_pricing_moments" in text
     assert "```python" in text
     assert "import lrrcs as lrr" in text
     assert "import polars as pl" in text
+    assert "import plotnine as p9" in text
+    assert "p9.ggplot" in text
     assert "phi_hat" in text
     assert "capm_beta" in text
     assert "## Key takeaways" in text
+    assert "## Exercises" in text
+    assert "figures/vg_spread.svg" in text
+    assert "figures/vg_log_pd.svg" in text
+    assert "figures/vg_dd_vs_ma.svg" in text
+    assert "figures/figure1.svg" not in text
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
 
