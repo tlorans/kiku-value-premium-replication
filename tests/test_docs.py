@@ -188,3 +188,26 @@ def test_market_chapter():
     assert "Melin" not in text
     assert "other-risk-premia" not in text
     assert "cross-section" in text
+
+
+def test_value_versus_growth_chapter():
+    text = _text("cross-section.md")
+    assert "title: Value versus growth" in text
+    assert "# Value versus growth" in text
+    assert _parent("cross-section.md") is None
+    assert _front_nav_order("cross-section.md") == 5
+    h2s = (
+        "## Data",
+        "## Calibrate cash flows",
+        "## Solve",
+        "## Compare pricing moments",
+    )
+    positions = [text.index(h) for h in h2s]
+    assert positions == sorted(positions)
+    assert "7.81" in text and "13.88" in text
+    assert "5.3" in text
+    assert "calibrate_from_data" in text
+    assert "```python" in text
+    assert "import lrrcs as lrr" in text
+    assert "other-risk-premia" not in text
+    assert "climate.html" not in text
