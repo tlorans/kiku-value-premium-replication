@@ -39,8 +39,17 @@ if "__path__" in globals():
             __all__.append(_name)
             _seen.add(_name)
 
+from ._backend import use_backend as _use_backend
+
+_BACKEND_WRAPPED = ("build_annual_panel", "table_i", "table_vi_data")
+for _name in _BACKEND_WRAPPED:
+    if _name not in globals():
+        raise RuntimeError(f"{_name!r} missing from public API")
+    globals()[_name] = _use_backend(globals()[_name])
+
 del importlib, pkgutil, types
 del _seen
+del _use_backend
 for _leaked in (
     "_finder",
     "_ispkg",

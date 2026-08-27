@@ -93,3 +93,34 @@ def test_no_climate_imports():
     import lrrcs, sys
     banned = [m for m in sys.modules if "climate_discount" in m or "corpo_research_papers" in m]
     assert banned == []
+
+
+def test_table_i_returns_pandas_by_default():
+    import pandas as pd
+    import tidyfinance as tf
+    import lrrcs as lrr
+    tf.set_backend("pandas")
+    bm = pd.read_csv("tests/fixtures/tiny_panel.csv")
+    out = lrr.table_i(bm)
+    assert isinstance(out, pd.DataFrame)
+
+
+def test_table_i_returns_polars_when_backend_is_polars():
+    import pandas as pd
+    import polars as pl
+    import tidyfinance as tf
+    import lrrcs as lrr
+    tf.set_backend("polars")
+    try:
+        bm = pd.read_csv("tests/fixtures/tiny_panel.csv")
+        out = lrr.table_i(bm)
+        assert isinstance(out, pl.DataFrame)
+        out2 = lrr.table_i(pl.from_pandas(bm))
+        assert isinstance(out2, pl.DataFrame)
+    finally:
+        tf.set_backend("pandas")
+
+
+def test_no_lrr_set_backend():
+    import lrrcs as lrr
+    assert not hasattr(lrr, "set_backend")
