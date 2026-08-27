@@ -15,7 +15,7 @@ import polars as pl
 import lrrcs as lrr
 ```
 
-Read the argument first: [The result]({{ '/getting-started.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}), [The Time Series]({{ '/time-series.html' | relative_url }}), [The Cross Section]({{ '/cross-section.html' | relative_url }}).
+Read the argument first: [The result]({{ '/getting-started.html' | relative_url }}), [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}), [Does the market still fit?]({{ '/time-series.html' | relative_url }}), [Value versus growth]({{ '/cross-section.html' | relative_url }}).
 
 Rebuild the 1930–2003 sample only if you need to: [Financial data]({{ '/financial-data.html' | relative_url }}).
 

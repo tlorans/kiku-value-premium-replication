@@ -6,7 +6,7 @@ nav_order: 1
 
 # Installation
 
-Python 3.11+. The `tidyfinance` package is a required dependency (it is the WRDS client `lrrcs` uses for downloads). Run the chunks **in order**.
+Python 3.11+. The core install solves Table II with no credentials and no downloads. The `tidyfinance` package is required only to rebuild CRSP / Compustat from WRDS. Run the chunks **in order**.
 
 ```bash
 git clone https://github.com/tlorans/kiku-value-premium-replication.git
