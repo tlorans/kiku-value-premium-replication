@@ -1,5 +1,35 @@
 ---
 title: "Glossary"
+aliases:
+  - /background.html
 ---
 
-Stub — content lands with the reference PR.
+The terms the course uses, with one-line meanings. No numbers here
+beyond definitions; every claim lives on the page that earns it.
+
+Readers looking for the background primers will find them where they
+are taught rather than on this page: the Euler equation and the
+discipline it imposes are built in
+[Chapter 3](../chapters/03-pricing-by-euler-equation.qmd), Epstein–Zin
+preferences and the separation of risk aversion from intertemporal
+substitution in
+[Chapter 4](../chapters/04-epstein-zin-preferences.qmd), and the
+long-run risks consumption process in
+[Chapter 5](../chapters/05-long-run-risks.qmd). Why a CAPM beta says
+little about low-frequency risk is shown where the puzzle is resolved,
+in [Chapter 10](../chapters/10-value-premium-resolved.qmd).
+
+## Glossary
+
+| Term | Meaning |
+|:---|:---|
+| loading ($\phi$) | how hard a claim's dividend growth moves with the persistent component of consumption; the model's characteristic, measured from cash flows |
+| persistent component ($x_t$) | the slow-moving deviation of expected consumption growth from its mean |
+| P/D ratio | price per unit of annual dividend; its log is the course's valuation gauge |
+| beta | slope of a claim's return on the market's return (CAPM) |
+| EIS ($\psi$) | elasticity of intertemporal substitution: response of consumption plans to interest rates |
+| risk aversion ($\gamma$) | willingness to pay to avoid consumption risk |
+| Euler equation | $E_t[M_{t+1}R_{i,t+1}]=1$: no asset is a free lunch relative to the household's marginal utility |
+| cash-flow news | revision in expected dividends |
+| discount-rate news | revision in expected returns |
+| Table II | Kiku's calibrated economy: preferences, consumption process, and the three claims' cash-flow parameters |

@@ -1,5 +1,278 @@
 ---
 title: "8. Calibrating cash flows from data"
+aliases: [/measuring-leverage.html]
 ---
 
-Stub — content lands with its part's PR.
+Everything so far priced the cash-flow processes of Table II as given.
+This chapter is where those numbers come from — and, more importantly,
+where they do *not* come from. The characteristic that separates value
+from growth in this model is not a return beta, not an average return,
+not a valuation ratio. It is how hard a claim's *dividends* load on the
+persistent component of consumption growth. That loading is measured by
+a regression whose right-hand side contains only consumption. There is
+no return anywhere on the page.
+
+This discipline is the whole point of the exercise.
+[Chapter 1](01-two-free-numbers.qmd) showed that a DCF can rationalize
+any premium because its discount rate is a free number fitted to the
+returns it claims to explain. Here the household was calibrated to
+consumption moments alone ([Chapter 5](05-long-run-risks.qmd)), and
+each claim brings only its cash-flow numbers. When the model later
+produces a value premium, that premium will be an output, because
+nothing in this chapter ever saw one.
+
+The plan: build the paper's proxy for expected consumption growth, run
+the paper's equation (19) on the dividends of the growth, value, and
+market claims, and see the risk sit exactly where the model needs it —
+in value's cash flows. Then I explain how these annual slopes relate to
+the monthly loadings the solver actually uses.
+
+## The economics: one regression, no returns
+
+Expected consumption growth $x_t$ is not observable. But it is
+persistent, and consumption growth is expected growth plus noise:
+$\Delta c_{t+1} = \mu + x_t + \sigma_t \eta_{t+1}$. Averaging the last
+few years of realized growth averages the noise away and leaves an
+estimate of where $x_t$ has recently been. The paper uses a two-year
+moving average of *lagged* consumption growth — lagged, so the current
+year's dividend innovation never sits on both sides of the regression.
+
+Equation (19) of the paper regresses each claim's dividend growth on
+that proxy:
+
+$$
+\Delta d_t \;=\; d_0 \;+\; \tilde\phi \, \tfrac{1}{2}\!\sum_{k=1}^{2} \Delta c_{t-k} \;+\; \varepsilon_t .
+$$ {#eq-nineteen}
+
+The slope $\tilde\phi$ is the annual, estimable counterpart of the
+monthly leverage parameter $\phi$ from
+[Chapter 5](05-long-run-risks.qmd): it answers *when the slow component
+of consumption growth is one point higher, how much faster do this
+claim's dividends grow?* If the long-run risks story of the value
+premium is right, value's $\tilde\phi$ must come out well above
+growth's — measured from cash flows alone, before any return is looked
+at.
+
+::: {.callout-note collapse="true" title="Derivation: why the moving average identifies the loading"}
+Take the dividend process of [Chapter 5](05-long-run-risks.qmd),
+$\Delta d_{t+1} = \mu_d + \phi x_t + \varphi_\sigma \sigma_t u_{t+1}$,
+and the consumption process
+$\Delta c_{t+1} = \mu + x_t + \sigma_t \eta_{t+1}$. A window-$w$ average
+of lagged consumption growth is
+$\frac{1}{w}\sum_k \Delta c_{t-k} = \mu + \frac{1}{w}\sum_k x_{t-k-1} + \text{noise}$.
+Because $x_t$ is highly persistent, the average of its recent lags is
+close to $x_t$ itself, so the regressor is (noisy) $x_t$ plus a
+constant, and the population slope of $\Delta d$ on it is $\phi$ times
+an attenuation factor that depends on the signal-to-noise ratio of the
+proxy and on time aggregation. The attenuation is common across claims
+run against the *same* regressor, which is why the regression
+identifies the *ordering and relative size* of the loadings cleanly,
+while the level of each annual slope is not the monthly $\phi$.
+:::
+
+Two clocks, one mapping. The regression above runs on annual data,
+because that is the frequency at which seven decades of portfolio
+dividends exist. The solver runs on monthly data. The annual slopes are
+therefore *not* the numbers Table II feeds the solver. They do two
+jobs: they establish the ranking the monthly loadings must respect, and
+they are the data panel of the paper's Table VI. The monthly Table II
+loadings ($\phi_G = 2.6$, $\phi_V = 6.2$, $\phi_m = 2.8$) are then
+chosen so that when the *model* is simulated and equation (19) is run
+on the simulated annual data, the model's slopes match the data's —
+that is Table VI's model panel. Cash flows are matched to cash flows,
+on both clocks; returns enter neither.
+
+## Hands-on: measuring the loadings
+
+The reconstruction of the 1930–2003 series (consumption growth,
+portfolio dividend growth from the book-to-market sort) was built in
+[Chapter 2](02-value-premium-in-the-data.qmd); here I only load the
+committed CSVs.
+
+```{python}
+#| code-fold: true
+# Data bootstrap: use the repo's committed CSVs, or fetch them when this
+# notebook runs outside the repository.
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("annual_panel.csv", "consumption_annual.csv", "rf_annual.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import lrrcs as lrr
+
+dc = pd.read_csv(DATA / "consumption_annual.csv").sort_values("year")
+panel = pd.read_csv(DATA / "annual_panel.csv")
+y = dc["dc"].to_numpy()
+```
+
+`lrr.expected_growth_proxy` builds the two-year moving average of
+lagged growth. The first two years have no lags to average, so they are
+missing by construction:
+
+```{python}
+ma = lrr.expected_growth_proxy(y, window=2)
+pd.DataFrame({"year": dc["year"], "dc": y, "ma": ma}).round(3).head(6)
+```
+
+```{python}
+#| code-fold: true
+#| fig-cap: "Annual consumption growth (black) and the two-year moving average of its lags (red). The red line is the annual picture of the state variable x_t: slow swings the raw series hides."
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(6.5, 3.2))
+ax.plot(dc["year"], y, color="#1b1714", lw=1.1, label="annual Δc")
+ax.plot(dc["year"], ma, color="#7a1f1f", lw=1.8, label="two-year MA of lags")
+ax.axhline(0, color="#888888", lw=0.6)
+ax.set_xlabel("year")
+ax.set_ylabel("consumption growth")
+ax.legend(frameon=False, fontsize=9)
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+Now @eq-nineteen, once per claim. The value portfolio's dividend series
+has two missing depression years, so the regression masks non-finite
+observations; the cell prints the count so nothing is silently dropped.
+
+```{python}
+def dgrowth(claim):
+    rows = panel[panel["claim"] == claim].merge(dc, on="year").sort_values("year")
+    return rows["dgrowth"].to_numpy()
+
+def phi_tilde(dd):
+    ok = np.isfinite(ma) & np.isfinite(dd)
+    xx = ma[ok] - ma[ok].mean()
+    ee = dd[ok] - dd[ok].mean()
+    return float(xx @ ee / (xx @ xx))
+
+print({c: round(phi_tilde(dgrowth(c)), 3) for c in ("Growth", "Value", "Market")})
+print("missing value-portfolio years:", int(np.sum(~np.isfinite(dgrowth("Value")))))
+```
+
+There is the risk, in the cash flows, where the model said it would be.
+Value's dividend growth rises hard with the slow component of
+consumption; growth's barely responds — on this reconstruction it even
+leans slightly the other way — and the market sits in between.
+
+```{python}
+#| code-fold: true
+#| fig-cap: "Dividend growth against the two-year MA of lagged consumption growth, with the OLS fit for each claim. Value's slope is far steeper than growth's. No return enters this picture."
+fig, ax = plt.subplots(figsize=(6.5, 3.6))
+for claim, color in (("Growth", "#1b1714"), ("Value", "#7a1f1f")):
+    dd = dgrowth(claim)
+    ok = np.isfinite(ma) & np.isfinite(dd)
+    ax.scatter(ma[ok], dd[ok], s=16, color=color, label=claim.lower(), alpha=0.8)
+    slope = phi_tilde(dd)
+    grid_x = np.linspace(ma[ok].min(), ma[ok].max(), 2)
+    ax.plot(grid_x, dd[ok].mean() + slope * (grid_x - ma[ok].mean()),
+            color=color, lw=1.4)
+ax.set_xlabel("two-year MA of lagged Δc")
+ax.set_ylabel("dividend growth Δd")
+ax.legend(frameon=False, fontsize=9)
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+How do these numbers compare with the paper? My Table VI reports
+$-0.38$ for growth, $2.16$ for value, and $0.66$ for the market; the
+reconstruction prints $-0.267$, $12.129$, and $0.722$. The market slope
+lands close, the growth slope is small and negative in both, and value
+is far above growth in both — but the value *point estimate* is wildly
+different. That is what seventy-odd annual observations buy: a claim's
+slope moves a lot with the data vintage and with the two masked
+depression years, which fall exactly where consumption swings were
+largest. The deliverable of this regression is the ordering — value
+loads hard on long-run consumption news, growth does not — and the
+ordering is what survives. Do not read a third decimal, or even a first
+one, into the value slope.
+
+The package wraps the same arithmetic.
+`lrr.estimate_long_run_leverage` is the one-claim slope, and
+`lrr.calibrate_from_data` turns consumption and dividend-growth series
+into a full set of cash-flow parameters. Look at the signatures: there
+is no argument that accepts a return. The function will not take one.
+That is the structural discipline of the calibration, enforced by the
+API itself.
+
+```{python}
+print(round(lrr.estimate_long_run_leverage(y, dgrowth("Market"), window=2), 3))
+lrr.print_calibration_summary(
+    lrr.calibrate_from_data(y, market=dgrowth("Market"),
+                            frequency="annual", window=2)
+)
+```
+
+Same 0.722 as the manual regression, plus the volatility loading
+$\varphi_\sigma$ and the short-run correlation $\alpha$ estimated from
+the residuals of the same regression — still no returns.
+
+Finally, the mapping to the solver's clock. Table II's monthly loadings
+are the numbers everything downstream prices:
+
+```{python}
+params = lrr.get_table_ii_params()
+for name, d in params.dividends.items():
+    print(f"{name:8s} monthly phi = {d.phi}")
+```
+
+The monthly $\phi$ are larger than the annual slopes because time
+aggregation and the noisy proxy attenuate the annual regression (see
+the derivation callout above). What disciplines them is Table VI's
+model panel: simulate the economy at these monthly loadings, aggregate
+to years, rerun @eq-nineteen, and the simulated slopes have to look
+like the data's. The ordering — $\phi_V = 6.2$ far above
+$\phi_G = 2.6$, market at $2.8$ — is the annual regression's ordering,
+carried to the monthly clock.
+
+## Takeaways
+
+- The characteristic is cash-flow leverage: the slope of dividend
+  growth on a two-year moving average of lagged consumption growth
+  (paper eq. 19). Returns appear nowhere in the calibration, and
+  `calibrate_from_data` has no argument that could accept one.
+- On the reconstruction the slopes print $-0.267$ (growth), $12.129$
+  (value), $0.722$ (market); my Table VI reports $-0.38$, $2.16$,
+  $0.66$. The point estimates are noisy — the ordering, value far above
+  growth with the market in between, is the robust deliverable.
+- The annual slopes are not the solver's inputs. Table II's monthly
+  loadings ($2.6$, $6.2$, $2.8$) are chosen so the model's simulated
+  eq.-19 slopes match the data's; the annual regression fixes the
+  ordering and provides the check.
+
+## Exercises
+
+1. Rerun the three regressions with
+   `lrr.expected_growth_proxy(y, window=3)`. Does the ordering of the
+   slopes survive a different window?
+2. Drop the years 1930–1945 from the sample and re-estimate. Does value
+   still carry the larger $\tilde\phi$? What happens to the growth
+   slope's sign?
+3. Call `lrr.calibrate_from_data(y, market=dgrowth("Market"))` and then
+   try to pass the market's *returns* to it in any argument. Confirm
+   from the error that there is no place for them.
+
+::: {.firewall}
+**Where each number comes from.** Every number above is printed by the
+cells on this page: the slopes by the eq.-19 OLS and
+`estimate_long_run_leverage` / `calibrate_from_data` on
+`data/consumption_annual.csv` and `data/annual_panel.csv`, the monthly
+loadings by `get_table_ii_params`; Table VI's $-0.38$ / $2.16$ / $0.66$
+are the paper's prints. Download the chapter as a notebook (top of the
+page) to rerun everything.
+:::

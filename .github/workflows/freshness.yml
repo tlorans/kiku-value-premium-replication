@@ -23,7 +23,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install environment
-        run: uv sync --group docs --extra fast
+        run: uv sync --group docs --extra fast --extra dev --extra data
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:

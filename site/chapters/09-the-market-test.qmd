@@ -1,5 +1,267 @@
 ---
 title: "9. The market test"
+aliases: [/time-series.html]
 ---
 
-Stub — content lands with its part's PR.
+The model is now fully assembled, and — this is the point of everything
+that came before — fully *spent*. The household's preferences were
+pinned down by consumption moments in
+[Chapter 5](05-long-run-risks.qmd). The cash-flow loadings were
+measured from dividends and consumption in
+[Chapter 8](08-calibrating-cash-flows.qmd). There is no parameter left
+that could be bent toward a return. So the first confrontation with
+asset-price data is a genuine out-of-sample test: hand the calibrated
+household the calibrated aggregate dividend claim and ask what it pays
+for it, and what it earns on it.
+
+The aggregate market is where this model family was built to be tested
+(Bansal and Yaron 2004), and the bar is set by two facts at once. The
+market out-earns a Treasury bill by seven to eight percentage points a
+year over 1930–2003, and it trades at a mean price–dividend ratio near
+thirty — a valuation that swings from 10 to 88 across the sample. A DCF
+can hit either fact alone, because it has a free number to spend on it.
+This model has none left, so it is graded on the pair: *a match on the
+equity premium at the wrong valuation is a fail, and so is the
+reverse.*
+
+One more gate before prices: the calibrated cash-flow processes must
+themselves look like the data when simulated. If simulated consumption
+and dividends do not resemble the sample, a later match on returns
+would be a free parameter in disguise, and the test ends there.
+
+## The economics: what is being graded, and how
+
+Nothing new is derived here. The Euler equation
+$E_t[M_{t+1} R_{i,t+1}] = 1$ with the Epstein–Zin kernel
+([Chapter 4](04-epstein-zin-preferences.qmd)) prices the market claim;
+the Tauchen–Hussey solver of [Chapter 7](07-quadrature-solution.qmd)
+computes the valuation function $z(x_t, \sigma_t^2)$ on a grid without
+log-linear shortcuts. What is new is the *object* being compared to the
+data.
+
+The paper's Table VII is not a population moment. It is the average,
+across 1,000 artificial samples, of statistics estimated on 74 years of
+annual data — each artificial sample simulated at the monthly frequency
+and aggregated to years, exactly the length of the 1930–2003 sample.
+This matters for honest grading: a 74-year sample average is a noisy
+draw, so the model is asked whether the data look like a *typical
+sample* from it, and the cross-sample standard deviation says how far a
+typical sample strays. `lrr.simulate_table_vii` reproduces that object;
+this page runs 300 samples rather than 1,000 to keep the build fast
+(the printed means barely move).
+
+## Hands-on: the data targets
+
+```{python}
+#| code-fold: true
+# Data bootstrap: use the repo's committed CSVs, or fetch them when this
+# notebook runs outside the repository.
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("annual_panel.csv", "consumption_annual.csv", "rf_annual.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import lrrcs as lrr
+
+dc = pd.read_csv(DATA / "consumption_annual.csv").sort_values("year")
+panel = pd.read_csv(DATA / "annual_panel.csv")
+rf = pd.read_csv(DATA / "rf_annual.csv")
+y = dc["dc"].to_numpy()
+mkt = panel[panel["claim"] == "Market"].merge(dc, on="year").sort_values("year")
+```
+
+```{python}
+print(f"{len(mkt)} years, 1930-2003")
+print(f"consumption growth : mean {y.mean()*100:.2f}%, "
+      f"sd {y.std(ddof=1)*100:.2f}%, AC1 {np.corrcoef(y[:-1], y[1:])[0, 1]:.2f}")
+print(f"market return      : mean {mkt['ret'].mean()*100:.2f}%, "
+      f"sd {mkt['ret'].std(ddof=1)*100:.1f}%")
+print(f"market dividends   : mean {mkt['dgrowth'].mean()*100:.1f}%, "
+      f"sd {mkt['dgrowth'].std(ddof=1)*100:.1f}%, "
+      f"corr(dc, dd) {np.corrcoef(mkt['dc'], mkt['dgrowth'])[0, 1]:.2f}")
+print(f"real T-bill        : mean {rf['rf'].mean()*100:.2f}%")
+print(f"market valuation   : mean P/D {mkt['pd'].mean():.1f}, "
+      f"mean log P/D {np.log(mkt['pd']).mean():.2f}")
+```
+
+Read the targets off the print. The endowment is smooth — consumption
+growth averages 1.75 percent with a 2.37 percent standard deviation —
+which is exactly why an eight-and-a-half percent market return is a
+puzzle. Its first autocorrelation of 0.41 says expected growth is not a
+constant. The reconstruction's real T-bill averages 0.07 percent; the
+paper's sample, on a slightly different vintage, prints 0.91 percent —
+the safe rate is the one series where the reconstruction and the
+paper's data differ visibly, and I quote both below. And the valuation
+is a moving target, not a Gordon constant:
+
+```{python}
+#| code-fold: true
+#| fig-cap: "Market log price–dividend ratio, 1930–2003 (Campbell–Shiller dividends on the CRSP reconstruction). The dashed line is the sample mean of 3.33. The model must produce the premium and this valuation level together."
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+log_pd = np.log(mkt["pd"].to_numpy())
+fig, ax = plt.subplots(figsize=(6.5, 3.2))
+ax.plot(mkt["year"], log_pd, color="#1b1714", lw=1.3)
+ax.axhline(log_pd.mean(), color="#7a1f1f", lw=1.0, ls="--")
+ax.set_xlabel("year")
+ax.set_ylabel("log(P/D)")
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+## Gate one: do the simulated cash flows look like the sample?
+
+`lrr.simulate_cashflow_moments` runs the calibrated endowment forward —
+twenty artificial 74-year samples here — and reports average annual
+moments:
+
+```{python}
+mom = lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)
+cons = mom["consumption"]
+mdiv = mom["dividends"]["market"]
+print(f"consumption      : mean {cons['E[dc]']:.2f}%, "
+      f"sd {cons['sigma(dc)']:.2f}%, AC1 {cons['AC1']:.2f}")
+print(f"market dividends : mean {mdiv['E[dd]']:.2f}%, "
+      f"sd {mdiv['sigma(dd)']:.1f}%, corr(dc, dd) {mdiv['corr(dc,dd)']:.2f}")
+```
+
+Simulated consumption growth averages 1.82 percent with a 2.44 percent
+standard deviation, against 1.75 and 2.37 in the data — the endowment
+side passes. Market dividend growth is an order of magnitude more
+volatile than consumption, in the model as in the data (16.4 percent
+simulated against the 11.0 percent the data cell printed; the note
+below explains the gap), and its
+correlation with consumption growth, 0.57 simulated, sits next to the
+data's 0.60. Two printed numbers need a flag before anyone reads them
+as failures:
+
+::: {.callout-warning title="Honesty note: two annualization artifacts in this print"}
+The cell prints a first autocorrelation of simulated annual consumption
+growth of 0.16, while the data show 0.41 and my Table III reports 0.43
+for the model. The gap is measurement convention, not economics. The
+paper aggregates simulated monthly data the way NIPA builds annual
+consumption — sum the twelve monthly *levels* within the year, then
+take log growth of the annual sums — and that overlapping-levels
+aggregation smooths the annual series: it raises its autocorrelation
+and damps its year-over-year volatility (Working 1960). This helper
+sums the twelve monthly *log growth rates*, which does neither; the
+same convention gap accounts for a good part of the
+dividend-volatility print of 16.4 against the data's 11.0. Same
+economy, two annualization conventions, different annual prints. The
+persistence the pricing relies on lives in the monthly state $x_t$
+either way.
+:::
+
+The gate is passed: the endowment's mean and volatility and the
+consumption–dividend correlation land near the sample, and the two
+visible gaps are convention, not calibration. Now, and only now,
+prices.
+
+## Gate two: solve, simulate, and grade the pair
+
+Solve the model on the paper's grid (30 points for $x$, 4 for
+$\sigma^2$ — [Chapter 7](07-quadrature-solution.qmd) built this), then
+generate 300 samples of 74 years and average the sample statistics,
+exactly as the data column was constructed:
+
+```{python}
+params = lrr.get_table_ii_params()
+solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
+tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
+```
+
+```{python}
+print(f"risk-free rate    : {tab['mean_rf']:5.2f}%  (SE {tab['mean_rf_se']:.2f})")
+print(f"market return     : {tab['mean_return']['market']:5.2f}%  "
+      f"(SE {tab['mean_return_se']['market']:.2f})")
+print(f"equity premium    : {tab['mean_return']['market'] - tab['mean_rf']:5.2f}%")
+print(f"return volatility : {tab['volatility']['market']:5.2f}%")
+print(f"mean log P/D      : {tab['mean_log_pd']['market']:5.2f}")
+```
+
+The scoreboard, with the paper's own prints alongside (its Table VII
+uses 1,000 samples and a slightly different data vintage; the SE
+columns are cross-sample standard deviations):
+
+|  | Model (this page) | Model (paper prints) | Data (reconstruction) | Data (paper prints) |
+|:---|---:|---:|---:|---:|
+| Market return, % | 8.93 (3.25) | 7.53 (2.69) | 8.52 | 8.56 (1.79) |
+| Return volatility, % | 19.68 | — | 20.1 | 20.1 |
+| Risk-free rate, % | 1.04 (0.62) | 1.58 | 0.07 | 0.91 (0.39) |
+| Mean log P/D | 3.01 | 3.24 | 3.33 | 3.34 (0.13) |
+
+Grade the pair. The model earns 8.93 percent on the market claim
+against 8.52 in the data — an equity premium of 7.89 percent over its
+own safe rate, against 7.65 on the paper's data prints (8.56 minus
+0.91). Return volatility is 19.68 percent against 20.1. And the
+valuation comes out at a mean log price–dividend ratio of 3.01 against
+3.33 — a claim priced near the data's level, not a premium bought with
+an absurd price. The safe rate lands at 1.04 percent, between the
+reconstruction's 0.07 and the paper's model print of 1.58. My own
+prints differ from this page's cells within one cross-sample standard
+deviation — the run here uses 300 samples, a 30-point grid, and this
+seed, and [Chapter 10](10-value-premium-resolved.qmd) quantifies how
+the grid moves these numbers — but the verdict does not move: both
+members of the pair land, from cash flows that never saw a return.
+
+That sentence deserves its weight. A DCF matching the 8.5 percent
+return would have *assumed* a discount rate near 8.5; matching the
+valuation would have assumed the growth number. Here consumption
+moments fixed the household, dividends fixed the claim, and the Euler
+equation produced the premium, the volatility, and the valuation
+together. The market test is passed — but matching the market does not
+rank firms. The cross-section is the next chapter.
+
+## Takeaways
+
+- Nothing was left to tune: preferences came from consumption, cash
+  flows from dividends. The market row is therefore out of sample, and
+  the model is graded on the premium and the valuation *as a pair*.
+- Simulated cash flows pass their own exam first (consumption mean 1.82
+  vs 1.75, sd 2.44 vs 2.37); the printed AC1 of 0.16 is an annualization
+  convention, not a persistence failure.
+- The solved model prints a market return of 8.93 percent (data: 8.52),
+  volatility of 19.68 (data: 20.1), a safe rate of 1.04, and mean log
+  P/D of 3.01 (data: 3.33) — the pair lands, with the safe-rate level
+  and the exact valuation sensitive to the grid.
+- Table VII is a *sampling* object: means over hundreds of 74-year
+  samples, with cross-sample dispersion — the honest way to compare a
+  model to one 74-year history.
+
+## Exercises
+
+1. Rerun `simulate_table_vii` with `seed=1` and `seed=2`. How much do
+   the market return and the safe rate move? Compare the movement to
+   the printed SE columns.
+2. Set `n_samples=1000` (a few seconds more) and check how the printed
+   means change relative to the 300-sample run.
+3. Call `lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)`
+   and read off the value and growth dividend moments it also returns.
+   Which claim's dividends are more volatile, and does that alone rank
+   the premia? (Keep your answer; Chapter 10 tests it.)
+
+::: {.firewall}
+**Where each number comes from.** Data numbers are printed by the cells
+above from `data/consumption_annual.csv`, `data/annual_panel.csv`, and
+`data/rf_annual.csv`; model numbers by `simulate_cashflow_moments` and
+by `ModelSolver(params, n_x=30, n_s=4)` plus
+`simulate_table_vii(..., n_samples=300, seed=0)` on the Table II
+calibration; the remaining columns are the paper's Table VII prints.
+Download the chapter as a notebook (top of the page) to rerun
+everything.
+:::

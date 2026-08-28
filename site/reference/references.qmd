@@ -1,5 +1,36 @@
 ---
 title: "References"
+aliases:
+  - /references.html
 ---
 
-Stub — content lands with the reference PR.
+- Bansal, R., and A. Yaron, 2004, *Risks for the Long Run: A Potential
+  Resolution of Asset Pricing Puzzles*, Journal of Finance 59(4),
+  1481–1509.
+  [Published version](https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.2004.00670.x)
+- Campbell, J. Y., and R. J. Shiller, 1988, *The Dividend-Price Ratio
+  and Expectations of Future Dividends and Discount Factors*, Review of
+  Financial Studies 1(3), 195–228.
+  [Published version](https://doi.org/10.1093/rfs/1.3.195)
+- Epstein, L. G., and S. E. Zin, 1989, *Substitution, Risk Aversion,
+  and the Temporal Behavior of Consumption and Asset Returns I: A
+  Theoretical Framework*, Econometrica 57(4), 937–969.
+  [JSTOR](https://www.jstor.org/stable/1913778)
+- Hansen, L. P., and R. Jagannathan, 1991, *Implications of Security
+  Market Data for Models of Dynamic Economies*, Journal of Political
+  Economy 99(2), 225–262.
+  [JSTOR](https://www.jstor.org/stable/2937681)
+- Kiku, D., 2006, *Long-Term Risks in the Aggregate and Cross-Section
+  of Stock Returns*, working paper, The Wharton School, University of
+  Pennsylvania. Replication: this repository.
+- Mehra, R., and E. C. Prescott, 1985, *The Equity Premium: A Puzzle*,
+  Journal of Monetary Economics 15(2), 145–161.
+  [Published version](https://doi.org/10.1016/0304-3932(85)90061-3)
+- Tauchen, G., and R. Hussey, 1991, *Quadrature-Based Methods for
+  Obtaining Approximate Solutions to Nonlinear Asset Pricing Models*,
+  Econometrica 59(2), 371–396.
+  [JSTOR](https://www.jstor.org/stable/2938261)
+
+In-text citations site-wide link here. The remaining references named
+on individual pages — Fama and French on the sort, Weil on the
+preferences — are cited where they are used.

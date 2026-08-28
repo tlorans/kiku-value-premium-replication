@@ -1,5 +1,331 @@
 ---
 title: "10. The value premium, resolved"
+aliases: [/cross-section.html]
 ---
 
-Stub — content lands with its part's PR.
+Nothing has been re-tuned since
+[Chapter 8](08-calibrating-cash-flows.qmd). Same household, same
+consumption process, same Euler equation that just priced the market in
+[Chapter 9](09-the-market-test.qmd). A model that needed a new discount
+rate for every asset would be a DCF with extra steps. The only thing
+that distinguishes the value claim from the growth claim inside the
+model is the cash-flow parameters each brought from
+[Chapter 8](08-calibrating-cash-flows.qmd) — above all, value's
+dividend loading on long-run consumption news, $\phi_V = 6.2$, against
+growth's $\phi_G = 2.6$.
+
+This chapter asks the model for four things at once. The six-point
+return spread. The valuation ranking — value must be *cheaper*, not
+just higher-earning. The CAPM anomaly — value's market beta must fail
+to explain its premium inside the model, the way it fails in the data,
+or the model has explained a different world than ours. And an autopsy:
+switch off the one cross-sectional input and the premium must die,
+or something else was doing the work.
+
+## The facts to be explained
+
+```{python}
+#| code-fold: true
+# Data bootstrap: use the repo's committed CSVs, or fetch them when this
+# notebook runs outside the repository.
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("annual_panel.csv", "consumption_annual.csv", "rf_annual.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import lrrcs as lrr
+
+panel = pd.read_csv(DATA / "annual_panel.csv")
+means = {c: float(panel[panel["claim"] == c]["ret"].mean() * 100)
+         for c in ("Growth", "Value", "Market")}
+print({c: round(v, 2) for c, v in means.items()},
+      " spread:", round(means["Value"] - means["Growth"], 2))
+
+rm = panel[panel["claim"] == "Market"].sort_values("year")["ret"].to_numpy()
+rm_d = rm - rm.mean()
+for c in ("Growth", "Value"):
+    r = panel[panel["claim"] == c].sort_values("year")["ret"].to_numpy()
+    print(f"CAPM beta, {c.lower():6s}: "
+          f"{float(rm_d @ (r - r.mean()) / (rm_d @ rm_d)):.2f}")
+```
+
+Value out-earns growth by 6.18 percentage points a year on this
+reconstruction (the paper's vintage prints 13.88 against 7.81, a 6.07
+spread). And the CAPM cannot buy that spread with these betas: 1.28
+against 0.95 here — with the market earning 8.52, that beta gap prices
+a spread of roughly $(1.28 - 0.95) \times 8.5 \approx 2.8$ points, less
+than half of what is there — and on the paper's vintage both betas sit
+near 1.03, where the CAPM predicts no spread at all. Value is also
+persistently *cheaper*:
+
+```{python}
+#| code-fold: true
+#| fig-cap: "Log price–dividend ratios of the growth and value portfolios, 1930–2003. Value trades below growth in essentially every year (its series has a gap and a distorted print around 1933–34, when its dividends nearly vanished). The premium and the discount are the same fact, seen from two sides."
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(6.5, 3.4))
+for claim, color in (("Growth", "#1b1714"), ("Value", "#7a1f1f")):
+    sub = panel[panel["claim"] == claim].sort_values("year")
+    ax.plot(sub["year"], np.log(sub["pd"]), color=color, lw=1.3,
+            label=claim.lower())
+ax.set_xlabel("year")
+ax.set_ylabel("log(P/D)")
+ax.set_ylim(2.2, 4.6)
+ax.legend(frameon=False, fontsize=9)
+ax.spines[["top", "right"]].set_visible(False)
+fig.tight_layout()
+plt.show()
+```
+
+## The model's Table VII
+
+Solve on the paper's grid and simulate the paper's object — hundreds of
+74-year samples, statistics estimated sample by sample, then averaged
+([Chapter 9](09-the-market-test.qmd) explained why this is the honest
+comparison). This is the same code path, seed, and grid as the market
+test; the value and growth rows simply come along:
+
+```{python}
+params = lrr.get_table_ii_params()
+solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
+tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
+lrr.print_table_vii(tab)
+```
+
+Walk through what the block prints, fact by fact.
+
+**The premium.** The simulated value premium is 5.38 percent — the
+paper's Table VII prints 5.3 on 1,000 samples — against roughly six in
+the data (6.18 on the reconstruction, 6.07 on the paper's vintage).
+Value earns 13.32 against the data's 13.67; growth earns 7.94 against
+7.49. The cross-sample dispersions (4.96 and 3.35) say a 74-year sample
+from this economy routinely strays a few points from these means — the
+data column is one such sample. No return was targeted anywhere in the
+calibration; this spread is manufactured entirely from
+$\phi_V - \phi_G$ and the machinery of Chapters 4–7.
+
+**The valuation ranking.** Mean log P/D prints 2.81 for value, 3.01
+for the market, 3.19 for growth — value cheapest, growth dearest, the
+data's ordering (the paper prints 3.10, 3.24, 3.65 on the same
+ranking). The claim that earns more is the claim that costs less,
+because one number, the long-run loading, drives both: high $\phi$
+makes dividends riskier in the state investors fear, so the price is
+low and the expected return high. A DCF treats the discount and the
+premium as two numbers; here they are one.
+
+**The CAPM anomaly, reproduced inside the model.** Look at the beta
+column: value's CAPM beta prints 0.72, *below* growth's 0.90 — a beta
+ratio of 0.81 (the paper prints 0.92; both vintages of the data put the
+ratio near or above one) — while value's mean return is more than five
+points *higher*. The model manufactures the very anomaly that
+[Chapter 1](01-two-free-numbers.qmd) used to indict the CAPM. It can,
+because a single market beta is a one-factor projection of three
+separately priced risks — short-run consumption shocks, long-run
+growth news, and volatility news
+([Chapter 6](06-log-linear-solution.qmd)) — and the projection
+scrambles them. Value loads heavily on long-run news, which is
+expensive per unit of return covariance; growth's return covaries with
+the market plenty (it is a long-duration claim, sensitive to discount
+rates) while carrying little of the priced cash-flow risk. In the
+paper's decomposition (its footnote 10), the 5.3-point spread splits
+into roughly $-0.6$ from short-run risk, $+4.6$ from long-run growth
+risk, and $+1.3$ from volatility risk — about 85 percent of the
+premium from the long-run channel, a slightly negative short-run
+contribution, and a quarter from volatility, with the three summing
+past 100 because the short-run piece is negative. Beta sees only the
+sum of the covariances and prices none of the parts.
+
+## The autopsy: kill the loading, kill the premium
+
+If the story is right, the premium has one switch. Set value's long-run
+loading equal to growth's 2.6 — leave *everything* else alone,
+including value's volatility loading $\varphi_\sigma$ and its
+short-run correlation $\alpha$ — and re-solve. First the analytical
+long-run compensation of [Chapter 6](06-log-linear-solution.qmd):
+
+```{python}
+import copy
+
+params_eq = copy.deepcopy(params)
+params_eq.dividends["value"].phi = params.dividends["growth"].phi  # 2.6
+lrr.print_long_short_premium(lrr.solve_analytical(params_eq))
+```
+
+The 0.40-percent long-run spread of the baseline collapses, but the
+print is $-0.12$ percent, not exactly zero. That residual is worth
+understanding rather than hiding: the analytical formula linearizes
+each claim around its *own* sample-average valuation
+([Chapter 6](06-log-linear-solution.qmd)), and value's anchor (mean log
+P/D of 3.10) differs from growth's (3.65) because the claims still
+differ in their other cash-flow parameters — $\mu_d$,
+$\varphi_\sigma$, $\alpha$. Different anchors give different
+linearization slopes ($A_1$ of 31.1 against 43.1) even at identical
+$\phi$, so a small artifact of the approximation survives. The full
+Euler-equation simulation has no linearization to anchor, so ask it the
+same question:
+
+```{python}
+solver_eq = lrr.ModelSolver(params_eq, n_x=30, n_s=4).solve()
+tab_eq = lrr.simulate_table_vii(solver_eq, n_samples=300, years=74, seed=0)
+print(f"simulated value premium, equal phi : {tab_eq['value_premium']:5.2f}%")
+print(f"simulated value premium, Table II  : {tab['value_premium']:5.2f}%")
+```
+
+From 5.38 to 0.03 percent, and the household never changed. The
+leftover three basis points are what value's remaining differences
+(its $\varphi_\sigma$ and $\alpha$ legs) and 300-sample noise are
+jointly worth. The value premium in this model is the price of one
+measured cash-flow characteristic, and removing the characteristic
+removes the premium.
+
+## Robustness: is the mechanism fragile?
+
+One parameter at a time, re-solve, and record the analytical long-run
+compensation of the market and the value-growth spread — the
+$x_t$-news pieces, which is where the mechanism lives:
+
+```{python}
+#| code-fold: true
+def lr_spread(p):
+    sol = lrr.solve_analytical(p)
+    return (sol.premium_lr["market"] * 100,
+            (sol.premium_lr["value"] - sol.premium_lr["growth"]) * 100)
+
+grids = {
+    "rho": ("persistence of x_t", [0.95, 0.98, 0.99]),
+    "psi": ("EIS", [1.2, 1.5, 2.0]),
+    "gamma": ("risk aversion", [5.0, 10.0, 15.0]),
+    "phi_value": ("value loading", [5.0, 6.2, 7.4]),
+    "phi_growth": ("growth loading", [2.0, 2.6, 3.2]),
+}
+for attr, (label, values) in grids.items():
+    print(label)
+    for v in values:
+        p = copy.deepcopy(params)
+        if attr == "rho":
+            p.cons.rho = v
+        elif attr == "psi":
+            p.prefs.psi = v
+        elif attr == "gamma":
+            p.prefs.gamma = v
+        else:
+            p.dividends[attr.removeprefix("phi_")].phi = v
+        market, spread = lr_spread(p)
+        print(f"  {label} = {v:<5} market x-premium {market:5.2f}%   "
+              f"value-growth spread {spread:5.2f}%")
+```
+
+The spread is positive at every grid point. Its size scales with the
+persistence of $x_t$ (0.19 to 0.55 across $\rho$ from 0.95 to 0.99),
+with risk aversion (0.19 to 0.62), and with the gap between the
+loadings; it barely moves with the EIS. That is the profile the theory
+predicts: persistence and risk aversion govern the price of long-run
+news, the loading gap governs the quantity, and the EIS mostly
+reallocates between the premium and the level of rates. Nowhere in
+these ranges does the ordering flip.
+
+## How much of the magnitude is the method?
+
+::: {.callout-warning title="Honesty box: the grid is part of the number"}
+The paper's Table VII, and this page, solve on a 30-point grid for
+$x_t$. The cell below re-solves on finer grids, same calibration, same
+seed:
+
+```{python}
+#| code-fold: true
+for n_x in (30, 60, 100):
+    s = lrr.ModelSolver(params, n_x=n_x, n_s=4).solve()
+    t = lrr.simulate_table_vii(s, n_samples=300, years=74, seed=0)
+    print(f"n_x = {n_x:>3}: value premium {t['value_premium']:.2f}%, "
+          f"rf {t['mean_rf']:.2f}%, beta ratio {t['beta_ratio']:.2f}")
+```
+
+Refining the grid moves the numbers: the premium prints 5.38 at 30
+points, 4.03 at 60, 3.64 at 100; the safe rate rises to 1.82 and 1.84
+(closer to the paper's 1.58 print than the 30-point run); the beta
+ratio moves to 0.91 at 60 points — the paper's own 0.92. A coarse grid
+overstates the dispersion of long-run growth states and with it the
+premium, so part of the *magnitude* of the 5.3 reflects the 30-point
+discretization the paper and this page share. What the refinement does
+not touch: the spread stays large and positive, value stays cheaper,
+and value's beta stays below growth's while its return stays far
+higher. The mechanism is robust; the exact level is method-sensitive.
+Read this page's numbers as what this grid prints, not as the model's
+last decimal.
+:::
+
+## What has been shown
+
+Assemble the ledger of Parts I through IV. Two free numbers were the
+indictment: a DCF fits any premium and the CAPM fits none of this one.
+The replacement was one household, calibrated to consumption, pricing
+every claim through one Euler equation; each claim brought only
+measured cash-flow parameters, and returns entered nothing. Out came,
+from the same solve: a market premium near eight at the data's
+valuation level ([Chapter 9](09-the-market-test.qmd)); a value premium
+of 5.38 against roughly six in the data; the valuation ranking value
+< market < growth; a CAPM beta for value *below* growth's — the anomaly
+itself, generated by a model with no anomaly in it, because beta is the
+wrong summary of three priced risks; and a premium that dies (0.03
+percent) the moment value's one distinguishing loading is equalized.
+The value premium, in this accounting, is not a puzzle. It is the
+price of holding cash flows that do badly precisely when news about
+long-run growth is bad — measured in dividends, paid in returns.
+
+## Takeaways
+
+- With nothing re-tuned, the simulated Table VII prints a value premium
+  of 5.38 percent (paper: 5.3; data: about 6) and the data's valuation
+  ranking, value cheapest and growth dearest.
+- The model reproduces the CAPM anomaly: value's beta prints 0.72
+  against growth's 0.90 (ratio 0.81; paper 0.92) while value earns five
+  points more — a one-factor projection scrambles three separately
+  priced risks, of which long-run growth news carries about 85 percent
+  of the spread in the paper's decomposition.
+- Equalize the long-run loadings and the simulated premium collapses
+  from 5.38 to 0.03 percent; the analytical spread's $-0.12$ residual
+  is a linearization-anchor artifact, not a priced risk.
+- The mechanism survives every point of the robustness grid, but the
+  magnitude is method-sensitive: finer grids print a smaller premium
+  (3.64 at $n_x = 100$) and the paper's beta ratio. Trust the ordering
+  and the channel; hold the level loosely.
+
+## Exercises
+
+1. Rerun the equal-$\phi$ counterfactual, but instead of lowering
+   value's loading, raise growth's to 6.2. What does the simulated
+   premium print, and why is the market row now mispriced relative to
+   Chapter 9?
+2. Using the robustness grid, find the combination in these ranges that
+   produces the *largest* long-run spread. Which two parameters
+   interact, and what does that say about where the model is most
+   vulnerable to calibration error?
+3. Set `n_s=6` in the convergence cell (volatility grid) and re-solve at
+   `n_x=60`. Does refining the volatility dimension move the premium as
+   much as refining the $x$ dimension did? What does that tell you about
+   which state variable the discretization strains?
+
+::: {.firewall}
+**Where each number comes from.** Data numbers are printed by the first
+cell from `data/annual_panel.csv`; every model number is printed by
+`ModelSolver` + `simulate_table_vii` (300 samples, seed 0) or
+`solve_analytical` on `get_table_ii_params`, including the equal-$\phi$
+counterfactual, the robustness grid, and the grid-refinement cell; the
+5.3, 0.92, footnote-10 decomposition, and 3.10/3.24/3.65 valuations are
+the paper's prints. Download the chapter as a notebook (top of the
+page) to rerun everything.
+:::

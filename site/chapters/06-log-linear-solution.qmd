@@ -1,7 +1,5 @@
 ---
 title: "6. The log-linear solution"
-aliases:
-  - /long-run-risks-model.html
 ---
 
 Every asset pricing model faces the same practical obstacle: the Euler
