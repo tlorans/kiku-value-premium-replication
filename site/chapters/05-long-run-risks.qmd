@@ -5,29 +5,30 @@ aliases:
 ---
 
 [Chapter 4](04-epstein-zin-preferences.qmd) built an investor whose
-marginal utility responds to news about future consumption. That
-machinery is worthless if there is no such news — if consumption growth
-is white noise, there is nothing persistent to learn about, and the
-Epstein–Zin kernel prices almost exactly like the power-utility kernel
-it replaced. This chapter supplies the other half: an endowment in
-which expected growth genuinely moves.
+marginal utility responds to news about future consumption. The
+preferences are worthless if there is no such news. If consumption
+growth is white noise, there is nothing persistent to learn about, and
+the Epstein-Zin kernel prices almost exactly like the power-utility
+kernel it replaced. The chapter supplies the other half, an endowment
+in which expected growth genuinely moves.
 
-The design comes from Bansal and Yaron (2004), and the idea fits in one
-sentence: consumption growth is a small, highly persistent component
-buried under transitory noise. The persistent component is tiny — a few
-tenths of a percent per month — and it is nearly invisible in any given
-year. But a shock to it is not news about this year; it is news about
-the next decade of consumption. To the investor of Chapter 4, who
-prefers early resolution of uncertainty, that is precisely the kind of
-news worth fearing, and claims whose cash flows are levered to it must
+The design comes from Bansal and Yaron (2004), and the idea fits in
+one sentence. Consumption growth carries a small, highly persistent
+component under transitory noise. The persistent component is tiny, a
+few tenths of a percent per month, and it is nearly invisible in any
+given year. A shock to it, however, is news about the next decade of
+consumption rather than about the current year. The investor of
+Chapter 4 prefers early resolution of uncertainty, so persistent news
+is the kind she fears. Claims whose cash flows are levered to it must
 pay a premium.
 
 The same four equations also carry the entire cross section. Growth,
 value, and market portfolios will differ in exactly one economically
-meaningful way: how hard their dividends load on the persistent
-component. That loading — cash-flow leverage — is the model's
-characteristic, its answer to the CAPM's beta, and it is a property of
-*dividends*, measurable without ever touching a return.
+meaningful way, which is how strongly their dividends load on the
+persistent component. The loading, called cash-flow leverage, is the
+model's characteristic and serves the purpose the CAPM assigns to
+beta. It is a property of dividends, and it is measurable without
+ever touching a return.
 
 ## Four equations
 
@@ -51,33 +52,33 @@ $$ {#eq-div}
 
 with all shocks standard normal. In words, line by line:
 
-- @eq-cons: this month's consumption growth is a constant trend
+- @eq-cons: the current month's consumption growth is a constant trend
   $\mu_c$, plus where expected growth currently stands ($x_t$), plus
-  transitory noise. $x_t$ is the *deviation of expected growth from its
-  mean* — the wandering counterpart of the constant $g$ a DCF plugs
-  into its terminal value.
+  transitory noise. $x_t$ is the deviation of expected growth from its
+  mean, and it is the time-varying counterpart of the constant $g$ a
+  DCF plugs into its terminal value.
 - @eq-x: expected growth itself drifts slowly. The persistence $\rho$
-  is the model's most consequential parameter; the innovations are
+  is the model's most consequential parameter. The innovations are
   small ($\varphi_x$ scales them well below the transitory shock) but
   their effects last.
-- @eq-vol: the volatility of everything is itself a slow-moving state —
-  economic uncertainty rises and recedes with persistence $\nu$ around
-  the mean level $\bar\sigma^2$. This second state variable will price
-  a distinct risk, but $x_t$ carries this chapter.
+- @eq-vol: the volatility of everything is itself a slow-moving state.
+  Economic uncertainty rises and recedes with persistence $\nu$ around
+  the mean level $\bar\sigma^2$. The second state variable will price
+  a distinct risk, but $x_t$ does the work in the current chapter.
 - @eq-div: each claim $i$ pays dividends whose growth inherits expected
   consumption growth with **leverage** $\phi_i$, plus idiosyncratic
   noise scaled by $\varphi_{\sigma,i}$ (the residual $u_{i,t+1}$
   correlates with the consumption shock $\eta_{t+1}$ at a rate
   $\alpha_i$). $\phi_i$ is the only parameter in the whole model that
-  differs across claims in an economically central way: in Table II I
-  set $\phi = 2.6$ for growth, $6.2$ for value, $2.8$ for the market. A
-  value firm's cash flows are levered to long-run news more than twice
-  as hard as a growth firm's. Everything the rest of the course says
-  about the value premium flows from that one contrast.
+  differs across claims in an economically central way. In Table II I
+  set $\phi = 2.6$ for growth, $6.2$ for value, and $2.8$ for the
+  market. A value firm's cash flows are levered to long-run news more
+  than twice as strongly as a growth firm's. Everything the rest of the
+  course says about the value premium follows from the one contrast.
 
-## Small news, long shadow
+## How long a shock to expected growth lasts
 
-How persistent is $\rho = 0.98$ at a monthly frequency? Compute the
+The persistence $\rho = 0.98$ is at a monthly frequency. Compute the
 half-life of a shock to expected growth:
 
 ```{python}
@@ -90,17 +91,17 @@ print(f"rho = {cons.rho} (monthly)  =>  "
       f"half-life of x_t = {half_life:.1f} months")
 ```
 
-A piece of news about expected growth still has half its force
-*three years* later. This is what separates @eq-x from noise: the
+A piece of news about expected growth still has half its force three
+years later. The persistence is what separates @eq-x from noise. The
 innovation to $x_t$ is on the order of $\varphi_x \sigma \approx$ two
-hundredths of a percent per month, invisible next to the transitory
-shock, but it compounds over a decade of expected consumption. The
-investor of Chapter 4 prices news by its total future weight, not by
-this month's size.
+hundredths of a percent per month, which is invisible next to the
+transitory shock, but it compounds over a decade of expected
+consumption. The investor of Chapter 4 prices news by its total future
+weight rather than by its size in the current month.
 
-## Is any of this in the data?
+## The persistence in the data
 
-The i.i.d. benchmark is testable: white-noise growth has zero
+The i.i.d. benchmark is testable, because white-noise growth has zero
 autocorrelation. Annual U.S. consumption growth does not:
 
 ```{python}
@@ -129,20 +130,20 @@ print(f"{len(dc)} years of annual consumption growth")
 print(f"first autocorrelation (AC1): {dc.autocorr(1):.2f}")
 ```
 
-An AC1 of 0.41 in 74 years of data is a loud rejection of white noise:
-this year's growth carries real information about next year's. It does
-not by itself prove the two-component structure of @eq-cons–@eq-x — a
-persistent component this small is hard to detect, and that difficulty
-is the standing objection to the whole enterprise, taken up in
-[Chapter 9](09-the-market-test.qmd). But it is exactly the moment the
-calibration below is disciplined by, and the simulation at the end of
-this chapter reproduces it.
+An AC1 of 0.41 in 74 years of data is a clear rejection of white
+noise. Growth in one year carries information about growth in the
+next. The AC1 does not by itself prove the two-component structure of
+@eq-cons and @eq-x. A persistent component of the calibrated size is
+hard to detect, and the difficulty is the standing objection to the
+whole approach, taken up in [Chapter 9](09-the-market-test.qmd). The
+AC1 is, however, one of the moments the calibration below is fit to,
+and the simulation at the end of the chapter reproduces it.
 
 ## The calibration in one table
 
 Every number below is read from `lrr.get_table_ii_params()` at run
-time — the same object every solver in this course consumes. Units are
-monthly.
+time, which is the same object every solver in the course consumes.
+Units are monthly.
 
 ```{python}
 #| code-fold: true
@@ -172,9 +173,9 @@ for name, d in p.dividends.items():
 ```
 
 Read the table with the firewall in mind. The preference block and the
-consumption block are disciplined by aggregate moments only — the mean,
+consumption block are disciplined by aggregate moments only: the mean,
 volatility, and autocorrelation of consumption growth, and the
-risk-free rate. The cash-flow block is disciplined by dividends only:
+risk-free rate. The cash-flow block is disciplined by dividends only.
 [Chapter 8](08-calibrating-cash-flows.qmd) estimates the leverages
 $\phi_i$ by regressing dividend growth on a moving average of
 consumption growth, with no returns anywhere in the procedure. Returns
@@ -211,22 +212,22 @@ fig.tight_layout()
 plt.show()
 ```
 
-The gray series is what an econometrician observes; the dark line is
-the state the investor is afraid of. Distinguishing the second inside
-the first from a few decades of data is genuinely hard — the model
-does not pretend otherwise. What the model claims is that *prices*
-respond to the dark line, which is why valuations will turn out to be
+The gray series is what an econometrician observes, and the dark line
+is the state the investor is afraid of. Distinguishing the second
+inside the first from a few decades of data is genuinely hard, and the
+paper does not claim otherwise. The model claims that prices respond
+to the dark line, which is why valuations will turn out to be
 informative about $x_t$ in a way realized consumption is not.
 
 ## Simulation to annual data: a warning about aggregation
 
-One detail matters whenever the model's monthly output is compared to
-annual data, and skipping it silently corrupts the comparison. In the
-paper I build annual consumption the way NIPA builds it: sum twelve
-*monthly levels* to an annual level, then take log growth of the annual
-sums. That is not the same as summing twelve monthly log growth rates,
-and the difference is visible in exactly the moment this chapter cares
-about:
+One detail affects every comparison of the model's monthly output to
+annual data, and skipping it corrupts the comparison. In the paper I
+build annual consumption the way NIPA builds it. First, sum twelve
+monthly levels to an annual level. Then take log growth of the annual
+sums. The level construction is not the same as summing twelve monthly
+log growth rates, and the difference is visible in exactly the moment
+the chapter uses:
 
 ```{python}
 #| code-fold: true
@@ -251,14 +252,14 @@ print(f"  AC1, summing log growth rates:             {ac1(g_logs):.2f}")
 
 ::: {.callout-warning title="Time-aggregate levels, not log growth"}
 The same simulated economy prints an annual AC1 of 0.43 when monthly
-*levels* are summed within the year — matching the model AC1 I print in
-Table III and sitting next to the 0.41 measured in the data above — but
-only 0.20 when monthly *log growth rates* are summed. Averaging levels
-within the year overlaps adjacent years' information and adds
-persistence that the naive aggregation throws away. A simulation that
-sums log growth will understate the paper's annual autocorrelation
-every time; it is the single most common way to fail to reproduce
-Table III.
+levels are summed within the year, and only 0.20 when monthly log
+growth rates are summed. The 0.43 matches the model AC1 I print in
+Table III and sits next to the 0.41 measured in the data above.
+Summing levels within the year overlaps adjacent years' information
+and adds persistence that the log-growth aggregation throws away. A
+simulation that sums log growth will understate the paper's annual
+autocorrelation every time. It is the single most common way to fail
+to reproduce Table III.
 :::
 
 ## Takeaways
@@ -266,16 +267,16 @@ Table III.
 - The endowment is four equations: persistent expected growth $x_t$
   inside consumption growth, slowly moving uncertainty
   $\sigma_t^2$, and dividends levered to $x_t$ claim by claim.
-- $x_t$ is small but lasts: with $\rho = 0.98$ monthly, a shock keeps
-  half its force after 34 months. Small news, long shadow — and long-run
-  news is what the Chapter 4 investor prices.
-- The data reject white-noise consumption growth: annual AC1 is 0.41 in
+- $x_t$ is small but long lasting. With $\rho = 0.98$ monthly, a shock
+  keeps half its force after 34 months, and long-run news is what the
+  Chapter 4 investor prices.
+- The data reject white-noise consumption growth. Annual AC1 is 0.41 in
   74 years, and the calibrated model reproduces it (0.43) under the
   correct level aggregation.
-- The cross section enters through one parameter: cash-flow leverage
-  $\phi_i$ (growth 2.6, market 2.8, value 6.2). It is a property of
-  dividends, estimated in [Chapter 8](08-calibrating-cash-flows.qmd)
-  without returns.
+- The cross section enters through one parameter, the cash-flow
+  leverage $\phi_i$ (growth 2.6, market 2.8, value 6.2). It is a
+  property of dividends, estimated in
+  [Chapter 8](08-calibrating-cash-flows.qmd) without returns.
 
 ## Exercises
 
@@ -298,7 +299,7 @@ Table III.
 **Where each number comes from.** The half-life, the calibration table,
 the simulated figure, and both AC1 prints come from
 `lrr.get_table_ii_params()` and `lrr.Dynamics(...).simulate_cashflows`
-in the cells above; the data AC1 of 0.41 is computed from
+in the cells above. The data AC1 of 0.41 is computed from
 `data/consumption_annual.csv`. Download the chapter as a notebook (top
 of the page) to rerun everything.
 :::
