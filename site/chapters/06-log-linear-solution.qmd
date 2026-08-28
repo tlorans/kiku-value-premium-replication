@@ -224,6 +224,25 @@ calibration (`get_table_ii_params`). Download the chapter as a notebook
 - Long-run risk is priced only under Epstein-Zin preferences, because
   the price $\Lambda_\epsilon$ vanishes under power utility.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. Write the valuation slope on expected growth, $A_1$, from memory.
+2. Persistence is near one. What does that do to small differences in
+   leverage?
+3. Under which preferences does the price of long-run risk vanish?
+
+**Answers.**
+
+1. $A_1 = (\phi - 1/\psi)/(1 - \kappa_1 \rho)$.
+2. It magnifies them into large differences in price sensitivity and a
+   large spread in premia.
+3. Power utility: $\Lambda_\epsilon$ is zero there, which is why the
+   Epstein-Zin separation is load-bearing.
+
+:::
+
 ## Exercises
 
 1. Recompute $A_1$ for the value claim with $\rho = 0.95$ instead of

@@ -286,6 +286,28 @@ loading below $1/\psi$ means the opposite.
   anchor P/D of 3.30 is a linearization point, not a fitted level.
   Trust the ordering and the sign, and do not trust the third decimal.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. What single measured number does your claim contribute, and how is
+   it measured?
+2. `price_from_loadings` returns three numbers. Name them, and say
+   which one a DCF of the same claim would have reported.
+3. Why should you trust the ordering of your results and not the third
+   decimal?
+
+**Answers.**
+
+1. The loading of its cash-flow growth on the two-year moving average
+   of lagged consumption growth.
+2. The valuation response $A_1$, the compensation `premium_lr`, and the
+   Gordon return. A DCF would have shown only the Gordon return.
+3. Short samples measure the loading with substantial error, and the
+   anchor P/D is a linearization point, not a fitted level.
+
+:::
+
 ## Exercises
 
 1. Price a claim with $\phi = 0.67$ (the household's $1/\psi$). Confirm

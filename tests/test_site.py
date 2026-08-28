@@ -106,6 +106,19 @@ def test_exercises_have_answer_checks():
             )
 
 
+def test_chapters_have_recall_callout():
+    """Every chapter ships a collapsed Recall callout before its exercises."""
+    for path in _chapter_files():
+        text = path.read_text(encoding="utf-8")
+        assert 'title="Recall"' in text, f"missing recall callout: {path.name}"
+        if "## Exercises" in text:
+            recall = text.find('title="Recall"')
+            exercises = text.find("## Exercises")
+            assert recall < exercises, (
+                f"recall callout must precede exercises: {path.name}"
+            )
+
+
 def test_freeze_covers_every_executed_page():
     freeze = SITE / "_freeze"
     for path in _qmd_files():

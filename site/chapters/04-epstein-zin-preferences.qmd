@@ -235,6 +235,29 @@ prints the risk price attached to each shock.
   uncertainty and fears persistent risks. Table II's
   $\delta = 0.999$, $\gamma = 10$, $\psi = 1.5$ give $\theta = -27$.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. Power utility ties two attitudes together that Epstein-Zin
+   preferences separate. Name both.
+2. Whose return appears in the Epstein-Zin kernel, and why does news
+   about *future* consumption move marginal utility *today*?
+3. The Table II investor has $\gamma = 10$ and $\psi = 1.5$. Does she
+   prefer early or late resolution of uncertainty, and what is her
+   $\theta$?
+
+**Answers.**
+
+1. Risk aversion $\gamma$ and the elasticity of intertemporal
+   substitution $\psi$.
+2. The return on total wealth. It is forward-looking, so revisions to
+   expected future consumption change the kernel now.
+3. Early: $\gamma > 1/\psi$, and her $\theta = (1-\gamma)/(1-1/\psi)
+   = -27$.
+
+:::
+
 ## Exercises
 
 1. Compute $\theta$ for $\gamma = 10$ and $\psi \in

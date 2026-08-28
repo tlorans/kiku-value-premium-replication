@@ -140,3 +140,19 @@ more than its levels.
   compensation for long-run consumption risk in one disciplined
   economy. The claim is strong, and it is the only claim the course
   makes.
+
+::: {.callout-note collapse="true" title="Recall"}
+Answer from memory before opening.
+
+1. What kind of answers does the chapter give to the standing
+   objections: rhetorical or something else?
+2. Where does the chapter say the model is genuinely vulnerable, and
+   what should you accordingly trust?
+
+**Answers.**
+
+1. Measurements, each one a computation rather than a rhetorical move.
+2. The magnitude depends on the method (finer grids print smaller
+   premia) and short samples leave the loadings imprecise. Trust the
+   ordering and the channel; treat exact levels as uncertain.
+:::

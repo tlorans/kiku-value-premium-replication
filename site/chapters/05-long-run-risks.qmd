@@ -320,6 +320,29 @@ to reproduce Table III.
   property of dividends, estimated in
   [Chapter 8](08-calibrating-cash-flows.qmd) without returns.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. Name the four equations of the endowment in words.
+2. How long does a shock to expected growth keep half its force at
+   $\rho = 0.98$ monthly?
+3. Across the three claims, exactly one parameter differs in an
+   economically central way. Which, and what does it measure?
+
+**Answers.**
+
+1. Consumption growth carries a persistent expected-growth component
+   plus noise; expected growth drifts with persistence $\rho$; volatility
+   itself moves slowly; and each claim's dividend growth loads on the
+   persistent component with leverage $\phi_i$.
+2. About 34 months, three years.
+3. The cash-flow leverage $\phi_i$: how strongly the claim's dividend
+   growth moves with the persistent component of consumption (2.6
+   growth, 2.8 market, 6.2 value).
+
+:::
+
 ## Exercises
 
 1. Recompute the half-life of $x_t$ for $\rho = 0.95$ and

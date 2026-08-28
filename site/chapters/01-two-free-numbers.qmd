@@ -214,6 +214,30 @@ Before building the model, we establish what it has to explain. [Chapter 2](02-v
 - A rate fitted to the CAPM gets the sign wrong. Value's beta (0.50) is below growth's (0.89), so the fitted spread is negative while the true premium is positive.
 - Raising a claim's cash-flow risk with the rate held fixed changes the forecast but not the implied expected return. In equilibrium the same change moves the valuation elasticity (88.9 to 108.2) and the risk compensation (0.80 to 0.97 percent) together.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. A DCF gets its growth forecast and its discount rate from two
+   unrelated models. What question does that arrangement assume away?
+2. Inside the model economy, what does discounting both claims at one
+   common rate force the value premium to be, and what does it do to the
+   value-versus-growth valuation ranking?
+3. News arrives that value's cash flows are riskier than we thought.
+   Name what moves in a DCF and what additionally moves in equilibrium.
+
+**Answers.**
+
+1. Why risky cash flows earn high expected returns, and how high.
+   Nothing connects the rate to the risk in the cash flows.
+2. Exactly zero, whatever rate you pick, and it ranks value richer than
+   growth, the opposite of the data.
+3. In a DCF only the forecast moves; the price rises and the implied
+   expected return is unchanged. In equilibrium the valuation elasticity
+   to long-run news and the risk compensation move together with it.
+
+:::
+
 ## Exercises
 
 1. Panel A priced the premium at zero for any common rate. Verify the ranking claim numerically: using `g_effective`, compute $1/(r - g)$ for value and growth at $r = 8\%$ and at $r = 10\%$ annual, and confirm value's price-dividend ratio is higher at both rates.
