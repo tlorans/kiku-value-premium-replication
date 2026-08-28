@@ -125,6 +125,15 @@ def test_package_pages():
     assert "kiku_value_premium" not in readme
 
 
+def test_api_page_lists_public_api():
+    """Issue 6: every public name in lrr.__all__ appears on the API page."""
+    import lrrcs as lrr
+
+    text = _text("api.md")
+    missing = [n for n in lrr.__all__ if f"`{n}`" not in text]
+    assert not missing, missing
+
+
 def test_code_fences_use_flat_lrr():
     for name in BOOK_PAGES:
         text = _text(name)
