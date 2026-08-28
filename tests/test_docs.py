@@ -265,6 +265,36 @@ def test_price_your_own_claim_page():
         assert banned not in text, banned
 
 
+OBJECTION_H2S = (
+    '## "Epstein-Zin preferences are exotic."',
+    '## "Consumption-based pricing failed."',
+    '## "Firms aren\'t consumption claims."',
+    '## "We already calibrate a discount rate."',
+    '## "This is too academic to implement."',
+)
+
+
+def test_objections_page():
+    """Issue 8: five objections, each with a resolving link; <=120 words each."""
+    import re
+
+    text = _text("objections.md")
+    assert "# Objections" in text
+    positions = [text.index(h) for h in OBJECTION_H2S]
+    assert positions == sorted(positions)
+    # Every entry ends with a link that resolves to a real page.
+    for h in OBJECTION_H2S:
+        start = text.index(h)
+        nxt = [p for p in positions if p > start]
+        end = nxt[0] if nxt else len(text)
+        body = text[start:end]
+        assert "]((" not in body and ".html" in body or "{{ '/'" in body, h
+        words = len(re.sub(r"[#*`\[\]()/{}'|_-]", " ", body).split())
+        assert words <= 120, f"{h}: {words} words"
+    # The measured quickstart claim traces to docs/_baseline/clean_venv_out.txt.
+    assert "ten seconds, measured" in text
+
+
 GS_H2S = (
     "## Two numbers you made up",
     "## One process instead",
