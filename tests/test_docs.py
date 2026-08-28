@@ -164,8 +164,25 @@ def test_dcf_to_ge_arc():
     for text, page in ((home, "index.md"), (gs, "getting-started.md")):
         assert "discount rate" in text, page
         assert "cash flow" in text, page
-    assert "Average returns never enter" in home
+    # Hero copy (REWRITE_PLAN Issue 1) carries the motto inside the verbatim
+    # sentence "average returns never enter the estimation".
+    assert "average returns never enter the estimation" in home.lower()
     assert "consumption" in gs
+
+
+def test_home_spine():
+    """Issue 1: tagline under the title, verbatim hero, scoping line after the table."""
+    text = _text("index.md")
+    assert "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows." in text
+    assert "A DCF takes a cash-flow forecast from one model and a discount rate from another." in text
+    assert "The claim is not that this model is true." in text
+    # Tagline must not appear twice (promoted from footer in Issue 1).
+    assert text.count(
+        "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows."
+    ) == 1
+    cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
+    assert "low-frequency risks" not in cfg.split("footer_content:", 1)[1].split("\n", 1)[0]
+    assert "MIT License" in cfg
 
 
 GS_H2S = (

@@ -6,15 +6,21 @@ permalink: /
 
 # Long-run risks
 
-Kiku (2006) in code: cash-flow leverage on long-run consumption risk prices the value premium. Average returns never enter.
+*Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.*
 
-Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do, and that loading produces both facts. One Epstein-Zin household prices both claims. The outputs are a high premium *and* a low price-dividend ratio. The same household still prices the market.
+A DCF takes a cash-flow forecast from one model and a discount rate from another. Nothing constrains the pair.
+
+Here, one process prices both. A single Epstein-Zin household prices the market, value, and growth claims jointly: cash flows and discount rates come from the same consumption process, and average returns never enter the estimation. The cross-section comes out as an output, with nothing re-tuned per claim.
+
+Kiku (2006) is the measuring instrument. Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do. That loading is the only cross-sectional input, and it produces both facts: the higher premium and the lower price-dividend ratio.
 
 |  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
 | Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
 | Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
+
+The claim is not that this model is true. The claim is narrower: when forecast and discount rate come from one process, the cross-section is priced; when they come from two, nothing bounds the error.
 
 The model gap is about 5.3 percent against about 6 in the data. Value's model CAPM beta is *lower* than growth's (ratio 0.92) while its premium is higher. An econometrician running CAPM regressions would print a puzzle. The household does not, because the priced risk is the cash-flow loading on \(x_t\). Cash flows and the discount rate are not two free numbers. They come from one process. A DCF treats the cash flow forecast and the discount rate as independent inputs.
 

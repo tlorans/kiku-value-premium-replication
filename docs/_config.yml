@@ -16,7 +16,7 @@ search:
 heading_anchors: true
 back_to_top: true
 back_to_top_text: Back to top
-footer_content: "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows. MIT License."
+footer_content: "MIT License."
 
 aux_links:
   GitHub:

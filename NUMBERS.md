@@ -147,4 +147,4 @@ No numbers.
 
 ## Site chrome
 
-- Tagline (footer, `_config.yml` `footer_content`): "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows. MIT License." — promotion source for Issue 1.
+- Tagline: promoted from footer to under the Home title in Issue 1 (`docs/index.md`); footer now carries "MIT License." only.
