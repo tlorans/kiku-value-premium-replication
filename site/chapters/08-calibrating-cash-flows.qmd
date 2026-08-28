@@ -343,6 +343,48 @@ the monthly frequency.
    try to pass the market's returns to it in any argument. Confirm
    from the error that there is no place for them.
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+def slope(dd, proxy):
+    ok = np.isfinite(proxy) & np.isfinite(dd)
+    xx = proxy[ok] - proxy[ok].mean()
+    ee = dd[ok] - dd[ok].mean()
+    return float(xx @ ee / (xx @ xx))
+
+# Exercise 1: a different window
+ma3 = lrr.expected_growth_proxy(y, window=3)
+for claim in ("Growth", "Value", "Market"):
+    print(f"{claim:8s}  window 2: {slope(dgrowth(claim), ma):7.3f}"
+          f"   window 3: {slope(dgrowth(claim), ma3):7.3f}")
+
+# Exercise 2: dropping 1930-1945
+keep = dc["year"].to_numpy() >= 1946
+ma_post = lrr.expected_growth_proxy(y[keep], window=2)
+dg_post = {c: dgrowth(c)[keep] for c in ("Growth", "Value", "Market")}
+for claim in ("Growth", "Value", "Market"):
+    print(f"{claim:8s}  post-war slope: {slope(dg_post[claim], ma_post):7.3f}")
+
+# Exercise 3: no place for a return
+try:
+    lrr.calibrate_from_data(y, returns=dgrowth("Market"))
+except TypeError as err:
+    print(f"TypeError: {err}")
+```
+
+The window change does not preserve the slopes: at window 3 the value
+slope turns negative (-5.50), so the level of the annual leverage
+estimate is fragile to the proxy window. The post-war sample keeps the
+value-above-growth ordering but collapses the value slope from 12.13 to
+0.60, and the growth slope stays negative throughout. Levels are fragile
+here, which is why the chapter leans on the paper's Table VI numbers for
+magnitudes. And
+there is no returns argument to pass: the signature rejects the keyword
+outright.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** Every number above is printed by the
 cells on this page: the slopes by the eq.-19 OLS and

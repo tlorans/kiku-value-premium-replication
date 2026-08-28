@@ -296,3 +296,40 @@ chapter as a notebook (top of the page) to rerun everything.
    $\kappa_1 \approx 0.999$. Estimate the iteration count needed for a
    sup-norm tolerance of $10^{-10}$ from the contraction modulus, and
    check it against a timed run.
+
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: more volatility states
+s8 = lrr.ModelSolver(params, n_x=30, n_s=8).solve()
+m4 = lrr.compute_asset_pricing_moments(solver)
+m8 = lrr.compute_asset_pricing_moments(s8)
+print(f"value premium, n_s = 4: {m4['value_premium']:.2f}")
+print(f"value premium, n_s = 8: {m8['value_premium']:.2f}")
+
+# Exercise 2: implied one-month persistence one sd out
+for label, s in (("n_x = 30", solver), ("n_x = 60", solver60)):
+    g = s.grid
+    ix = int(np.argmin(np.abs(g.x_nodes - sd_true)))
+    i = ix * g.n_s + is_mid
+    pers = float(g.Pi[i] @ g.x_grid) / g.x_nodes[ix]
+    print(f"{label}:  E[x'|x]/x one sd out = {pers:.4f}  (rho = {c.rho})")
+
+# Exercise 3: iterations implied by the contraction modulus
+zb = float(np.dot(solver60.stationary, solver60.z["market"]))
+k1 = np.exp(zb) / (1 + np.exp(zb))
+print(f"kappa1 = {k1:.6f}  =>  iterations for 1e-10: "
+      f"{np.log(1e-10) / np.log(k1):,.0f}")
+```
+
+Refining the volatility dimension moves the premium far less than refining
+x did, because the price of volatility risk is small next to the price of
+persistence risk. The chain's implied persistence at one standard deviation
+sits above rho on the coarse grid (0.992) and close to rho on the fine
+grid (0.982), the same coarse-grid distortion direction as the
+over-dispersion check. The
+iteration estimate from the modulus is the right order of magnitude for a
+timed run: thousands of cheap iterations.
+
+:::

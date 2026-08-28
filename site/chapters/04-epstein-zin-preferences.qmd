@@ -250,6 +250,31 @@ prints the risk price attached to each shock.
    $V_t^{1-\gamma} \propto E_t \sum_j \delta^j C_{t+j}^{1-\gamma}$ (up
    to a monotone transformation). Which step uses $\gamma = 1/\psi$?
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: theta as psi moves, gamma fixed at 10
+for psi in (0.5, 0.9, 1.1, 1.5, 2.0):
+    print(f"psi = {psi:.1f}:  theta = "
+          f"{lrr.PreferencesParams(gamma=10.0, psi=psi).theta:8.2f}")
+
+# Exercise 2: theta = 1 at gamma = 1/psi
+print(f"gamma = 1/psi = {1/1.5:.3f}:  theta = "
+      f"{lrr.PreferencesParams(gamma=1/1.5, psi=1.5).theta:.2f}")
+```
+
+The sign of theta flips at psi = 1, and its magnitude explodes as psi
+approaches 1 from either side. Theta reaches 1 exactly at gamma = 1/psi,
+where the recursivity is silent about the timing of resolution.
+
+Exercise 3 is an algebra proof, not a computation. The step that uses
+gamma = 1/psi is the one where the continuation value inside the certainty
+equivalent becomes a power of the linear aggregator, so the recursion
+collapses to a sum of expected power utilities.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** The values $\delta = 0.999$,
 $\gamma = 10$, $\psi = 1.5$, and $\theta = -27$ come from the tables

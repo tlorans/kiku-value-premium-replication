@@ -420,6 +420,43 @@ compensation is paid in returns.
    much as refining the $x$ dimension did? What does the result tell
    you about which state variable is harder to discretize accurately?
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: raise growth's loading instead
+p_hi = copy.deepcopy(params)
+p_hi.dividends["growth"].phi = 6.2
+t_hi = lrr.simulate_table_vii(
+    lrr.ModelSolver(p_hi, n_x=30, n_s=4).solve(),
+    n_samples=300, years=74, seed=0)
+print(f"premium with both phi = 6.2: {t_hi['value_premium']:.2f}")
+print(f"market E[R]: {t_hi['mean_return']['market']:.2f} "
+      f"(Table VII chapter: {tab['mean_return']['market']:.2f})")
+
+# Exercise 2: the largest spread in the one-at-a-time grid
+print(pd.DataFrame(rows).sort_values("spread", ascending=False).head(3))
+
+# Exercise 3: refining the volatility dimension at n_x = 60
+t6 = lrr.simulate_table_vii(
+    lrr.ModelSolver(params, n_x=60, n_s=6).solve(),
+    n_samples=300, years=74, seed=0)
+print(f"vp, n_x=60 n_s=4: {grid_rows[1]['vp']:.2f}")
+print(f"vp, n_x=60 n_s=6: {t6['value_premium']:.2f}")
+```
+
+Equalizing from above kills the value premium just as equalizing from
+below did (0.10 percent), and the market row is untouched at 8.93
+because the market's own cash-flow process never moved: the cross-section
+breaks while the aggregate stays put. The biggest spread in the tested
+ranges sits at the highest risk aversion (0.62 at gamma = 15), with the
+high value loading and high persistence just behind, and all three scale
+the price or the quantity of long-run news.
+Refining the volatility grid at n_x = 60 barely moves the premium next to
+refining the x grid, so x is the state that is hard to discretize.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** Data numbers are printed by the first
 cell from `data/annual_panel.csv`. Every model number is printed by

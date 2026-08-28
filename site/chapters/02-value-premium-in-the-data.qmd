@@ -228,6 +228,35 @@ Consumption growth has a volatility of 2.37 percent a year. The rest of the cour
 2. Recompute the summary table on the post-war sample (1946 to 2003) with `lrr.table_i(panel[panel["year"] >= 1946])`. Which facts survive: the return spread, the valuation ranking, and the gap in dividend volatility?
 3. The market's dividend growth volatility (11.02 percent in the table) is lower than either leg's. Using `wide_dd`, verify the claim and explain why a value-weighted combination can be less volatile than both components.
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: the spread decade by decade
+by_decade = (wide_ret["Value"] - wide_ret["Growth"]).groupby(
+    wide_ret.index // 10 * 10).mean()
+print(by_decade.round(3))
+neg = int((by_decade < 0).sum())
+print(f"negative decades: {neg} of {len(by_decade)}")
+
+# Exercise 2: the post-war sample
+postwar = lrr.table_i(panel[panel["year"] >= 1946])
+cols = [c for c in postwar.columns if postwar[c].dtype != object]
+print(postwar[cols].round(2))
+
+# Exercise 3: dividend growth volatility
+print((100 * wide_dd.std(ddof=1)).round(2))
+```
+
+The spread is negative in a minority of decades, so an investor can wait a
+decade and still lose. On the post-war sample the return spread and the
+volatility gap survive while the valuation ranking stays cheap-for-value.
+The market's dividend growth is less volatile than either leg because the
+legs' idiosyncratic dividend shocks partly cancel in the value-weighted
+combination.
+
+:::
+
 ## Appendix: rebuilding the panel from the raw sources
 
 The argument above does not need the appendix. The full pipeline is in `lrrcs.empirical` and requires WRDS credentials for the CRSP and Compustat pulls. The code blocks below are shown for orientation and are not executed on this page.

@@ -304,6 +304,41 @@ endowment in which there is persistent news to be had.
    observed 0.07 percent real rate. Is it a discount factor a patient
    investor could have?
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: the HJ bound for the long-short claim
+spread = df["Value"] - df["Growth"]
+sr_ls = spread.mean() / spread.std()
+print(f"sigma(M)/E[M] >= Sharpe = {sr_ls:.2f}"
+      f"  =>  gamma >= {sr_ls / df.dc.std():.0f}")
+
+# Exercise 2: scaling gamma leaves the cross section fixed
+covs = {n: np.cov(df[n] - df.rf, df.dc, ddof=1)[0, 1]
+        for n in ("Value", "Growth")}
+for gv in (10.0, 50.0, 155.0):
+    ratio = (gv * covs["Value"]) / (gv * covs["Growth"])
+    print(f"gamma = {gv:5.0f}:  ratio of predicted premia "
+          f"value/growth = {ratio:.2f}")
+
+# Exercise 3: the delta that reconciles gamma = 155 with the data rf
+gv = 155.0
+delta_star = float(np.exp(gv * df.dc.mean()
+                          - 0.5 * gv**2 * df.dc.std()**2
+                          - df.rf.mean()))
+print(f"delta = {delta_star:.4f} (annual)")
+```
+
+The kernel bound demands a gamma of 13 for the spread alone, above
+the 10 the chapter used. The
+predicted-premia ratio never moves with gamma because gamma multiplies both
+covariances, which is exactly why power utility cannot fix the cross
+section. The reconciling delta is implausibly small, the risk-free rate
+puzzle again.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** Every number above is computed by the
 cells on this page from three files built in Part I
