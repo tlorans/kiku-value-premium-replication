@@ -45,6 +45,11 @@ lrr.print_long_short_premium(sol)
 
 The printout is only compensation for news about \(x_t\), about 0.4 percent on the value-growth spread. The table above is the Euler equation on the whole claim (short-run shocks and volatility news included). Do not subtract 0.4 from 5.3 and call it a miss.
 
+![The 5.3 model premium as one bar with the 0.4 x_t-news slice marked inside it; dashed line at the data value of about 6](figures/premium_decomposition.svg)
+
+<p class="caption">The printout is only compensation for news about \(x_t\)… Do not subtract 0.4 from 5.3 and call it a miss.</p>
+
+
 ![Long-run premium versus leverage](figures/lrr_sml.svg)
 
 <p class="caption">Compensation against cash-flow leverage on long-run consumption news, not CAPM \(\beta\). Value sits to the right of growth because its dividends load harder on \(x_t\).</p>
