@@ -6,15 +6,33 @@ permalink: /
 
 # Long-run risks
 
-Kiku (2006) in code: cash-flow leverage on long-run consumption risk prices the value premium. Average returns never enter.
+*Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.*
 
-Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do, and that loading produces both facts. One Epstein-Zin household prices both claims. The outputs are a high premium *and* a low price-dividend ratio. The same household still prices the market.
+A DCF takes a cash-flow forecast from one model and a discount rate from another. Nothing constrains the pair.
+
+Here, one process prices both. A single Epstein-Zin household prices the market, value, and growth claims jointly: cash flows and discount rates come from the same consumption process, and average returns never enter the estimation. The cross-section comes out as an output, with nothing re-tuned per claim.
+
+Kiku (2006) is the measuring instrument. Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do. That loading is the only cross-sectional input, and it produces both facts: the higher premium and the lower price-dividend ratio.
 
 |  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
 | Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
 | Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
+
+<div class="firewall" markdown="1">
+
+**Where each number comes from**
+
+- Table II parameters — aggregate consumption moments only
+- Cash-flow loadings — dividends regressed on a two-year moving average of consumption; no returns
+- Returns — validation only, never fitted
+
+Returns appear once, at the end, as the thing to be explained.
+
+</div>
+
+The claim is not that this model is true. The claim is narrower: when forecast and discount rate come from one process, the cross-section is priced; when they come from two, nothing bounds the error.
 
 The model gap is about 5.3 percent against about 6 in the data. Value's model CAPM beta is *lower* than growth's (ratio 0.92) while its premium is higher. An econometrician running CAPM regressions would print a puzzle. The household does not, because the priced risk is the cash-flow loading on \(x_t\). Cash flows and the discount rate are not two free numbers. They come from one process. A DCF treats the cash flow forecast and the discount rate as independent inputs.
 
@@ -39,6 +57,8 @@ The printout is only compensation for news about \(x_t\), about 0.4 percent on t
 2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), where cash-flow growth comes from, where the discount rate comes from, and the fraction where they meet.
 3. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}), equation (19): dividend growth on a two-year MA of consumption. No returns.
 4. [Does the market still fit?]({{ '/time-series.html' | relative_url }}), the same household still prices the market.
-5. [Value versus growth]({{ '/cross-section.html' | relative_url }}), two legs, nothing re-tuned; the value premium and the CAPM anomaly.
+5. [Two free numbers]({{ '/two-free-numbers.html' | relative_url }}), the same claims valued the DCF way.
+6. [Value versus growth]({{ '/cross-section.html' | relative_url }}), two legs, nothing re-tuned; the value premium and the CAPM anomaly.
+7. [Price your own claim]({{ '/price-your-own-claim.html' | relative_url }}), bring a dividend process, receive a price and an expected return.
 
 [Package]({{ '/package.html' | relative_url }}), [Installation]({{ '/installation.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [API]({{ '/api.html' | relative_url }}), [GitHub](https://github.com/tlorans/kiku-value-premium-replication)

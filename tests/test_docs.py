@@ -8,11 +8,16 @@ BOOK_PAGES = (
     "long-run-risks-model.md",
     "measuring-leverage.md",
     "time-series.md",
+    "two-free-numbers.md",
     "cross-section.md",
+    "price-your-own-claim.md",
     "package.md",
     "installation.md",
-    "financial-data.md",
     "api.md",
+    "financial-data.md",
+    "objections.md",
+    "background.md",
+    "references.md",
 )
 
 PACKAGE_PAGES = ("installation.md", "api.md", "package.md")
@@ -59,12 +64,22 @@ def test_argument_nav_order():
     assert _front_nav_order("measuring-leverage.md") == 4
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
+    assert _parent("two-free-numbers.md") is None
+    assert _front_nav_order("two-free-numbers.md") == 6
     assert _parent("cross-section.md") is None
-    assert _front_nav_order("cross-section.md") == 6
-    assert _front_nav_order("package.md") == 7
+    assert _front_nav_order("cross-section.md") == 7
+    assert _parent("price-your-own-claim.md") is None
+    assert _front_nav_order("price-your-own-claim.md") == 8
+    assert _front_nav_order("package.md") == 9
     assert _parent("installation.md") == "Package"
     assert _parent("api.md") == "Package"
     assert _parent("financial-data.md") == "Package"
+    assert _parent("objections.md") is None
+    assert _front_nav_order("objections.md") == 10
+    assert _parent("background.md") is None
+    assert _front_nav_order("background.md") == 11
+    assert _parent("references.md") is None
+    assert _front_nav_order("references.md") == 12
 
 
 def test_mathjax_and_sidebar_theme():
@@ -164,8 +179,43 @@ def test_dcf_to_ge_arc():
     for text, page in ((home, "index.md"), (gs, "getting-started.md")):
         assert "discount rate" in text, page
         assert "cash flow" in text, page
-    assert "Average returns never enter" in home
+    # Hero copy (REWRITE_PLAN Issue 1) carries the motto inside the verbatim
+    # sentence "average returns never enter the estimation".
+    assert "average returns never enter the estimation" in home.lower()
     assert "consumption" in gs
+
+
+def test_home_spine():
+    """Issue 1: tagline under the title, verbatim hero, scoping line after the table."""
+    text = _text("index.md")
+    assert "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows." in text
+    assert "A DCF takes a cash-flow forecast from one model and a discount rate from another." in text
+    assert "The claim is not that this model is true." in text
+    # Tagline must not appear twice (promoted from footer in Issue 1).
+    assert text.count(
+        "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows."
+    ) == 1
+    cfg = (ROOT / "_config.yml").read_text(encoding="utf-8")
+    assert "low-frequency risks" not in cfg.split("footer_content:", 1)[1].split("\n", 1)[0]
+    assert "MIT License" in cfg
+
+
+FIREWALL_LINES = (
+    "**Where each number comes from**",
+    "Table II parameters — aggregate consumption moments only",
+    "Cash-flow loadings — dividends regressed on a two-year moving average of consumption; no returns",
+    "Returns — validation only, never fitted",
+    "Returns appear once, at the end, as the thing to be explained.",
+)
+
+
+def test_firewall_callout_on_home_and_measuring():
+    """Issue 3: the estimation firewall renders on both pages, content verbatim."""
+    for name in ("index.md", "measuring-leverage.md"):
+        text = _text(name)
+        assert 'class="firewall"' in text, name
+        for line in FIREWALL_LINES:
+            assert line in text, f"{name}: {line[:40]}"
 
 
 GS_H2S = (
@@ -323,6 +373,9 @@ def test_market_chapter():
     assert "kalman_filter" in text
     assert "one_path" in text
     assert "wrong price\u2013dividend ratio is a fail" in text
+    # Issue 2 framing sentence (meaning pinned by REWRITE_PLAN).
+    assert "This comes before the cross-section on purpose." in text
+    assert "never re-tune it" in text
     assert "## Key takeaways" in text
     assert "## Exercises" in text
 
