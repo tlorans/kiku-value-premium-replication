@@ -1,0 +1,148 @@
+
+===== quickstart print_long_short_premium (index, getting-started, installation, time-series, cross-section) =====
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.80%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.40%
+A1 (PD elasticity to x): growth=43.1, value=88.9
+Price of long-run risk Lambda_eps = 5.95
+
+===== Table II params dump (getting-started, long-run-risks-model, time-series) =====
+prefs {'delta': 0.999, 'gamma': 10.0, 'psi': 1.5}
+cons {'mu': 0.0015, 'rho': 0.98, 'phi_x': 0.032, 'sigma': 0.0064, 'nu': 0.99, 'sigma_w': 1.7e-06}
+dividends {'growth': {'mu': 0.0009, 'phi': 2.6, 'phi_sigma': 8.4, 'alpha': 0.27}, 'value': {'mu': 0.0019, 'phi': 6.2, 'phi_sigma': 7.4, 'alpha': 0.15}, 'market': {'mu': 0.0012, 'phi': 2.8, 'phi_sigma': 7.5, 'alpha': 0.55}}
+
+===== solution internals: A1, A2, premium_lr, mean_log_pd, lambda =====
+A1 {'growth': np.float64(43.1), 'value': np.float64(88.9), 'market': np.float64(37.5)}
+A2 {'growth': np.float64(402.9), 'value': np.float64(235.8), 'market': np.float64(-226.0)}
+premium_lr % {'growth': np.float64(0.39), 'value': np.float64(0.8), 'market': np.float64(0.34)}
+mean_log_pd {'growth': 3.65, 'value': 3.1, 'market': 3.24}
+
+===== equal-phi counterfactual (getting-started, cross-section) =====
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.28%
+  market  :   0.34%
+Value-growth spread from long-run risks: -0.12%
+A1 (PD elasticity to x): growth=43.1, value=31.1
+Price of long-run risk Lambda_eps = 5.95
+
+===== theta arithmetic (getting-started, long-run-risks-model) =====
+0.999 10.0 1.5 -> 10.0 0.667 -27.0
+
+===== A1 by hand, growth/value (cross-section) =====
+growth 43.1
+value 88.9
+
+===== A1 ratio (cross-section) =====
+A1 value / A1 growth 2.06
+
+===== A1 market by hand (time-series) =====
+kappa1 0.962 A1 37.5
+
+===== table_i on shipped reconstruction (financial-data) =====
+ claim  ret_mean   ret_se    ret_sd  ret_sd_se  dg_mean    dg_se     dg_sd  dg_sd_se   log_pd  log_pd_se
+Growth  7.492852 1.925891 20.023937   1.595672 0.329968 1.161131 14.345177  2.953020 3.622408   0.172437
+ Value 13.669753 1.630169 29.670517   5.401304 3.534733 4.129281 47.720262 18.627826 3.337454   0.188018
+Market  8.517614 1.746617 20.095077   2.285516 0.916055 0.937574 11.020311  2.993858 3.325686   0.125294
+
+===== reconstruction return means (cross-section) =====
+{'Growth': 7.49, 'Value': 13.67, 'Market': 8.52}
+
+===== CAPM betas on reconstruction (cross-section) =====
+{'Growth': 0.95, 'Value': 1.28}
+
+===== consumption MA head (measuring-leverage, time-series) =====
+shape: (6, 3)
+┌──────┬───────────┬───────────┐
+│ year ┆ dc        ┆ ma        │
+│ ---  ┆ ---       ┆ ---       │
+│ i64  ┆ f64       ┆ f64       │
+╞══════╪═══════════╪═══════════╡
+│ 1930 ┆ -0.053    ┆ NaN       │
+│ 1931 ┆ -0.023746 ┆ NaN       │
+│ 1932 ┆ -0.088235 ┆ -0.038373 │
+│ 1933 ┆ -0.02138  ┆ -0.05599  │
+│ 1934 ┆ 0.06167   ┆ -0.054808 │
+│ 1935 ┆ 0.041639  ┆ 0.020145  │
+└──────┴───────────┴───────────┘
+
+===== phi_tilde annual OLS (measuring-leverage, cross-section) =====
+{'Growth': -0.267, 'Value': 12.129, 'Market': 0.722}
+
+===== print_calibration_summary market (measuring-leverage, time-series) =====
+Portfolio          μ (m)     φ (long-run)   φ_σ      α
+-------------------------------------------------------
+long                    nan       nan       7.50    0.00
+short               0.00027    -0.267       7.05    0.33
+market              0.00076     0.722       5.33    0.57
+
+===== market head rows (time-series) =====
+shape: (6, 6)
+┌──────┬────────┬───────────┬───────────┬───────────┬───────────┐
+│ year ┆ claim  ┆ ret       ┆ dgrowth   ┆ pd        ┆ dc        │
+│ ---  ┆ ---    ┆ ---       ┆ ---       ┆ ---       ┆ ---       │
+│ i64  ┆ str    ┆ f64       ┆ f64       ┆ f64       ┆ f64       │
+╞══════╪════════╪═══════════╪═══════════╪═══════════╪═══════════╡
+│ 1930 ┆ Market ┆ -0.257574 ┆ -0.026099 ┆ 15.759796 ┆ -0.053    │
+│ 1931 ┆ Market ┆ -0.377194 ┆ -0.130613 ┆ 10.519134 ┆ -0.023746 │
+│ 1932 ┆ Market ┆ 0.043764  ┆ -0.385444 ┆ 15.069269 ┆ -0.088235 │
+│ 1933 ┆ Market ┆ 0.632257  ┆ -0.171581 ┆ 27.995168 ┆ -0.02138  │
+│ 1934 ┆ Market ┆ -0.012941 ┆ 0.097648  ┆ 24.055898 ┆ 0.06167   │
+│ 1935 ┆ Market ┆ 0.41943   ┆ 0.077046  ┆ 30.341681 ┆ 0.041639  │
+└──────┴────────┴───────────┴───────────┴───────────┴───────────┘
+
+===== sample stats (time-series, financial-data) =====
+74 1.75 2.37
+AC1 0.41
+rf mean % 0.07
+
+===== market describe (time-series) =====
+shape: (9, 4)
+┌────────────┬───────────┬───────────┬───────────┐
+│ statistic  ┆ ret       ┆ dgrowth   ┆ pd        │
+│ ---        ┆ ---       ┆ ---       ┆ ---       │
+│ str        ┆ f64       ┆ f64       ┆ f64       │
+╞════════════╪═══════════╪═══════════╪═══════════╡
+│ count      ┆ 74.0      ┆ 74.0      ┆ 74.0      │
+│ null_count ┆ 0.0       ┆ 0.0       ┆ 0.0       │
+│ mean       ┆ 0.085176  ┆ 0.009161  ┆ 30.853267 │
+│ std        ┆ 0.200951  ┆ 0.110203  ┆ 16.068656 │
+│ min        ┆ -0.377194 ┆ -0.433363 ┆ 10.519134 │
+│ 25%        ┆ -0.062147 ┆ -0.023635 ┆ 21.156732 │
+│ 50%        ┆ 0.114674  ┆ 0.012378  ┆ 27.126879 │
+│ 75%        ┆ 0.230589  ┆ 0.056061  ┆ 34.822889 │
+│ max        ┆ 0.632257  ┆ 0.421872  ┆ 88.070422 │
+└────────────┴───────────┴───────────┴───────────┘
+
+===== simulate_cashflow_moments n_sims=20 seed=1 (time-series) =====
+{'consumption': {'E[dc]': 1.8169890750987574, 'sigma(dc)': 2.4364768671133774, 'AC1': 0.16195004019983372}, 'dividends': {'growth': {'E[dd]': 0.19509004706694055, 'sigma(dd)': 18.059797935569538, 'AC1': 0.006831461003025221, 'corr(dc,dd)': 0.321939859168148}, 'value': {'E[dd]': 1.5231785620590983, 'sigma(dd)': 17.375817797019085, 'AC1': 0.08459048345503448, 'corr(dc,dd)': 0.2972726705677709}, 'market': {'E[dd]': 0.6818215026042111, 'sigma(dd)': 16.36418663669685, 'AC1': 0.028689367525941905, 'corr(dc,dd)': 0.5729797729468956}}}
+
+===== kalman filter_expected_growth (time-series appendix) =====
+{'mu': 0.01748737821410001, 'rho': 0.4261957622242575, 'q': 0.00046409864665832994, 'r': 1e-12, 'loglik': 178.8881893343497}
+
+===== toy Campbell-Shiller year (financial-data) =====
+   year       div           v         pd
+0  2000  2.536501  112.682503  44.424394
+
+===== toy real T-bill (financial-data) =====
+2000-12-31         NaN
+2001-12-31    0.002002
+Freq: YE-DEC, dtype: float64
+
+===== compute_asset_pricing_moments (model columns: E[R], sd, mean log P/D, rf, betas) =====
+============================================================
+Asset-pricing moments (annualised)
+============================================================
+Risk-free rate          :    inf %
+Value premium          : 1357398444739147333522079545035104868863523838657173859192453210820054435343203501809451456800493087922296121932112939282532803125938787608166400.00 %
+
+Portfolio      E[R] %    Vol %   Sharpe   CAPM β  log(P/D)
+------------------------------------------------------------
+growth       101262911560704432196014404236066117679797484410341788336728553385280340825817411783036432122690613444661711014401378030526845229556432988811558912.00 5922773882855.68     -inf     0.59    -27.63
+value        102620310005443579529536483781101222548661008248998962195921006596100395261160615284845883579491106532584007136333490969809378032682371776419725312.00 7847763811844.91     -inf     0.50    -27.63
+market       101932977401852395995435571571896907387168999367029522775293776900440222533253873767808126913870392364242261820581853452908899869499117746037719040.00 9759820175259.23     -inf      nan    -27.63
+
+log(P/D) value − growth :   0.00
+beta value / beta growth = 0.84

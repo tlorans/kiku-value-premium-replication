@@ -1,0 +1,14 @@
+$ uv sync && uv run python (repo venv, Python 3.12 per uv.lock)
+import lrrcs as lrr
+sol = lrr.solve_analytical(lrr.get_table_ii_params())
+lrr.print_long_short_premium(sol)
+
+Approximate annualized long-run risk premia:
+  growth  :   0.39%
+  value   :   0.80%
+  market  :   0.34%
+Value-growth spread from long-run risks: 0.40%
+A1 (PD elasticity to x): growth=43.1, value=88.9
+Price of long-run risk Lambda_eps = 5.95
+---
+version: 0.5.0 ; public API: 40 names
