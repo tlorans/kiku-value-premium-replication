@@ -371,3 +371,11 @@ $\gamma \approx 155$ and 23 percent figures are the cells' own output.
 Download the chapter as a notebook (top of the page) to rerun
 everything.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Cochrane, *Asset Pricing*, chapter 1, on the pricing kernel
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

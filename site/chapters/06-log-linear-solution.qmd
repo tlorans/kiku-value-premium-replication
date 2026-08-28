@@ -290,3 +290,11 @@ does is riskless in the long run, so it earns no long-run compensation,
 while a claim below the threshold is a hedge and earns a discount.
 
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Campbell and Shiller (1988), on the log-linear return
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

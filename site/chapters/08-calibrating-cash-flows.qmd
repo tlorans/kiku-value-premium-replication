@@ -416,3 +416,11 @@ loadings by `get_table_ii_params`; Table VI's $-0.38$ / $2.16$ / $0.66$
 are the paper's prints. Download the chapter as a notebook (top of the
 page) to rerun everything.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Kiku (2006), the cash-flow estimation section
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

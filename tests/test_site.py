@@ -119,6 +119,13 @@ def test_chapters_have_recall_callout():
             )
 
 
+def test_chapters_link_references_page():
+    """Every chapter points to the references page (primary-source pointer)."""
+    for path in _chapter_files():
+        text = path.read_text(encoding="utf-8")
+        assert "references.qmd" in text, f"no references link: {path.name}"
+
+
 def test_freeze_covers_every_executed_page():
     freeze = SITE / "_freeze"
     for path in _qmd_files():

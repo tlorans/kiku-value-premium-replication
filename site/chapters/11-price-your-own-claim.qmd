@@ -387,3 +387,11 @@ the same arithmetic. Every cell runs when the site is built. Download
 the chapter as a notebook (Other Formats, top of the page) to rerun it
 on your own series.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Kiku (2006), equation (19) and the pricing steps
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::
