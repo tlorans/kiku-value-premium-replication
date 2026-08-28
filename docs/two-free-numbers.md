@@ -19,7 +19,7 @@ The ranking fails too. Value's model dividends grow 2.80 points a year faster th
 
 Fit the rate to the CAPM instead. On the affine solution, value's beta is 0.50 against growth's 0.89 (ratio 0.56): value's beta is *lower* while its premium is higher. The CAPM-fitted spread is (0.50 − 0.89) × (E[R_m] − r_f), a negative number: the wrong sign against six points. With the Table VII premium level it prices near −2.4.
 
-<!-- TODO(regenerate): the site's Table VII beta ratio 0.92 and premium levels (6.07/11.36/7.53, r_f 1.58) are not reproducible from the package (NUMBERS.md, F1). The 0.56 here is the level-free affine count. Resolve F1 to reconcile. -->
+<!-- Resolved (F1, 2026-08-28): `lrr.simulate_table_vii` now traces the Table VII object. On the paper grid the simulated annual CAPM beta ratio is 0.83 (0.91 at n_x=60) vs Kiku's printed 0.92; the 0.56 here remains the level-free affine count on monthly innovations. See NUMBERS.md, F1. -->
 
 The puzzle is not an estimate. It is structural: a DCF has no slot where the riskiness of the cash flows enters the discount rate.
 

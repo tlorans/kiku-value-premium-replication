@@ -1,84 +1,77 @@
 """
 Section 5 of Kiku (2006) – Asset pricing implications
+=====================================================
+
+Population moments of returns implied by a solved :class:`ModelSolver`,
+computed state-by-state and averaged under the stationary distribution.
+
+All Gaussian innovations (the short-run consumption shock η and each
+claim's idiosyncratic dividend residual v) integrate in closed form, so
+every expectation is a single matrix–vector product against the Markov
+transition matrix. The full residual structure of dividends,
+
+    u_a′ = α_a η′ + √(1 − α_a²) v_a′,     Corr(v_a′, v_b′) = ρ_ab,
+
+enters both first and second moments; earlier versions dropped the
+independent component √(1 − α²) v′, which dominates dividend volatility.
+
+These are population *monthly* moments annualised geometrically. The
+sample statistics of Table VII (1000 samples × 74 years, time-aggregated
+to annual) come from :mod:`lrrcs.implications.simulation` instead.
 """
 from __future__ import annotations
 import numpy as np
-from ..model.solver import ModelSolver, HAS_NUMBA, njit
-from ..model.params import get_default_params
+from ..model.solver import ModelSolver
 from ..model.legs import resolve_legs
 
+_PAPER_RESIDUAL_PAIRS = {
+    frozenset(("growth", "value")): "residual_corr_gv",
+    frozenset(("growth", "market")): "residual_corr_gm",
+    frozenset(("value", "market")): "residual_corr_vm",
+}
 
-@njit(cache=True)
-def _accumulate_moments(
-    z_c, z_g, z_v, z_m, Pi, x, sig,
-    mu_c, mu_g, phi_g, phi_sigma_g, alpha_g,
-    mu_v, phi_v, phi_sigma_v, alpha_v,
-    mu_m, phi_m, phi_sigma_m, alpha_m,
-    delta, theta, psi,
-    eta_nodes, eta_weights
-):
-    n = z_c.shape[0]
-    n_q = eta_nodes.shape[0]
 
-    E_Rf_inv = np.zeros(n)
-    E_Rg = np.zeros(n)
-    E_Rv = np.zeros(n)
-    E_Rm = np.zeros(n)
-    E_Rg2 = np.zeros(n)
-    E_Rv2 = np.zeros(n)
-    E_Rm2 = np.zeros(n)
-    E_Rg_Rm = np.zeros(n)
-    E_Rv_Rm = np.zeros(n)
+def residual_correlation(params, name_a: str, name_b: str) -> float:
+    """Correlation of the orthogonalised dividend residuals v_a, v_b."""
+    if name_a == name_b:
+        return 1.0
+    attr = _PAPER_RESIDUAL_PAIRS.get(frozenset((name_a, name_b)))
+    return float(getattr(params, attr)) if attr else 0.0
 
-    for i in range(n):
-        xi = x[i]
-        si = sig[i]
-        zci = z_c[i]
-        zgi = z_g[i]
-        zvi = z_v[i]
-        zmi = z_m[i]
 
-        for q in range(n_q):
-            eta = eta_nodes[q]
-            w = eta_weights[q]
-            dc = mu_c + xi + si * eta
+def _mean_return_by_state(solver: ModelSolver, name: str) -> np.ndarray:
+    """E_i[R′] for one claim: E[e^{Δd′}] × Σ_j Π_ij (1 + e^{z_j}) / e^{z_i}."""
+    d = solver.p.dividends[name]
+    x = solver.grid.x_grid
+    s2 = solver.grid.s2_grid
+    z = solver.z[name]
+    # Var(Δd′ | state) = φ_σ² σ² regardless of the α split of u′.
+    drift = float(d.mu) + float(d.phi) * x + 0.5 * float(d.phi_sigma) ** 2 * s2
+    payoff = solver.grid.Pi @ (1.0 + np.exp(z))
+    return np.exp(drift) * payoff / np.exp(z)
 
-            ug = alpha_g * eta
-            uv = alpha_v * eta
-            um = alpha_m * eta
 
-            ddg = mu_g + phi_g * xi + phi_sigma_g * si * ug
-            ddv = mu_v + phi_v * xi + phi_sigma_v * si * uv
-            ddm = mu_m + phi_m * xi + phi_sigma_m * si * um
+def _second_moment_by_state(solver: ModelSolver, name_a: str,
+                            name_b: str) -> np.ndarray:
+    """E_i[R_a′ R_b′] with the full dividend covariance structure."""
+    p = solver.p
+    da, db = p.dividends[name_a], p.dividends[name_b]
+    x = solver.grid.x_grid
+    s2 = solver.grid.s2_grid
+    za, zb = solver.z[name_a], solver.z[name_b]
 
-            for j in range(n):
-                p = Pi[i, j]
-                if p < 1e-18:
-                    continue
-                weight = p * w
+    corr_u = (float(da.alpha) * float(db.alpha)
+              + np.sqrt((1.0 - float(da.alpha) ** 2)
+                        * (1.0 - float(db.alpha) ** 2))
+              * residual_correlation(p, name_a, name_b))
+    fa, fb = float(da.phi_sigma), float(db.phi_sigma)
+    var_sum = fa * fa + fb * fb + 2.0 * fa * fb * corr_u
 
-                rc = dc + np.log(1.0 + np.exp(z_c[j])) - zci
-                m = (theta * np.log(delta)
-                     - (theta / psi) * dc
-                     + (theta - 1.0) * rc)
-                M = np.exp(m)
-
-                Rg = np.exp(ddg) * (1.0 + np.exp(z_g[j])) / np.exp(zgi)
-                Rv = np.exp(ddv) * (1.0 + np.exp(z_v[j])) / np.exp(zvi)
-                Rm = np.exp(ddm) * (1.0 + np.exp(z_m[j])) / np.exp(zmi)
-
-                E_Rf_inv[i] += weight * M
-                E_Rg[i] += weight * Rg
-                E_Rv[i] += weight * Rv
-                E_Rm[i] += weight * Rm
-                E_Rg2[i] += weight * Rg * Rg
-                E_Rv2[i] += weight * Rv * Rv
-                E_Rm2[i] += weight * Rm * Rm
-                E_Rg_Rm[i] += weight * Rg * Rm
-                E_Rv_Rm[i] += weight * Rv * Rm
-
-    return (E_Rf_inv, E_Rg, E_Rv, E_Rm,
-            E_Rg2, E_Rv2, E_Rm2, E_Rg_Rm, E_Rv_Rm)
+    drift = ((float(da.mu) + float(db.mu))
+             + (float(da.phi) + float(db.phi)) * x
+             + 0.5 * var_sum * s2)
+    payoff = solver.grid.Pi @ ((1.0 + np.exp(za)) * (1.0 + np.exp(zb)))
+    return np.exp(drift) * payoff / np.exp(za + zb)
 
 
 def compute_asset_pricing_moments(
@@ -100,35 +93,17 @@ def compute_asset_pricing_moments(
             "No market claim. Pass market='...' or include a series named 'market'."
         )
 
-    z_c = np.ascontiguousarray(solver.z_c, dtype=np.float64)
-    z_g = np.ascontiguousarray(solver.z[short_key], dtype=np.float64)
-    z_v = np.ascontiguousarray(solver.z[long_key], dtype=np.float64)
-    z_m = np.ascontiguousarray(solver.z[market_key], dtype=np.float64)
-    Pi = np.ascontiguousarray(solver.grid.Pi, dtype=np.float64)
-    x = np.ascontiguousarray(solver.grid.x_grid, dtype=np.float64)
-    sig = np.ascontiguousarray(np.sqrt(solver.grid.s2_grid), dtype=np.float64)
     pi = solver.stationary
 
-    dg = p.dividends[short_key]
-    dv = p.dividends[long_key]
-    dm = p.dividends[market_key]
+    Rf_states = solver.risk_free()
+    e_rf_inv = float(np.dot(pi, 1.0 / Rf_states))
+    Rf = 1.0 / e_rf_inv
 
-    (E_Rf_inv, E_Rg, E_Rv, E_Rm,
-     E_Rg2, E_Rv2, E_Rm2, E_Rg_Rm, E_Rv_Rm) = _accumulate_moments(
-        z_c, z_g, z_v, z_m, Pi, x, sig,
-        float(p.cons.mu),
-        float(dg.mu), float(dg.phi), float(dg.phi_sigma), float(dg.alpha),
-        float(dv.mu), float(dv.phi), float(dv.phi_sigma), float(dv.alpha),
-        float(dm.mu), float(dm.phi), float(dm.phi_sigma), float(dm.alpha),
-        float(solver.delta), float(solver.theta), float(solver.psi),
-        solver.eta_nodes, solver.eta_weights
-    )
-
-    e_rf_inv = float(np.dot(pi, E_Rf_inv))
-    Rf = 1.0 / e_rf_inv if e_rf_inv > 1e-18 else np.inf
-    Rg = np.dot(pi, E_Rg)
-    Rv = np.dot(pi, E_Rv)
-    Rm = np.dot(pi, E_Rm)
+    E_R = {name: _mean_return_by_state(solver, name)
+           for name in (short_key, long_key, market_key)}
+    Rg = float(np.dot(pi, E_R[short_key]))
+    Rv = float(np.dot(pi, E_R[long_key]))
+    Rm = float(np.dot(pi, E_R[market_key]))
 
     mean_Rg = (Rg ** 12 - 1) * 100
     mean_Rv = (Rv ** 12 - 1) * 100
@@ -136,20 +111,22 @@ def compute_asset_pricing_moments(
     mean_Rf = (Rf ** 12 - 1) * 100
     value_premium = mean_Rv - mean_Rg
 
-    vol_g = np.sqrt(max(np.dot(pi, E_Rg2) - Rg**2, 0)) * np.sqrt(12) * 100
-    vol_v = np.sqrt(max(np.dot(pi, E_Rv2) - Rv**2, 0)) * np.sqrt(12) * 100
-    vol_m = np.sqrt(max(np.dot(pi, E_Rm2) - Rm**2, 0)) * np.sqrt(12) * 100
+    E_R2 = {name: float(np.dot(pi, _second_moment_by_state(solver, name, name)))
+            for name in (short_key, long_key, market_key)}
+    vol_g = np.sqrt(max(E_R2[short_key] - Rg**2, 0)) * np.sqrt(12) * 100
+    vol_v = np.sqrt(max(E_R2[long_key] - Rv**2, 0)) * np.sqrt(12) * 100
+    vol_m = np.sqrt(max(E_R2[market_key] - Rm**2, 0)) * np.sqrt(12) * 100
 
-    cov_gm = np.dot(pi, E_Rg_Rm) - Rg * Rm
-    cov_vm = np.dot(pi, E_Rv_Rm) - Rv * Rm
-    var_m = max(np.dot(pi, E_Rm2) - Rm**2, 1e-12)
+    cov_gm = float(np.dot(pi, _second_moment_by_state(solver, short_key, market_key))) - Rg * Rm
+    cov_vm = float(np.dot(pi, _second_moment_by_state(solver, long_key, market_key))) - Rv * Rm
+    var_m = max(E_R2[market_key] - Rm**2, 1e-12)
     beta_g = cov_gm / var_m
     beta_v = cov_vm / var_m
 
     mean_pd = {
-        short_key: float(np.dot(pi, z_g)),
-        long_key: float(np.dot(pi, z_v)),
-        market_key: float(np.dot(pi, z_m)),
+        short_key: float(np.dot(pi, solver.z[short_key])),
+        long_key: float(np.dot(pi, solver.z[long_key])),
+        market_key: float(np.dot(pi, solver.z[market_key])),
     }
 
     return {

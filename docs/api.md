@@ -34,8 +34,10 @@ import lrrcs as lrr
 | `ModelSolver` | `(params=None, n_x=30, n_s=4, n_quad=7)` | numerical solver; `.solve()`, then `compute_asset_pricing_moments` | `s = lrr.ModelSolver(p, n_x=15); s.solve()` |
 | `compute_asset_pricing_moments` | `(solver, long=None, short=None, market=None) -> dict` | `mean_return`, `mean_rf`, `volatility`, `capm_beta`, `mean_log_pd` | `lrr.compute_asset_pricing_moments(s)` |
 | `print_asset_pricing_moments` | `(moments) -> None` | prints the Table VII-style block | `lrr.print_asset_pricing_moments(m)` |
+| `simulate_table_vii` | `(solver=None, n_samples=1000, years=74, seed=0, ...) -> dict` | Table VII sample statistics: annual `mean_return` (+`_se`), `volatility`, `sharpe`, `capm_beta`, `beta_ratio`, `mean_rf`, `mean_pd_level`, `mean_log_pd` | `tab = lrr.simulate_table_vii(s)` |
+| `print_table_vii` | `(tab) -> None` | prints the simulated Table VII block | `lrr.print_table_vii(tab)` |
 
-`solve_analytical` is the fast entry: the whole equilibrium in one call. `ModelSolver` is the grid solver behind Table VII; note the doc currently relies on the analytical path (NUMBERS.md, F1).
+`solve_analytical` is the fast entry: the whole equilibrium in one call. `ModelSolver` is the grid solver behind Table VII, and `simulate_table_vii` turns a solved model into the paper's sample statistics (1000 samples of 74 years, aggregated to annual data).
 
 ## Measure loadings
 

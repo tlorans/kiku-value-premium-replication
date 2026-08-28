@@ -6,8 +6,18 @@ Solves the model on a discrete state space using the quadrature method of
 Tauchen & Hussey (1991), exactly as in the paper.
 
 - Default grid matches the paper: 30-point GH for x, 4-point for σ².
-- Euler expectation integrates the short-run innovation η with additional GH.
-- Core loops are accelerated with Numba when available (optional dependency).
+- The short-run innovation η and the idiosyncratic dividend residual v are
+  Gaussian and independent of the (x, σ²) transition, so their expectations
+  integrate in closed form; each Euler iteration reduces to one
+  matrix–vector product against the Markov transition matrix.
+- The consumption-claim Euler equation is iterated in the θ-divided form
+
+      z ← (1/θ) log E[ exp(θ ln δ + θ(1 − 1/ψ)Δc′ + θ log(1 + e^{z′})) ]
+
+  whose modulus is ≈ κ₁ < 1. Iterating the un-divided form multiplies the
+  error by |1 − θ| ≈ 28 per step and diverges — that failure mode collapsed
+  every claim to a price floor in earlier versions of this module and is
+  now detected and raised instead of clamped.
 
 After calling `solver.solve()` the valuation functions live in:
     solver.z_c          (consumption claim)
@@ -18,88 +28,19 @@ and the stationary distribution of the Markov chain is in `solver.stationary`.
 """
 from __future__ import annotations
 import numpy as np
-from scipy.special import roots_hermitenorm
 from .params import ModelParams, get_default_params
 from .preferences import EpsteinZinPreferences
 from .discretization import StateGrid
 
-# ---------------------------------------------------------------------------
-# Optional Numba acceleration
-# ---------------------------------------------------------------------------
-try:
-    from numba import njit
-    HAS_NUMBA = True
-except ImportError:
-    HAS_NUMBA = False
-    def njit(*args, **kwargs):
-        def decorator(func):
-            return func
-        return decorator
 
+class SolverDivergenceError(RuntimeError):
+    """The Euler fixed-point iteration left the plausible range.
 
-@njit(cache=True)
-def _accumulate_consumption_payoff(
-    z, Pi, x, sig, mu, delta, theta, psi,
-    eta_nodes, eta_weights
-):
-    """Numba kernel: expected payoff for the consumption claim."""
-    n = z.shape[0]
-    n_quad = eta_nodes.shape[0]
-    exp_payoff = np.zeros(n)
-
-    for i in range(n):
-        xi = x[i]
-        si = sig[i]
-        zi = z[i]
-        for q in range(n_quad):
-            eta = eta_nodes[q]
-            w_eta = eta_weights[q]
-            dc = mu + xi + si * eta
-            acc = 0.0
-            for j in range(n):
-                z_next = z[j]
-                rc = dc + np.log(np.exp(z_next) + 1.0) - zi
-                m = (theta * np.log(delta)
-                     - (theta / psi) * dc
-                     + (theta - 1.0) * rc)
-                payoff = np.exp(m) * np.exp(dc) * (1.0 + np.exp(z_next))
-                acc += Pi[i, j] * payoff
-            exp_payoff[i] += w_eta * acc
-    return exp_payoff
-
-
-@njit(cache=True)
-def _accumulate_equity_payoff(
-    z, z_c, Pi, x, sig, mu_c, mu_d, phi, phi_sigma, alpha,
-    delta, theta, psi, eta_nodes, eta_weights
-):
-    """Numba kernel: expected payoff for an equity claim."""
-    n = z.shape[0]
-    n_quad = eta_nodes.shape[0]
-    exp_payoff = np.zeros(n)
-
-    for i in range(n):
-        xi = x[i]
-        si = sig[i]
-        zi = z[i]
-        zc_i = z_c[i]
-        for q in range(n_quad):
-            eta = eta_nodes[q]
-            w_eta = eta_weights[q]
-            dc = mu_c + xi + si * eta
-            u = alpha * eta   # residual innovation (simplified)
-            dd = mu_d + phi * xi + phi_sigma * si * u
-            acc = 0.0
-            for j in range(n):
-                z_next = z[j]
-                rc = dc + np.log(np.exp(z_c[j]) + 1.0) - zc_i
-                m = (theta * np.log(delta)
-                     - (theta / psi) * dc
-                     + (theta - 1.0) * rc)
-                payoff = np.exp(m) * np.exp(dd) * (1.0 + np.exp(z_next))
-                acc += Pi[i, j] * payoff
-            exp_payoff[i] += w_eta * acc
-    return exp_payoff
+    Raised instead of silently flooring prices: a claim whose log
+    price ratio explodes indicates a mis-specified recursion or
+    parameterisation, and clamping it would poison every downstream
+    moment.
+    """
 
 
 class ModelSolver:
@@ -113,11 +54,12 @@ class ModelSolver:
     n_x, n_s : int
         Grid size for expected growth and variance (paper default 30 × 4).
     n_quad : int
-        Number of Gauss–Hermite nodes for the short-run innovation.
+        Deprecated and ignored. The Gaussian innovations η and v now
+        integrate in closed form, so no quadrature over them is needed.
     """
 
     def __init__(self, params: ModelParams | None = None,
-                 n_x: int = 30, n_s: int = 4, n_quad: int = 7):
+                 n_x: int = 30, n_s: int = 4, n_quad: int | None = None):
         self.p = params or get_default_params()
         self.pref = EpsteinZinPreferences(self.p.prefs)
         self.grid = StateGrid(self.p, n_x=n_x, n_s=n_s)
@@ -125,117 +67,158 @@ class ModelSolver:
         self.delta = float(self.p.prefs.delta)
         self.psi = float(self.p.prefs.psi)
         self.gamma = float(self.p.prefs.gamma)
-        self.n_quad = n_quad
-
-        nodes, weights = roots_hermitenorm(n_quad)
-        self.eta_nodes = np.ascontiguousarray(nodes, dtype=np.float64)
-        self.eta_weights = np.ascontiguousarray(weights / np.sqrt(2 * np.pi), dtype=np.float64)
 
         self.z_c = None
         self.z = {}
         self.stationary = None
         self.converged = False
-        self.used_numba = HAS_NUMBA
 
-    def _stationary_dist(self, max_iter: int = 2000, tol: float = 1e-12):
+    # ------------------------------------------------------------------
+    # Internals
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _check_finite(z: np.ndarray, what: str, bound: float = 50.0) -> None:
+        if not np.all(np.isfinite(z)) or np.max(np.abs(z)) > bound:
+            raise SolverDivergenceError(
+                f"{what} left the plausible range (max |z| = "
+                f"{np.max(np.abs(z)):.2f}); the Euler iteration is diverging."
+            )
+
+    def _sdf_pieces(self):
+        """State-wise constants of the log SDF and the z_c-dependent factor.
+
+        m′ = θ ln δ + b·Δc′ + (θ − 1)(log(1 + e^{z_c′}) − z_c),
+        with b = θ − 1 − θ/ψ. Returns (const_i, q_j, shift) such that
+        E_i[e^{m′} · f(j)] = exp(const_i + shift) · Σ_j Π_ij q_j f(j)
+        for any f of the next state only (η already integrated out of the
+        Δc′ term via its Gaussian moment-generating function).
+        """
+        if self.z_c is None:
+            raise RuntimeError("Solve the consumption claim first.")
+        b = self.theta - 1.0 - self.theta / self.psi
+        x = self.grid.x_grid
+        s2 = self.grid.s2_grid
+        mu_c = float(self.p.cons.mu)
+
+        g_c = np.logaddexp(0.0, self.z_c)          # log(1 + e^{z_c})
+        h = (self.theta - 1.0) * g_c
+        shift = float(h.max())
+        q = np.exp(h - shift)
+
+        const = (self.theta * np.log(self.delta)
+                 + b * (mu_c + x)
+                 + 0.5 * b * b * s2
+                 - (self.theta - 1.0) * self.z_c)
+        return const, q, shift
+
+    # ------------------------------------------------------------------
+    # Claims
+    # ------------------------------------------------------------------
+    def solve_consumption_claim(self, max_iter: int = 200_000,
+                                tol: float = 1e-10):
+        """Fixed point of the θ-divided consumption-claim Euler equation.
+
+        The map contracts at rate ≈ κ₁ = e^{z̄}/(1 + e^{z̄}) ≈ 0.999, so
+        thousands of cheap O(n²) iterations are expected and fast.
+        """
+        n = self.grid.n_states
+        Pi = self.grid.Pi
+        x = self.grid.x_grid
+        s2 = self.grid.s2_grid
+        a = self.theta * (1.0 - 1.0 / self.psi)
+        mu = float(self.p.cons.mu)
+        const = (self.theta * np.log(self.delta)
+                 + a * (mu + x)
+                 + 0.5 * a * a * s2)
+
+        z = np.full(n, 6.0, dtype=np.float64)
+        for _ in range(max_iter):
+            h = self.theta * np.logaddexp(0.0, z)
+            shift = float(h.max())
+            s = Pi @ np.exp(h - shift)
+            z_new = (const + np.log(s) + shift) / self.theta
+            self._check_finite(z_new, "consumption-claim z")
+            if np.max(np.abs(z_new - z)) < tol:
+                z = z_new
+                break
+            z = z_new
+        else:
+            raise SolverDivergenceError(
+                "Consumption claim did not converge within "
+                f"{max_iter} iterations (last sup-norm step "
+                f"{np.max(np.abs(z_new - z)):.2e})."
+            )
+
+        self.z_c = z
+        return z
+
+    def solve_equity_claim(self, name: str, max_iter: int = 50_000,
+                           tol: float = 1e-10):
+        """Fixed point of the Euler equation for one dividend claim.
+
+        The dividend residual u′ = α η′ + √(1 − α²) v′ is integrated in
+        closed form: η′ jointly with the SDF (their loadings add), v′ as
+        an independent Jensen term ½ φ_σ²(1 − α²)σ².
+        """
+        if self.z_c is None:
+            self.solve_consumption_claim()
+
+        d = self.p.dividends[name]
+        n = self.grid.n_states
+        Pi = self.grid.Pi
+        x = self.grid.x_grid
+        s2 = self.grid.s2_grid
+
+        b = self.theta - 1.0 - self.theta / self.psi
+        sdf_const, q_c, shift_c = self._sdf_pieces()
+        c_eta = b + float(d.phi_sigma) * float(d.alpha)   # loading on σ·η
+        const = (sdf_const
+                 - 0.5 * b * b * s2                       # replace SDF-only η term
+                 + 0.5 * c_eta * c_eta * s2               # …with the joint one
+                 + float(d.mu) + float(d.phi) * x
+                 + 0.5 * float(d.phi_sigma) ** 2 * (1.0 - float(d.alpha) ** 2) * s2)
+
+        z = np.full(n, 3.5, dtype=np.float64)
+        for _ in range(max_iter):
+            payoff = q_c * (1.0 + np.exp(z))
+            z_new = const + shift_c + np.log(Pi @ payoff)
+            self._check_finite(z_new, f"equity claim '{name}' z")
+            if np.max(np.abs(z_new - z)) < tol:
+                z = z_new
+                break
+            z = z_new
+        else:
+            raise SolverDivergenceError(
+                f"Equity claim '{name}' did not converge within "
+                f"{max_iter} iterations."
+            )
+
+        self.z[name] = z
+        return z
+
+    # ------------------------------------------------------------------
+    # Derived objects
+    # ------------------------------------------------------------------
+    def risk_free(self) -> np.ndarray:
+        """Gross one-period risk-free rate per state, R_f = 1 / E[M′]."""
+        const, q, shift = self._sdf_pieces()
+        E_M = np.exp(const + shift) * (self.grid.Pi @ q)
+        return 1.0 / E_M
+
+    def _stationary_dist(self, max_iter: int = 20_000, tol: float = 1e-14):
         n = self.grid.n_states
         pi = np.ones(n) / n
         Pi = self.grid.Pi
         for _ in range(max_iter):
             pi_new = pi @ Pi
             if np.max(np.abs(pi_new - pi)) < tol:
+                pi = pi_new
                 break
             pi = pi_new
         self.stationary = pi / pi.sum()
         return self.stationary
 
-    def solve_consumption_claim(self, max_iter: int = 500, tol: float = 1e-5,
-                                damp: float = 0.35):
-        n = self.grid.n_states
-        z = np.full(n, 4.0, dtype=np.float64)
-        Pi = np.ascontiguousarray(self.grid.Pi, dtype=np.float64)
-        x = np.ascontiguousarray(self.grid.x_grid, dtype=np.float64)
-        sig = np.ascontiguousarray(np.sqrt(self.grid.s2_grid), dtype=np.float64)
-        mu = float(self.p.cons.mu)
-
-        for it in range(max_iter):
-            if HAS_NUMBA:
-                exp_payoff = _accumulate_consumption_payoff(
-                    z, Pi, x, sig, mu, self.delta, self.theta, self.psi,
-                    self.eta_nodes, self.eta_weights
-                )
-            else:
-                exp_payoff = np.zeros(n)
-                for i in range(n):
-                    for q, (eta, w_eta) in enumerate(zip(self.eta_nodes, self.eta_weights)):
-                        dc = mu + x[i] + sig[i] * eta
-                        acc = 0.0
-                        for j in range(n):
-                            rc = dc + np.log(np.exp(z[j]) + 1.0) - z[i]
-                            m = (self.theta * np.log(self.delta)
-                                 - (self.theta / self.psi) * dc
-                                 + (self.theta - 1.0) * rc)
-                            payoff = np.exp(m) * np.exp(dc) * (1.0 + np.exp(z[j]))
-                            acc += Pi[i, j] * payoff
-                        exp_payoff[i] += w_eta * acc
-
-            z_new = np.log(np.maximum(exp_payoff, 1e-12))
-            if np.max(np.abs(z_new - z)) < tol:
-                z = z_new
-                break
-            z = damp * z_new + (1.0 - damp) * z
-
-        self.z_c = z
-        return z
-
-    def solve_equity_claim(self, name: str, max_iter: int = 500, tol: float = 1e-5,
-                           damp: float = 0.35):
-        if self.z_c is None:
-            self.solve_consumption_claim()
-
-        d = self.p.dividends[name]
-        n = self.grid.n_states
-        z = np.full(n, 3.5, dtype=np.float64)
-        Pi = np.ascontiguousarray(self.grid.Pi, dtype=np.float64)
-        x = np.ascontiguousarray(self.grid.x_grid, dtype=np.float64)
-        sig = np.ascontiguousarray(np.sqrt(self.grid.s2_grid), dtype=np.float64)
-
-        for it in range(max_iter):
-            if HAS_NUMBA:
-                exp_payoff = _accumulate_equity_payoff(
-                    z, self.z_c, Pi, x, sig,
-                    float(self.p.cons.mu), float(d.mu), float(d.phi),
-                    float(d.phi_sigma), float(d.alpha),
-                    self.delta, self.theta, self.psi,
-                    self.eta_nodes, self.eta_weights
-                )
-            else:
-                exp_payoff = np.zeros(n)
-                for i in range(n):
-                    for q, (eta, w_eta) in enumerate(zip(self.eta_nodes, self.eta_weights)):
-                        dc = self.p.cons.mu + x[i] + sig[i] * eta
-                        u = d.alpha * eta
-                        dd = d.mu + d.phi * x[i] + d.phi_sigma * sig[i] * u
-                        acc = 0.0
-                        for j in range(n):
-                            rc = dc + np.log(np.exp(self.z_c[j]) + 1.0) - self.z_c[i]
-                            m = (self.theta * np.log(self.delta)
-                                 - (self.theta / self.psi) * dc
-                                 + (self.theta - 1.0) * rc)
-                            payoff = np.exp(m) * np.exp(dd) * (1.0 + np.exp(z[j]))
-                            acc += Pi[i, j] * payoff
-                        exp_payoff[i] += w_eta * acc
-
-            z_new = np.log(np.maximum(exp_payoff, 1e-12))
-            if np.max(np.abs(z_new - z)) < tol:
-                z = z_new
-                break
-            z = damp * z_new + (1.0 - damp) * z
-
-        self.z[name] = z
-        return z
-
-    def solve(self, max_iter: int = 500, tol: float = 1e-5):
+    def solve(self, max_iter: int = 200_000, tol: float = 1e-10):
         """Solve the consumption claim and all equity claims."""
         self.solve_consumption_claim(max_iter=max_iter, tol=tol)
         for name in self.p.dividends:
