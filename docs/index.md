@@ -20,6 +20,18 @@ Kiku (2006) is the measuring instrument. Value earned about six extra points a y
 | Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 
+<div class="firewall" markdown="1">
+
+**Where each number comes from**
+
+- Table II parameters — aggregate consumption moments only
+- Cash-flow loadings — dividends regressed on a two-year moving average of consumption; no returns
+- Returns — validation only, never fitted
+
+Returns appear once, at the end, as the thing to be explained.
+
+</div>
+
 The claim is not that this model is true. The claim is narrower: when forecast and discount rate come from one process, the cross-section is priced; when they come from two, nothing bounds the error.
 
 The model gap is about 5.3 percent against about 6 in the data. Value's model CAPM beta is *lower* than growth's (ratio 0.92) while its premium is higher. An econometrician running CAPM regressions would print a puzzle. The household does not, because the priced risk is the cash-flow loading on \(x_t\). Cash flows and the discount rate are not two free numbers. They come from one process. A DCF treats the cash flow forecast and the discount rate as independent inputs.

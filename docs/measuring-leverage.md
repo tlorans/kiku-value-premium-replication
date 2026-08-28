@@ -11,6 +11,18 @@ nav_order: 4
 
 The characteristic in this model is not a return beta. It is how hard a claim's *dividends* load on the persistent piece of consumption growth. Kiku's equation (19) is that loading. The right-hand side is a two-year moving average of lagged consumption growth. There is no return on the page.
 
+<div class="firewall" markdown="1">
+
+**Where each number comes from**
+
+- Table II parameters — aggregate consumption moments only
+- Cash-flow loadings — dividends regressed on a two-year moving average of consumption; no returns
+- Returns — validation only, never fitted
+
+Returns appear once, at the end, as the thing to be explained.
+
+</div>
+
 [The result]({{ '/getting-started.html' | relative_url }}) took Table II's monthly \(\phi\) on faith. This chapter estimates the annual ranking those numbers have to respect. Preferences stay out of it.
 
 We use the following packages. Run the chunks **in order**.

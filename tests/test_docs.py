@@ -200,6 +200,24 @@ def test_home_spine():
     assert "MIT License" in cfg
 
 
+FIREWALL_LINES = (
+    "**Where each number comes from**",
+    "Table II parameters — aggregate consumption moments only",
+    "Cash-flow loadings — dividends regressed on a two-year moving average of consumption; no returns",
+    "Returns — validation only, never fitted",
+    "Returns appear once, at the end, as the thing to be explained.",
+)
+
+
+def test_firewall_callout_on_home_and_measuring():
+    """Issue 3: the estimation firewall renders on both pages, content verbatim."""
+    for name in ("index.md", "measuring-leverage.md"):
+        text = _text(name)
+        assert 'class="firewall"' in text, name
+        for line in FIREWALL_LINES:
+            assert line in text, f"{name}: {line[:40]}"
+
+
 GS_H2S = (
     "## Two numbers you made up",
     "## One process instead",
