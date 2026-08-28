@@ -26,11 +26,25 @@ puzzle is resolved.
 |:---|:---|
 | loading ($\phi$) | how strongly a claim's dividend growth moves with the persistent component of consumption; the model's characteristic, measured from cash flows |
 | persistent component ($x_t$) | the slow-moving deviation of expected consumption growth from its mean |
+| half-life | time for a shock to $x_t$ to lose half its force: $\log(0.5)/\log(\rho)$, about 34 months at $\rho = 0.98$ ([Ch. 5](../chapters/05-long-run-risks.qmd)) |
 | P/D ratio | price per unit of annual dividend; its log is the valuation measure the course uses |
 | beta | slope of a claim's return on the market's return (CAPM) |
 | EIS ($\psi$) | elasticity of intertemporal substitution: response of consumption plans to interest rates |
 | risk aversion ($\gamma$) | willingness to pay to avoid consumption risk |
+| $\theta$ | the Epstein-Zin composite $(1-\gamma)/(1-1/\psi)$; its distance from 1 measures how far the preferences are from power utility ([Ch. 4](../chapters/04-epstein-zin-preferences.qmd)) |
+| pricing kernel / stochastic discount factor ($M$) | the household's marginal-utility ratio $\delta\, u'(C_{t+1})/u'(C_t)$; prices every claim through $E_t[M_{t+1} R_{i,t+1}] = 1$ ([Ch. 3](../chapters/03-pricing-by-euler-equation.qmd)) |
 | Euler equation | $E_t[M_{t+1}R_{i,t+1}]=1$: every asset's return, weighted by the household's marginal utility, has expected value one |
 | cash-flow news | revision in expected dividends |
 | discount-rate news | revision in expected returns |
+| log-linearization | the approximation $r_{t+1} \approx \text{const} + \Delta d_{t+1} + \kappa_1 z_{t+1} - z_t$ that makes the valuation ratio linear in the state ([Ch. 6](../chapters/06-log-linear-solution.qmd)) |
+| $\kappa_1$ | the log-linearization constant $e^{\bar z}/(1+e^{\bar z})$, near 0.997, that discounts next period's valuation ratio |
+| quadrature | replacing the continuous state with a finite Markov chain (Tauchen-Hussey) and solving the Euler equation exactly on it ([Ch. 7](../chapters/07-quadrature-solution.qmd)) |
+| book-to-market sort | ranking stocks by accounting book value over market price; the bottom fifth is growth, the top fifth is value ([Ch. 2](../chapters/02-value-premium-in-the-data.qmd)) |
+| value / growth portfolios | the top and bottom book-to-market fifths of the market: value is cheap relative to book, growth is expensive |
+| calibration vs estimation | parameters are chosen to match moments (consumption, dividends) rather than fitted to returns; the model is then tested on returns it never saw |
+| no-returns rule | no average return enters any model input; returns appear only as targets ([Ch. 8](../chapters/08-calibrating-cash-flows.qmd)) |
+| Hansen-Jagannathan bound | $\|E[R_i] - R_f\|/\sigma(R_i) \le \sigma(M)/E[M]$: the kernel must be volatile enough to support observed Sharpe ratios ([Ch. 3](../chapters/03-pricing-by-euler-equation.qmd)) |
+| equity premium puzzle | matching the market premium with power utility requires $\gamma \approx 155$ or a 23 percent risk-free rate (Mehra-Prescott) |
+| wealth return | the return on the household's total wealth (the consumption claim), which appears in the Epstein-Zin kernel ([Ch. 4](../chapters/04-epstein-zin-preferences.qmd)) |
+| cash-flow leverage | same as the loading $\phi$: the slope of dividend growth on the persistent component, measured by paper eq. (19) ([Ch. 8](../chapters/08-calibrating-cash-flows.qmd)) |
 | Table II | Kiku's calibrated economy: preferences, consumption process, and the three claims' cash-flow parameters |

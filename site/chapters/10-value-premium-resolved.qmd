@@ -206,6 +206,16 @@ about a quarter comes from volatility. The three parts sum past 100
 percent because the short-run piece is negative. A beta regression
 captures only the sum of the covariances and prices none of the parts.
 
+Two shorthand terms used across the course name the two ways a price
+can move, and this is the chapter where both are in view at once.
+Cash-flow news is a revision in expected dividends, the quantity the
+loadings measure. Discount-rate news is a revision in expected
+returns. The value premium is a cash-flow-news story: value's
+dividends move with long-run consumption news, so holding value is
+bearing cash-flow news about the next decade. Growth's price is
+sensitive to discount-rate news instead, because a long-duration claim
+gains the most when the rate falls.
+
 ## The counterfactual: set the loadings equal
 
 If the explanation is right, the premium depends on one input. Set
