@@ -6,6 +6,8 @@ nav_order: 5
 # Does the market still fit?
 {: .no_toc }
 
+This comes before the cross-section on purpose. The household is calibrated to aggregate moments only; the cross-section pages never re-tune it.
+
 1. TOC
 {:toc}
 

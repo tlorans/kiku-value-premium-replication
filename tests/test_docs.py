@@ -8,11 +8,16 @@ BOOK_PAGES = (
     "long-run-risks-model.md",
     "measuring-leverage.md",
     "time-series.md",
+    "two-free-numbers.md",
     "cross-section.md",
+    "price-your-own-claim.md",
     "package.md",
     "installation.md",
-    "financial-data.md",
     "api.md",
+    "financial-data.md",
+    "objections.md",
+    "background.md",
+    "references.md",
 )
 
 PACKAGE_PAGES = ("installation.md", "api.md", "package.md")
@@ -59,12 +64,22 @@ def test_argument_nav_order():
     assert _front_nav_order("measuring-leverage.md") == 4
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
+    assert _parent("two-free-numbers.md") is None
+    assert _front_nav_order("two-free-numbers.md") == 6
     assert _parent("cross-section.md") is None
-    assert _front_nav_order("cross-section.md") == 6
-    assert _front_nav_order("package.md") == 7
+    assert _front_nav_order("cross-section.md") == 7
+    assert _parent("price-your-own-claim.md") is None
+    assert _front_nav_order("price-your-own-claim.md") == 8
+    assert _front_nav_order("package.md") == 9
     assert _parent("installation.md") == "Package"
     assert _parent("api.md") == "Package"
     assert _parent("financial-data.md") == "Package"
+    assert _parent("objections.md") is None
+    assert _front_nav_order("objections.md") == 10
+    assert _parent("background.md") is None
+    assert _front_nav_order("background.md") == 11
+    assert _parent("references.md") is None
+    assert _front_nav_order("references.md") == 12
 
 
 def test_mathjax_and_sidebar_theme():
@@ -340,6 +355,9 @@ def test_market_chapter():
     assert "kalman_filter" in text
     assert "one_path" in text
     assert "wrong price\u2013dividend ratio is a fail" in text
+    # Issue 2 framing sentence (meaning pinned by REWRITE_PLAN).
+    assert "This comes before the cross-section on purpose." in text
+    assert "never re-tune it" in text
     assert "## Key takeaways" in text
     assert "## Exercises" in text
 

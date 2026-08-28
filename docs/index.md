@@ -45,6 +45,8 @@ The printout is only compensation for news about \(x_t\), about 0.4 percent on t
 2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), where cash-flow growth comes from, where the discount rate comes from, and the fraction where they meet.
 3. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}), equation (19): dividend growth on a two-year MA of consumption. No returns.
 4. [Does the market still fit?]({{ '/time-series.html' | relative_url }}), the same household still prices the market.
-5. [Value versus growth]({{ '/cross-section.html' | relative_url }}), two legs, nothing re-tuned; the value premium and the CAPM anomaly.
+5. [Two free numbers]({{ '/two-free-numbers.html' | relative_url }}), the same claims valued the DCF way.
+6. [Value versus growth]({{ '/cross-section.html' | relative_url }}), two legs, nothing re-tuned; the value premium and the CAPM anomaly.
+7. [Price your own claim]({{ '/price-your-own-claim.html' | relative_url }}), bring a dividend process, receive a price and an expected return.
 
 [Package]({{ '/package.html' | relative_url }}), [Installation]({{ '/installation.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [API]({{ '/api.html' | relative_url }}), [GitHub](https://github.com/tlorans/kiku-value-premium-replication)
