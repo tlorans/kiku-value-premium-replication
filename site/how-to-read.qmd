@@ -1,0 +1,74 @@
+---
+title: "How to read this course"
+---
+
+Every chapter is written in three layers, and you choose how deep to
+go. Nothing in a deeper layer is required to follow the layer above it.
+
+## The three layers
+
+**Intuition first.** Each chapter opens with a few paragraphs of plain
+prose — no equations, no code. Read only these openings and the
+takeaway lists and you will still get the whole argument: why a DCF has
+two free numbers, why persistent consumption risk carries a price, and
+why value out-earns growth. Prerequisite: finance at the level of
+knowing what a dividend, a return, and a price–earnings ratio are.
+
+**Derivations on demand.** The mathematics lives in collapsible
+callouts marked "Derivation". They are closed by default; open them
+when you want to see where an equation comes from rather than take it
+on faith. Prerequisite: comfort with expectations, logs, and the idea
+of a stochastic discount factor — first-year asset pricing.
+
+**Code you can run.** Every number on this site is printed at build
+time by the code cell directly above it. Cells are folded where the
+code is plumbing and open where the code *is* the point. Prerequisite:
+enough Python to read a short script.
+
+## What each part does
+
+- **Part I — The Puzzle.** The DCF's two free numbers, and the value
+  premium as it appears in 74 years of data.
+- **Part II — The Toolkit.** The Euler equation, Epstein–Zin
+  preferences, and the long-run risks endowment — the three pieces any
+  general-equilibrium valuation needs.
+- **Part III — Solving the Model.** Two solution methods: a log-linear
+  approximation you can read economics off, and a quadrature grid that
+  checks it.
+- **Part IV — Confronting the Data.** Calibrating cash flows without
+  touching returns, testing the market claim, and pricing the value
+  premium.
+- **Part V — Your Turn.** Price your own claim with the same recipe,
+  then read where the model misses and how far to trust it.
+
+## How to run the code
+
+Clone and install with `uv`:
+
+```bash
+git clone https://github.com/tlorans/kiku-value-premium-replication.git
+cd kiku-value-premium-replication
+uv pip install -e ".[fast,data]"
+```
+
+Or take a single chapter: every chapter page offers a notebook download
+under **Other Formats** (top of the page). The notebooks fetch the data
+files they need if you run them outside the repository, so the only
+setup is the package itself:
+
+```bash
+pip install "lrrcs[fast] @ git+https://github.com/tlorans/kiku-value-premium-replication.git"
+```
+
+Details, extras, and the optional WRDS credentials are in
+[Installation](reference/installation.qmd).
+
+## The numbers policy
+
+No number in the prose is typed in by hand. Every figure, table, and
+in-text statistic is printed by the code cell above it when the site is
+built; the prose is written to match the output, never the other way
+around. Numbers that come from Kiku's paper rather than from this
+code are always attributed as such ("Table IX reports…"). If a cell's
+output and the surrounding prose ever disagree, the cell is right and
+the prose is a bug — please report it.

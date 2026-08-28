@@ -1,0 +1,284 @@
+---
+title: "3. Pricing by Euler equation"
+---
+
+Part I ended with a diagnosis. A discounted-cash-flow valuation has two
+free numbers — a growth rate and a discount rate — and nothing inside
+the method disciplines either one ([Chapter 1](01-two-free-numbers.qmd)).
+And the data contain a spread the standard repair does not price: value
+portfolios have out-earned growth portfolios by about six points a year
+while their market betas point the wrong way
+([Chapter 2](02-value-premium-in-the-data.qmd)). This chapter begins the
+rebuild. It replaces the two free numbers with one equation and one
+economic object.
+
+The equation says that an investor who can buy a little more or a
+little less of any asset must, at her chosen consumption plan, be
+indifferent to doing so. That indifference condition prices the asset.
+No forecasting skill enters, no exogenous discount rate is assumed;
+the price falls out of the investor's willingness to trade consumption
+today for consumption in each possible state tomorrow.
+
+The generality is the point, and it is why this course is called
+*valuing asset claims* rather than valuing stocks. The same condition,
+with the same economic object inside it, prices a broad stock
+portfolio, a Treasury bill, a value portfolio, and the dividend stream
+of a private firm that has never traded. The machine does not care
+what the claim is called. It cares only about what the claim's payoffs
+covary with.
+
+The chapter then puts the simplest version of that object — the
+power-utility kernel that most of macroeconomics runs on — in front of
+74 years of data and watches it fail three times. Those three failures
+are the reason [Chapter 4](04-epstein-zin-preferences.qmd) changes the
+preferences and [Chapter 5](05-long-run-risks.qmd) changes the
+endowment.
+
+## One equation, every claim
+
+For any traded claim $i$ with gross return $R_{i,t+1}$, the first-order
+condition of an investor's consumption–portfolio problem is
+
+$$
+E_t\!\left[M_{t+1}\, R_{i,t+1}\right] = 1 .
+$$ {#eq-euler}
+
+$M_{t+1}$ is the **pricing kernel** (also called the stochastic
+discount factor, or the intertemporal marginal rate of substitution):
+the rate at which the investor is willing to exchange consumption at
+$t$ for consumption in each state at $t+1$. It is high in states where
+the investor is desperate — where marginal utility is high — and low in
+states where she is flush. Equation @eq-euler says that once payoffs
+are weighted by that state-by-state exchange rate, every asset earns
+exactly its price: no claim is a free lunch relative to the investor's
+own marginal utility.
+
+::: {.callout-note collapse="true" title="Derivation: the Euler equation from a consumption choice"}
+Let the investor maximize $E_t \sum_j \delta^j u(C_{t+j})$ and consider
+a perturbation: reduce consumption at $t$ by a small amount $\xi$, buy
+$\xi/P_t$ units of an asset with price $P_t$ and payoff $X_{t+1}$, and
+consume the proceeds. At an optimum the perturbation cannot improve
+welfare in either direction, so the marginal cost equals the marginal
+benefit: $u'(C_t)\,P_t = E_t[\delta\, u'(C_{t+1})\, X_{t+1}]$. Divide
+by $u'(C_t)$ and by $P_t$, and define
+$M_{t+1} = \delta\, u'(C_{t+1})/u'(C_t)$ and
+$R_{i,t+1} = X_{t+1}/P_t$; the result is @eq-euler. Nothing in the
+argument used what the asset *is* — only that the investor could hold a
+little more or less of it. The same $M$ therefore prices every claim
+she can trade, and prices a non-traded dividend stream by the value at
+which she would be indifferent to holding it.
+:::
+
+Written in price form, $P_t = E_t[M_{t+1} X_{t+1}]$: today's price is
+the payoff in each state, weighted by probability *and* by how much a
+unit of payoff is worth in that state. A DCF collapses that weighted
+sum into a single discount rate. The Euler equation keeps the states
+separate, which is exactly where the risk adjustment lives.
+
+Two immediate consequences organize everything that follows. Applied to
+a riskless claim, whose return is known at $t$, @eq-euler gives
+
+$$
+R_{f,t} = \frac{1}{E_t[M_{t+1}]} ,
+$$ {#eq-rf}
+
+so the level of the kernel pins the risk-free rate. And subtracting the
+riskless version from the risky one turns @eq-euler into a statement
+about premia:
+
+$$
+E_t[R_{i,t+1}] - R_{f,t} = -R_{f,t}\,\mathrm{Cov}_t\!\left(M_{t+1},\, R_{i,t+1}\right) .
+$$ {#eq-premium}
+
+Every risk premium is a covariance with the kernel. A claim commands a
+high expected return if and only if it pays badly in the states where
+$M$ is high — when the investor is already hurting. A claim that pays
+well in those states is insurance, and its premium is negative,
+whatever its volatility. Volatility per se earns nothing; only the
+covariance is priced. This one line is what the CAPM approximates (with
+the market return standing in for $-M$) and what the rest of this
+course computes exactly.
+
+## The simplest kernel
+
+To use @eq-premium quantitatively we need a concrete $M$. The workhorse
+is time-separable power utility, $u(C) = C^{1-\gamma}/(1-\gamma)$, for
+which
+
+$$
+M_{t+1} = \delta \left(\frac{C_{t+1}}{C_t}\right)^{-\gamma} .
+$$ {#eq-crra}
+
+Marginal utility is high when consumption growth is low, so @eq-crra
+says: an asset is risky exactly insofar as it pays badly in
+consumption recessions. With jointly lognormal consumption growth and
+returns, @eq-premium becomes (in logs, up to a Jensen term) the
+back-of-envelope
+
+$$
+E[r_i] - r_f \approx \gamma\, \mathrm{Cov}(\Delta c,\, r_i),
+$$ {#eq-boe}
+
+and the volatility of the kernel bounds every attainable Sharpe ratio —
+Hansen and Jagannathan (1991):
+$\left|E[R_i] - R_f\right| / \sigma(R_i) \le \sigma(M)/E[M] \approx \gamma\,\sigma(\Delta c)$.
+Aggregate consumption growth is smooth, so unless $\gamma$ is large the
+kernel barely moves, and a kernel that barely moves cannot generate
+large premia. That arithmetic is the equity premium puzzle of Mehra and
+Prescott (1985). The next section runs it on this course's own sample.
+
+## Hands-on: the kernel meets 74 years of data
+
+The cells below use the three annual series built in Part I:
+real consumption growth, the real T-bill, and returns on the growth,
+value, and market claims.
+
+```{python}
+#| code-fold: true
+# Data bootstrap: use the repo's committed CSVs, or fetch them when this
+# notebook runs outside the repository.
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("consumption_annual.csv", "rf_annual.csv", "annual_panel.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+
+cons = pd.read_csv(DATA / "consumption_annual.csv")
+rf = pd.read_csv(DATA / "rf_annual.csv")
+panel = pd.read_csv(DATA / "annual_panel.csv")
+
+rets = panel.pivot(index="year", columns="claim", values="ret")
+df = rets.join(rf.set_index("year")).join(cons.set_index("year"))
+print(f"{len(df)} annual observations, {df.index.min()}-{df.index.max()}")
+print(f"consumption growth: mean {df.dc.mean():.2%}, sd {df.dc.std():.2%}")
+print(f"real T-bill:        mean {df.rf.mean():.2%}")
+```
+
+The endowment is smooth — consumption growth moves about two points a
+year — and the real bill earns roughly nothing. Now the premia the
+kernel has to explain:
+
+```{python}
+for name in ("Growth", "Value", "Market"):
+    ex = df[name] - df.rf
+    print(f"{name:8s} mean excess {ex.mean():6.2%}   "
+          f"sd {ex.std():6.2%}   Sharpe {ex.mean() / ex.std():.2f}")
+```
+
+Feed these into @eq-boe with a conventional risk aversion of
+$\gamma = 10$:
+
+```{python}
+gamma = 10.0
+for name in ("Growth", "Value", "Market"):
+    ex = df[name] - df.rf
+    cov = np.cov(ex, df.dc, ddof=1)[0, 1]
+    print(f"{name:8s} actual {ex.mean():6.2%}   "
+          f"power utility, gamma=10: {gamma * cov:6.2%}")
+
+ex_m = df["Market"] - df.rf
+cov_m = np.cov(ex_m, df.dc, ddof=1)[0, 1]
+print(f"\ngamma needed to match the market premium: "
+      f"{ex_m.mean() / cov_m:.0f}")
+```
+
+Three failures, in order of severity.
+
+**The equity premium puzzle.** The market earned 8.45 percent over
+bills; the power-utility kernel with $\gamma = 10$ delivers 0.54
+percent. Closing the gap by brute force takes $\gamma \approx 155$ —
+an investor who would decline gambles no one declines. This is Mehra
+and Prescott (1985) on this sample.
+
+**The risk-free rate puzzle.** Even the *least* demanding fix fails.
+The Hansen–Jagannathan bound only asks the kernel to be volatile enough
+to support the market's Sharpe ratio, and then @eq-rf reports what that
+volatility does to the interest rate:
+
+```{python}
+sr = ex_m.mean() / ex_m.std()
+gamma_hj = sr / df.dc.std()
+delta_annual = 0.999 ** 12
+rf_implied = (-np.log(delta_annual) + gamma_hj * df.dc.mean()
+              - gamma_hj**2 * df.dc.std()**2 / 2)
+print(f"market Sharpe ratio {sr:.2f}  =>  "
+      f"gamma >= {sr:.2f}/{df.dc.std():.4f} = {gamma_hj:.0f}")
+print(f"risk-free rate implied by gamma = {gamma_hj:.0f}: "
+      f"{rf_implied:.1%}   (data: {df.rf.mean():.2%})")
+```
+
+A $\gamma$ of 18 rescues the Sharpe ratio but predicts a 23 percent
+risk-free rate against 0.07 percent in the data: an investor that
+averse to risk, forced by power utility to be equally averse to
+consumption *growth*, demands an enormous reward to lend into a growing
+economy.
+
+**The value premium.** The deepest failure is not about levels but
+about the cross section, and no choice of $\gamma$ touches it. Look at
+the $\gamma = 10$ column again: growth is assigned 0.43 percent, value
+$-0.02$ percent. Value's excess return covaries with contemporaneous
+consumption growth essentially not at all — the point estimate is
+negative — so @eq-boe assigns the highest-earning claim in the sample a
+premium of *zero at any risk aversion*. Scaling $\gamma$ up scales all
+three predictions together and can never produce the six-point spread.
+The one-period consumption covariance is measuring the wrong risk.
+
+That last sentence is the agenda for the rest of Part II. The premium
+must still be a covariance with the kernel — @eq-premium is not
+negotiable — so the kernel must respond to something other than this
+year's consumption. [Chapter 4](04-epstein-zin-preferences.qmd) builds
+preferences under which news about *future* consumption enters marginal
+utility today, and [Chapter 5](05-long-run-risks.qmd) builds an
+endowment in which there is persistent news to be had.
+
+## Takeaways
+
+- One condition prices every claim: $E_t[M_{t+1}R_{i,t+1}] = 1$. The
+  same kernel values a stock index, a bill, and a private dividend
+  stream — the machine is general, only the cash flows change.
+- Premia are covariances (@eq-premium): a claim is risky if it pays
+  badly when marginal utility is high. Volatility alone earns nothing.
+- The power-utility kernel fails three ways on 74 years of data: the
+  market premium needs $\gamma \approx 155$; a $\gamma$ large enough
+  for the Sharpe ratio implies a 23 percent risk-free rate; and value's
+  consumption covariance is zero, so no $\gamma$ prices the value
+  premium.
+- The fix cannot be a bigger $\gamma$. The kernel must price a
+  different risk.
+
+## Exercises
+
+1. Compute the value-minus-growth spread's mean, volatility, and Sharpe
+   ratio from `annual_panel.csv`. What kernel volatility
+   $\sigma(M)/E[M]$ does the Hansen–Jagannathan bound demand for that
+   claim alone, and what $\gamma$ does that imply?
+2. Rerun the $\gamma = 10$ cell with $\gamma = 50$ and $\gamma = 155$.
+   Verify that the *ratio* of the predicted value premium to the
+   predicted growth premium never moves. Why not?
+3. Using @eq-rf under lognormality,
+   $r_f = -\log\delta + \gamma E[\Delta c] - \tfrac{1}{2}\gamma^2\sigma^2(\Delta c)$,
+   solve for the $\delta$ that reconciles $\gamma = 155$ with the
+   observed 0.07 percent real rate. Is it a discount factor a patient
+   investor could have?
+
+::: {.firewall}
+**Where each number comes from.** Every number above is printed by the
+cells on this page from three files built in Part I —
+`data/consumption_annual.csv`, `data/rf_annual.csv`,
+`data/annual_panel.csv` — using only `numpy` and `pandas`; the
+$\gamma \approx 155$ and 23 percent figures are the cells' own output.
+Download the chapter as a notebook (top of the page) to rerun
+everything.
+:::

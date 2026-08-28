@@ -1,0 +1,85 @@
+/*-- scss:defaults --*/
+// Port of the Jekyll "kiku" color scheme (docs/_sass/color_schemes/kiku.scss)
+$body-bg: #fbf9f4;
+$body-color: #2d2926;
+$headings-color: #1b1714;
+$link-color: #7a1f1f;
+$primary: #7a1f1f;
+$border-color: #e2d6c4;
+$code-block-bg: #efe8dc;
+$code-bg: #efe8dc;
+$code-color: #2d2926;
+$sidebar-bg: #f3eee4;
+$navbar-bg: #f3eee4;
+$font-size-root: 16px;
+
+/*-- scss:rules --*/
+body {
+  font-feature-settings: "ss01" on, "kern" on;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+}
+
+.sidebar-navigation .sidebar-item {
+  font-size: 0.92rem;
+}
+
+#quarto-sidebar {
+  background-color: #f3eee4;
+}
+
+figcaption, .caption, .figure-caption {
+  font-size: 0.9rem;
+  color: #5a524a;
+  margin: 0.4rem 0 1.6rem;
+}
+
+.cell-output img, figure img {
+  border: 1px solid #e2d6c4;
+  background: #fff;
+  padding: 0.35rem;
+  max-width: 100%;
+}
+
+// "Where each number comes from" callout, ported from Jekyll .firewall
+div.firewall {
+  border: 1px solid #e2d6c4;
+  border-left: 4px solid #1f4e79;
+  border-radius: 4px;
+  background: #faf7f2;
+  padding: 0.8rem 1.1rem;
+  margin: 1.3rem 0;
+
+  p:first-child {
+    margin-top: 0;
+  }
+
+  p:last-child,
+  ul:last-child {
+    margin-bottom: 0;
+  }
+}
+
+mark.out {
+  background: #f8d9d6;
+  padding: 0.05rem 0.2rem;
+}
+
+mark.in {
+  background: #dcefe0;
+  padding: 0.05rem 0.2rem;
+}
+
+// keep display math scrollable rather than overflowing the measure
+.MathJax_Display, mjx-container[display="true"] {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.35rem 0 0.6rem;
+}

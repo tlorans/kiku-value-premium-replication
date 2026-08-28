@@ -1,0 +1,215 @@
+---
+title: "2. The value premium in the data"
+aliases: [/financial-data.html]
+---
+
+[Chapter 1](01-two-free-numbers.qmd) argued that a DCF's two free numbers cannot price cash-flow risk. Before building the model that can, I need the facts it will be graded on. This chapter establishes them from the 1930–2003 sample my paper uses: value stocks out-earned growth stocks by about six percentage points a year, while trading at persistently *lower* valuations — higher return and lower price, together. And the obvious repair fails in the data exactly as it failed in the model: value's market beta is nowhere near large enough to carry six points.
+
+One discipline governs everything here. The series I construct — returns, dividends, price-dividend ratios, consumption — are the model's *scoreboard*, not its inputs. Average returns enter nothing the model will later be fed; they appear only in the tables the model has to match. A model whose target facts leaked into its inputs would prove nothing.
+
+I sort stocks into portfolios by book-to-market equity — book value from the accounting statements over market value from prices — following Fama and French (1993): June quintiles of ordinary shares with NYSE breakpoints. Growth is the bottom fifth (expensive relative to book), value the top fifth (cheap relative to book), and the market is the value-weighted whole. The point of the sort is to hand the model two claims whose *dividends* behave differently, so that any difference in prices and premia must be earned by cash-flow risk, not assumed.
+
+## The economics: recovering cash flows from returns
+
+The inconvenient fact of the construction is that CRSP, the standard file of U.S. stock returns, stores returns rather than dividends. It records two versions of each month's return: $r_t$, which includes the dividend, and $r_t^x$, the capital gain alone. Campbell and Shiller (1988) noticed that the gap between them *is* the dividend, and recovered it by scaling with a cumulated price index $V$:
+
+$$
+D_t = \left(r_t - r_t^{x}\right) V_{t-1},
+\qquad
+V_t = V_{t-1}\left(1 + r_t^{x}\right).
+$$ {#eq-cs}
+
+In words: whatever the with-dividend return earned beyond the price return, that was the dividend, paid on last month's value.
+
+::: {.callout-note collapse="true" title="Derivation: why the identity recovers dividends"}
+For a portfolio worth $V_{t-1}$ at the end of last month, the two return definitions are
+
+$$
+1 + r_t = \frac{V_t + D_t}{V_{t-1}}, \qquad 1 + r_t^{x} = \frac{V_t}{V_{t-1}},
+$$
+
+where $V_t$ is this month's ex-dividend value. Subtracting the second from the first gives $r_t - r_t^{x} = D_t / V_{t-1}$, which is @eq-cs. Cumulating $V$ with the capital-gain return alone keeps the index self-consistent: dividends are paid out, not reinvested into the price index. Summing the monthly $D_t$ within a calendar year gives the annual dividend; the year-end $V$ over that sum is the price-dividend ratio.
+:::
+
+Dividends and prices from @eq-cs are nominal; I deflate them by the PCE price deflator, since the household in the model consumes real goods. Log differences of real annual dividends give dividend growth $\Delta d$. Two more series complete the dataset. Consumption is real per-capita nondurables plus services from the national accounts — durables behave like investment, not consumption. The risk-free rate is the real return on the three-month Treasury bill: the nominal bill return less a twelve-month moving average of inflation, since one month of inflation is too noisy to be anyone's forecast.
+
+The full pipeline — CRSP through WRDS, Compustat book equity, the Davis-Fama-French pre-1960s book values — is in the appendix at the end of this chapter. The argument path does not need it: the repository ships the three files it writes, and every number below is computed live from them.
+
+## Hands-on: the facts, from the shipped files
+
+```{python}
+#| code-fold: true
+# Data bootstrap: use the repo's committed CSVs, or fetch them when this
+# notebook runs outside the repository.
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("annual_panel.csv", "consumption_annual.csv", "rf_annual.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+import lrrcs as lrr
+
+panel = pd.read_csv(DATA / "annual_panel.csv")
+dc = pd.read_csv(DATA / "consumption_annual.csv")
+rf = pd.read_csv(DATA / "rf_annual.csv")
+panel["year"].min(), panel["year"].max(), sorted(panel["claim"].unique())
+```
+
+Three claims, seventy-four years each. The summary table (returns and dividend growth in percent per year, Newey-West standard errors):
+
+```{python}
+lrr.table_i(panel).round(2)
+```
+
+Read the middle columns before the first one. Value's dividend growth is wilder — a volatility of 47.72 percent against growth's 14.35 — and that is a *cash-flow* statement, constructed without a single average return. The return columns then record the facts to explain: value earned 13.67 percent a year against growth's 7.49, and its mean log price-dividend ratio is lower, 3.34 against 3.62. Higher premium and lower valuation, together. My paper's Table I, on its data vintage, prints the same picture: 13.88 against 7.81 on returns, log P/D 3.25 against 3.61, volatilities 29.9 and 20.2.
+
+### The spread, and what it survives
+
+```{python}
+wide_ret = panel.pivot(index="year", columns="claim", values="ret")
+wide_dd = panel.pivot(index="year", columns="claim", values="dgrowth")
+wide_pd = panel.pivot(index="year", columns="claim", values="pd")
+rf_s = rf.set_index("year")["rf"]
+
+spread = wide_ret["Value"].mean() - wide_ret["Growth"].mean()
+print(f"value-growth return spread: {spread * 100:.2f} pp/yr")
+for c in ("Growth", "Value", "Market"):
+    sharpe = (wide_ret[c] - rf_s).mean() / wide_ret[c].std(ddof=1)
+    print(f"{c:7s} Sharpe ratio: {sharpe:.2f}")
+```
+
+A spread of 6.18 points a year over seventy-four years. Value is more volatile, so the first question is whether the premium is just volatility compensation in disguise — it is not: value's Sharpe ratio, 0.46, is *higher* than growth's 0.37 and the market's 0.42. Per unit of return volatility, value still pays more. (The real bill rate on this reconstruction averages near zero — 0.07 percent, printed below — so the Sharpe ratios barely depend on it; my paper's vintage prints a mean real rate of 0.91 percent.)
+
+Compounded, the spread is not a rounding difference:
+
+```{python}
+#| fig-cap: "Cumulative log return of the value portfolio minus the growth portfolio, 1930–2003. The terminal gap of about 3 log points means a dollar compounding in value grew to roughly nineteen times a dollar compounding in growth."
+import matplotlib.pyplot as plt
+
+cum = np.log((1.0 + wide_ret[["Value", "Growth"]]).cumprod())
+gap = cum["Value"] - cum["Growth"]
+fig, ax = plt.subplots(figsize=(7, 3.8))
+ax.plot(gap.index, gap.values)
+ax.axhline(0.0, lw=0.8, color="gray")
+ax.set_xlabel("Year")
+ax.set_ylabel("Cumulative log return gap")
+print(f"terminal log gap: {gap.iloc[-1]:.2f}  (x{np.exp(gap.iloc[-1]):.1f})")
+plt.show()
+```
+
+And the valuation half of the fact is visible year by year, not only in the means:
+
+```{python}
+#| fig-cap: "Log price-dividend ratio of the growth and value portfolios, 1930–2003. Value trades at a lower multiple of its dividends in most years of the sample: the market prices its cash flows as riskier, persistently."
+fig, ax = plt.subplots(figsize=(7, 3.8))
+ax.plot(wide_pd.index, np.log(wide_pd["Growth"]), label="Growth")
+ax.plot(wide_pd.index, np.log(wide_pd["Value"]), label="Value")
+ax.set_xlabel("Year")
+ax.set_ylabel("log(P/D)")
+ax.legend(frameon=False)
+plt.show()
+```
+
+### The correlation wedge
+
+Here is the clue the rest of the course runs on. If value and growth returns moved independently, a six-point spread would be less surprising — some difference in exposures would be doing obvious work. Compare how the two portfolios comove in returns and in cash flows:
+
+```{python}
+print(f"return correlation, value & growth          : "
+      f"{wide_ret['Value'].corr(wide_ret['Growth']):.2f}")
+print(f"dividend-growth correlation, value & growth : "
+      f"{wide_dd['Value'].corr(wide_dd['Growth']):.2f}")
+```
+
+Returns correlate at 0.72 while dividend growth correlates at only 0.29 (my paper's vintage prints 0.75 and 0.32). The wedge says the two portfolios' *prices* move together far more than their *cash flows* do — a common discount-rate component drives returns at high frequency, while the cash-flow risks that distinguish the claims live at lower frequencies, where annual correlations barely see them. Any story that prices value off high-frequency return comovement is looking in the wrong place. That is precisely the mistake the CAPM makes.
+
+### The CAPM fails in the data too
+
+[Chapter 1](01-two-free-numbers.qmd) showed the CAPM misprices the *model's* claims. Now the same regression on the data — each portfolio's annual return on the market's:
+
+```{python}
+rm_d = wide_ret["Market"] - wide_ret["Market"].mean()
+
+def capm_beta(claim):
+    ri_d = wide_ret[claim] - wide_ret[claim].mean()
+    return float((rm_d * ri_d).sum() / (rm_d * rm_d).sum())
+
+betas = {c: round(capm_beta(c), 2) for c in ("Growth", "Value")}
+print(f"CAPM betas: {betas}")
+implied = (betas["Value"] - betas["Growth"]) * (wide_ret["Market"] - rf_s).mean()
+print(f"CAPM-implied spread: {implied * 100:.2f} pp/yr   "
+      f"(actual: {spread * 100:.2f})")
+```
+
+On this reconstruction value's beta is 1.28 against growth's 0.95 — above one, but nowhere near enough: the implied spread is 2.79 points against the 6.18 observed. And the beta gap itself is fragile: on my paper's data vintage both betas sit near 1.03, and the CAPM-implied spread is close to zero. Either way the conclusion is the same. The value premium is not a market-beta fact.
+
+### The endowment that must explain it
+
+Whatever prices these claims in the model is the consumption of the household that holds them. So record the last fact now, because it is what makes the premium a puzzle:
+
+```{python}
+print(f"{len(dc)} years of consumption growth: mean "
+      f"{dc['dc'].mean() * 100:.2f} %, volatility {dc['dc'].std(ddof=1) * 100:.2f} %")
+print(f"mean real T-bill (this reconstruction): {rf_s.mean() * 100:.2f} %")
+```
+
+Consumption growth has a volatility of 2.37 percent a year. The challenge the rest of the course accepts: a series this smooth must scare the household into demanding six extra points a year on value — and the answer will be that the scary part is not the wiggles but a small, persistent component hiding under them.
+
+## Takeaways
+
+- Over 1930–2003, value out-earned growth by 6.18 points a year on this reconstruction (13.88 against 7.81 on my paper's vintage) while trading at a persistently lower price-dividend ratio. Higher premium and lower valuation are one joint fact.
+- The premium survives risk adjustment by volatility: value's Sharpe ratio (0.46) exceeds growth's (0.37).
+- Returns correlate across the two portfolios (0.72) far more than dividend growth does (0.29): the risks that distinguish the claims live in cash flows at low frequency, not in return comovement.
+- The CAPM cannot carry the spread — betas of 0.95 and 1.28 imply under half the observed premium here, and both betas are near 1.03 on the paper's vintage.
+- Every series is constructed without using average returns; the tables above are the scoreboard the equilibrium must match.
+
+## Exercises
+
+1. Compute the value-growth spread decade by decade (group `wide_ret["Value"] - wide_ret["Growth"]` by `year // 10`). In how many decades is it negative? What does the answer say about how long an investor must wait to see the premium?
+2. Recompute the summary table on the post-war sample (1946–2003) with `lrr.table_i(panel[panel["year"] >= 1946])`. Which facts survive: the return spread, the valuation ranking, the dividend-volatility gap?
+3. The market's dividend growth volatility (11.02 percent in the table) is *lower* than either leg's. Using `wide_dd`, verify this and explain why a value-weighted combination can be smoother than both components.
+
+## Appendix: rebuilding the panel from the raw sources
+
+Nothing above needs this section. The full pipeline lives in `lrrcs.empirical` and requires WRDS credentials for the CRSP and Compustat pulls; the code blocks below are shown for orientation and are not executed on this page.
+
+Consumption and the deflator come from FRED, public and credential-free:
+
+```python
+import lrrcs as lrr
+
+dc = lrr.load_consumption()      # real per-capita ND+S growth, from NIPA
+defl = lrr.load_deflator()       # PCE implicit price deflator
+```
+
+The stock panel needs CRSP monthly returns with `retx`, Compustat book equity merged through the CCM links, and the Davis-Fama-French historical book-equity file for the years before Compustat's coverage begins. `lrr.build_annual_panel` runs the whole construction — the quintile sort, the value weighting, the Campbell-Shiller recovery of @eq-cs, deflation, and the real bill rate — and writes the three CSVs this chapter reads:
+
+```python
+import tidyfinance as tf
+
+tf.set_wrds_credentials()                    # one-time WRDS setup
+panel = lrr.build_annual_panel(refresh=True) # writes data/annual_panel.csv,
+                                             # data/rf_annual.csv
+```
+
+The Campbell-Shiller step and the real-rate transformation are also exposed directly, for applying them to any return pair:
+
+```python
+annual = lrr.campbell_shiller_annual(ret, retx, defl)  # the identity, plus deflation
+rf = lrr.real_rf_from_monthly(t90ret, cpi)             # real 90-day bill
+```
+
+::: {.firewall}
+**Where each number comes from.** Every number above is computed by this page's cells from the repository's `data/annual_panel.csv`, `data/consumption_annual.csv`, and `data/rf_annual.csv` (via `lrr.table_i` and pandas arithmetic); the vintage figures quoted for comparison (13.88 vs 7.81, log P/D 3.25 vs 3.61, correlations 0.75 and 0.32, betas near 1.03, real rate 0.91) are from the paper's printed tables. The chapter can be downloaded as a notebook from the link at the top of the page.
+:::

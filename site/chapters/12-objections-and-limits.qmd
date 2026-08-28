@@ -1,0 +1,138 @@
+---
+title: "12. Objections and limits"
+aliases:
+  - /objections.html
+---
+
+A model that claims to resolve a long-standing puzzle should expect
+pushback, and this one meets the same five objections wherever it is
+presented. The first half of this chapter states each objection in the
+reader's voice and answers it, with the evidence one link away in the
+chapters that earned it.
+
+The second half is the part a course owes you that a paper abstract
+does not: where the model misses. Every model is wrong somewhere, and
+knowing where this one is wrong is what separates using it from
+believing it. If you take one chapter of this course into a meeting
+where someone proposes to act on these numbers, take this one.
+
+## "Epstein–Zin preferences are exotic."
+
+They are the minimal structure that separates risk aversion from the
+elasticity of intertemporal substitution.
+[Chapter 4](04-epstein-zin-preferences.qmd) builds them from that
+requirement: power utility welds the two attitudes together, and log
+utility prices the value premium at exactly zero. Nothing more exotic
+than the separation is needed, and nothing less delivers a price for
+long-run news. This course is an existence proof, not a truth claim —
+one internally consistent economy in which the value premium is
+compensation for measured risk.
+
+## "Consumption-based pricing failed."
+
+The famous failure was power utility pricing *short-run* consumption
+betas — the rejection documented by
+[Hansen and Jagannathan (1991)](../reference/references.qmd). Here the
+characteristic is different: cash flows load on the *persistent*
+component of consumption, and returns never enter the estimation.
+The evidence that the loadings are really there in the dividend data is
+[Chapter 8](08-calibrating-cash-flows.qmd); the returns those loadings
+predict are checked afterward, in
+[Chapter 9](09-the-market-test.qmd) and
+[Chapter 10](10-value-premium-resolved.qmd).
+
+## "Firms aren't consumption claims."
+
+They do not need to be. Any dividend process can be projected onto the
+consumption moving average; that projection is the entire estimation
+step, and the claim's loading — not any structural identification of
+the firm with aggregate consumption — is what the model prices. Bring
+your own process: [Chapter 11](11-price-your-own-claim.qmd) is the
+recipe.
+
+## "We already calibrate a discount rate."
+
+A calibrated level is not a cross-section. A single discount rate, even
+a carefully chosen one, assigns the same price of risk to every claim
+and therefore cannot say why value should out-earn growth by any amount
+other than zero. This model supplies the *dispersion* across claims
+from measured cash-flow exposures. The demonstration that a DCF has two
+free numbers and no discipline on either is
+[Chapter 1](01-two-free-numbers.qmd).
+
+## "This is too academic to implement."
+
+Every number in this course is printed at build time by the code cell
+above it, from committed data and a published package. Installation to
+first valuation is ten seconds, measured on a clean environment. Start
+at [Installation](../reference/installation.qmd), or download any
+chapter as a notebook and run it.
+
+## Where the model misses
+
+The chapters so far showed the model hitting its targets: the measured
+leverages, the market's time series, the 5.38 percent simulated value
+premium of [Chapter 10](10-value-premium-resolved.qmd) against 5.3 in
+the paper's print. Four places it does not hit, and what each miss
+means for how far to trust the machinery.
+
+**Return correlations are too low.** Table IX reports a model
+value–growth return correlation of 0.44 against 0.75 in the data. The
+model separates the two claims by their cash-flow loadings, and that
+separation carries over to returns more strongly than in the data,
+where the two legs are moved together by common discount-rate
+variation the model understates. Anything that depends on comovement —
+hedge ratios between the legs, the volatility of a long–short
+portfolio, tracking-error arithmetic — will be misstated even where the
+mean premium is right.
+
+**Value's dividend growth is too persistent.** Table IV shows the
+simulated first-order autocorrelation of value's annual dividend growth
+at 0.29 against 0.06 in the data. The calibrated cash-flow process
+gives value dividends more year-to-year momentum than they display.
+This is the price of loading value's dividends heavily on a persistent
+state variable: the loading that produces the premium also produces
+autocorrelation the data does not fully confirm.
+
+**The premium's level is method-sensitive.** The paper's numbers come
+from a 30-point grid, and on that grid the simulation prints a value
+premium of 5.3. [Chapter 7](07-quadrature-solution.qmd) refines the
+grid until the solution stops moving, and the converged premium is
+near 3.5. The mechanism is robust — at every grid size the spread is
+positive and ordered by the measured leverages — but roughly a third of
+the headline level is numerical approximation rather than economics. I
+state it plainly: quote the mechanism with confidence and the level
+with a grid-size footnote.
+
+**The risk-free rate runs high.** The model prints a mean risk-free
+rate of 1.58 percent against 0.91 in the data. With an elasticity of
+intertemporal substitution above one the rate stays low and stable
+enough to be plausible — this is why the calibration insists on
+$\psi = 1.5$ — but two-thirds of a point is still a miss, and it means
+the model's *level* of all expected returns inherits a small upward
+bias even where the spreads between claims are right.
+
+The pattern across the four misses is consistent: the model is at its
+best on orderings and spreads driven by measured cash-flow exposures,
+and at its weakest on levels and comovements. Use it accordingly.
+
+## Takeaways
+
+- The five standing objections have answers, and each answer is a
+  measurement, not a rhetorical move: preferences are the minimal
+  separation ([Chapter 4](04-epstein-zin-preferences.qmd)), the
+  loadings are in the dividend data
+  ([Chapter 8](08-calibrating-cash-flows.qmd)), and any claim can be
+  brought to the same recipe
+  ([Chapter 11](11-price-your-own-claim.qmd)).
+- The model's reliable outputs are cross-sectional: which claim earns
+  more, ordered by measured leverage, and roughly by how much relative
+  to the others.
+- Its unreliable outputs are levels and comovements: return
+  correlations too low (0.44 model, 0.75 data), value's dividend
+  persistence too high (0.29 against 0.06), a premium level that moves
+  from 5.3 to roughly 3.5 under grid refinement, and a risk-free rate
+  of 1.58 against 0.91.
+- An existence proof is exactly that: the value premium *can* be
+  compensation for long-run consumption risk in a disciplined economy.
+  That is a strong statement, and it is the only one this course makes.
