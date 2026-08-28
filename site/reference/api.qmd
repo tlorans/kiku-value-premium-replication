@@ -4,13 +4,13 @@ aliases:
   - /api.html
 ---
 
-Public names live at the package root. Submodules (`lrrcs.model`,
+All public names are at the package root. Submodules (`lrrcs.model`,
 `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for
-organization but are not the documented path. The division of labor
-mirrors the model's two halves: `calibrate_from_data` measures
-cash-flow exposures (the cash-flow side), `solve_analytical` and
-`compute_asset_pricing_moments` let the household price them (the
-discount-rate side), and the outputs are prices and risk premia
+organization but are not the documented path. The functions split the
+same way the model does. `calibrate_from_data` measures cash-flow
+exposures on the cash-flow side. `solve_analytical` and
+`compute_asset_pricing_moments` let the household price them on the
+discount-rate side, and the outputs are prices and risk premia
 together.
 
 <!-- API page cross-checked against `lrr.__all__` (43 names)
@@ -44,8 +44,9 @@ prints the spread.
 | `simulate_table_vii` | `(solver=None, n_samples=1000, years=74, seed=0, ...) -> dict` | Table VII sample statistics: annual `mean_return` (+`_se`), `volatility`, `sharpe`, `capm_beta`, `beta_ratio`, `mean_rf`, `mean_pd_level`, `mean_log_pd` | `tab = lrr.simulate_table_vii(s)` |
 | `print_table_vii` | `(tab) -> None` | prints the simulated Table VII block | `lrr.print_table_vii(tab)` |
 
-`solve_analytical` is the fast entry: the whole equilibrium in one
-call. `ModelSolver` is the grid solver behind Table VII, and
+`solve_analytical` is the fast entry point, and it returns the whole
+equilibrium in one call. `ModelSolver` is the grid solver behind Table
+VII, and
 `simulate_table_vii` turns a solved model into the paper's sample
 statistics (1000 samples of 74 years, aggregated to annual data).
 
@@ -65,12 +66,12 @@ statistics (1000 samples of 74 years, aggregated to annual data).
 
 | Function | Signature | Returns | Example |
 |:---|:---|:---|:---|
-| `load_consumption` | `() -> pd.Series` | real per-capita ND+S growth, 1930–2003 | `dc = lrr.load_consumption()` |
+| `load_consumption` | `() -> pd.Series` | real per-capita ND+S growth, 1930 to 2003 | `dc = lrr.load_consumption()` |
 | `load_deflator` | `() -> pd.Series` | PCE deflator | `lrr.load_deflator()` |
 | `real_rf_from_monthly` | `(t90, cpi) -> pd.Series` | annual real T-bill from monthly | `lrr.real_rf_from_monthly(t90, cpi)` |
 | `campbell_shiller_annual` | `(ret, retx, defl) -> pd.DataFrame` | real dividends/price index from CRSP returns | `lrr.campbell_shiller_annual(ret, retx, defl)` |
 | `consumption_growth_from_levels` | `(nd, sv, pop) -> pd.Series` | log-diff of per-capita consumption | `lrr.consumption_growth_from_levels(nd, sv, pop)` |
-| `build_annual_panel` | `(refresh=False) -> pl.DataFrame` | growth/value/market panel, 1930–2003 | `panel = lrr.build_annual_panel()` |
+| `build_annual_panel` | `(refresh=False) -> pl.DataFrame` | growth/value/market panel, 1930 to 2003 | `panel = lrr.build_annual_panel()` |
 | `table_i` | `(bm, start=1930, end=2003) -> pd.DataFrame` | Table I statistics | `lrr.table_i(panel)` |
 | `table_vi_data` | `(bm, dc, start=1930, end=2003) -> pd.DataFrame` | Table VI loadings | `lrr.table_vi_data(panel, dc)` |
 | `EmpiricalDataError` | exception | raised when WRDS credentials are missing | `try: ... except lrr.EmpiricalDataError:` |
@@ -91,13 +92,13 @@ statistics (1000 samples of 74 years, aggregated to annual data).
 
 `ModelParams`, `PreferencesParams`, `ConsumptionParams`,
 `DividendParams`, `AnalyticalSolution`, `EpsteinZinPreferences`,
-`Dynamics`, `StateGrid`, `ModelSolver`, `resolve_legs` — the object
-layer under the functions above; the flat functions are the documented
-path.
+`Dynamics`, `StateGrid`, `ModelSolver`, and `resolve_legs` form the
+object layer under the functions above. The flat functions are the
+documented path.
 
-A new sort is the same loop as
-[Chapter 8](../chapters/08-calibrating-cash-flows.qmd): consumption and
-two dividend legs in, no returns.
+A new sort uses the same loop as
+[Chapter 8](../chapters/08-calibrating-cash-flows.qmd). Consumption and
+two dividend legs go in, and no returns enter.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()

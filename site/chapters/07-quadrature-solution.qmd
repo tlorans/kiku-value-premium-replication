@@ -2,23 +2,24 @@
 title: "7. The quadrature solution"
 ---
 
-The log-linear solution of [Chapter 6](06-log-linear-solution.qmd) was
-honest about being an approximation: it *assumed* the valuation ratio is
-a line in the state variables and solved for the slopes. This chapter
-takes the second road, the one I use for the paper's quantitative
-results. It makes no assumption about the shape of the solution. Instead
-it makes the state space finite — a Markov chain over
-$(x_t, \sigma_t^2)$ — and solves the Euler equation exactly on that
-chain, by the quadrature method of Tauchen and Hussey (1991).
+The log-linear solution of [Chapter 6](06-log-linear-solution.qmd) is
+an approximation. It assumes the valuation ratio is a linear function
+of the state variables and solves for the slopes. In this chapter I use
+the second method, the one behind the paper's quantitative results.
+The method makes no assumption about the shape of the solution. Instead
+it replaces the continuous state space with a finite Markov chain over
+$(x_t, \sigma_t^2)$ and solves the Euler equation exactly on the
+chain, using the quadrature method of Tauchen and Hussey (1991).
 
-The lesson of this chapter is double. First, the mechanics: how a
-continuous economy becomes a chain, and how a fixed-point iteration
-prices every claim on it. Second, a caution that most textbook
-treatments skip: *the discretized economy is the economy you actually
-solve.* Its artifacts — a grid that disperses the state a little too
-much, a fixed point iterated in an unstable form — end up in your risk
-premia if you do not check for them. Both happened in earlier versions
-of this replication, and both are instructive.
+The chapter first covers the mechanics, meaning how a continuous
+economy becomes a chain and how a fixed-point iteration prices every
+claim on it. It then covers a caution that most textbook treatments
+skip. The discretized economy is the economy you actually solve, so its
+artifacts end up in your risk premia unless you check for them. For
+example, a grid can disperse the state more than the calibrated
+process does, and a fixed point iterated in an unstable form can
+diverge. Both problems appeared in earlier versions of this
+replication, and both are instructive.
 
 ## From a process to a chain
 
@@ -33,27 +34,28 @@ $$
 \frac{f(x_j \mid x_i)}{\omega(x_j)}}_{\pi(x_j \mid x_i)}\; p(x_j),
 $$ {#eq-th}
 
-where the nodes $x_j$ and weights $w_j$ are the Gauss–Hermite rule for
+where the nodes $x_j$ and weights $w_j$ are the Gauss-Hermite rule for
 $\omega$. Renormalizing each row so probabilities sum to one turns
-@eq-th into a transition matrix: a Markov chain whose rows *are* the
-conditional distributions of the model, evaluated where the quadrature
-rule looks.
+@eq-th into a transition matrix. The result is a Markov chain whose
+rows are the conditional distributions of the model, evaluated at the
+quadrature nodes.
 
 The one free choice is $\omega$. Tauchen and Hussey suggest the
-one-step conditional density at the mean state; with persistence
-$\rho = 0.98$ that scaling puts all thirty nodes within two
-unconditional standard deviations of $x$, truncates the ergodic range,
-and (I show below) destroys most of the value premium. This
-implementation scales $\omega$ to the *unconditional* distribution of
-$x$ instead, so the grid covers the states the economy actually visits.
+one-step conditional density at the mean state. With persistence
+$\rho = 0.98$, the suggested scaling puts all thirty nodes within two
+unconditional standard deviations of $x$. The narrow grid truncates
+the range the process visits, and I show below that it also removes
+most of the value premium. The package scales $\omega$ to the
+unconditional distribution of $x$ instead, so the grid covers the
+states the economy actually visits.
 The volatility state $\sigma_t^2$ gets a standard four-point Tauchen
 chain, as in the paper.
 
 ## Pricing on the chain
 
 On the chain, the Euler equation for the consumption claim is a
-fixed-point problem in the $N$-vector $z_c$ (log price–consumption
-ratio, one entry per state). Written the way one should iterate it,
+fixed-point problem in the $N$-vector $z_c$ (log price-consumption
+ratio, one entry per state). The stable form to iterate is
 
 $$
 z_{c,i} \;=\; \frac{1}{\theta} \log
@@ -65,21 +67,23 @@ $$ {#eq-fixedpoint}
 where the expectation runs over the chain's transitions and the
 consumption shock $\eta$. Because $\eta$ and the dividend residuals are
 Gaussian and independent of the chain, their integrals have closed
-forms, and one iteration of @eq-fixedpoint is a single matrix–vector
+forms, and one iteration of @eq-fixedpoint is a single matrix-vector
 product. The map contracts at rate
-$\kappa_1 = e^{\bar z}/(1 + e^{\bar z}) \approx 0.999$ — slow but sure,
-thousands of cheap iterations. Equity claims then solve the same way,
-with the converged $z_c$ inside the pricing kernel.
+$\kappa_1 = e^{\bar z}/(1 + e^{\bar z}) \approx 0.999$, so convergence
+takes thousands of iterations, and each iteration is cheap. Equity
+claims are then solved the same way, with the converged $z_c$ inside
+the pricing kernel.
 
-::: {.callout-warning title="A cautionary tale: iterate the right form"}
+::: {.callout-warning title="Warning: iterate the contraction form"}
 Multiply @eq-fixedpoint through by $\theta$ and you get an equally
-valid *equation* whose iteration map has local slope
+valid equation whose iteration map has local slope
 $1 - \theta = 28$ for the Table II preferences ($\theta = -27$). An
-earlier version of this package iterated that form: every claim's
-price diverged within a few steps and landed on a numerical floor,
-silently, because a `max(·, 1e-12)` clamp hid the explosion. The fix
-is one algebraic step — divide by $\theta$ before iterating — and a
-policy: a solver should raise an error on divergence, never clamp.
+earlier version of the package iterated the multiplied form. Every
+claim's price diverged within a few steps and landed on a numerical
+floor without any warning, because a clamp at `1e-12` hid the
+divergence. The fix is one algebraic step, which is to divide by
+$\theta$ before iterating. The episode also motivates a policy. A
+solver should raise an error on divergence, and it should never clamp.
 :::
 
 ## Hands-on: solve the paper grid
@@ -102,12 +106,14 @@ for name, z in solver.z.items():
     print(f"{name:8s}: stationary mean log P/D (monthly) = {zbar:.2f}")
 ```
 
-The monthly ratios convert to the familiar annual magnitudes by
-subtracting $\log 12 \approx 2.48$: growth prices near
-$e^{5.7 - 2.48} \approx 25$ times its annual dividend on this grid.
+The monthly ratios convert to annual magnitudes by
+subtracting $\log 12 \approx 2.48$. For example, growth prices near
+$e^{5.7 - 2.48} \approx 25$ times its annual dividend on the paper's
+grid.
 
-Does the exact solution agree with Chapter 6's approximation? On a
-fine grid it should — same economy, two methods. I compare the
+The exact solution should agree with the approximation of
+[Chapter 6](06-log-linear-solution.qmd) on a fine grid, because the
+two methods solve the same economy. I compare the
 numerical slope $\partial z/\partial x$ at the center of the grid with
 the log-linear $A_1$ evaluated at each claim's own valuation level:
 
@@ -129,14 +135,14 @@ for name, d in params.dividends.items():
     print(f"{name:10s} {slope:18.0f} {a1:16.0f}")
 ```
 
-Within ten percent, claim by claim. The two roads meet.
+The two methods agree within ten percent, claim by claim.
 
-## The grid is part of the model
+## The grid changes the quantity of risk
 
-Here is the check almost nobody prints. The chain's stationary
-distribution should reproduce the unconditional dispersion of $x$ —
-if it does not, the discretized economy carries a different quantity
-of long-run risk than the one you calibrated:
+The chain's stationary distribution should reproduce the unconditional
+dispersion of $x$. If it does not, the discretized economy carries a
+different quantity of long-run risk than the one you calibrated. Few
+replications print the check below:
 
 ```{python}
 sd_true = c.phi_x * c.sigma / np.sqrt(1 - c.rho**2)
@@ -149,9 +155,9 @@ for n_x in (30, 60):
 ```
 
 The paper's 30-point grid over-disperses expected growth by about a
-fifth. More dispersion in $x$ is more long-run risk, so premia computed
-on the 30-point grid run high and prices run low relative to the
-continuous model. Refining the grid makes this visible:
+fifth. More dispersion in $x$ means more long-run risk, so premia
+computed on the 30-point grid run high and prices run low relative to
+the continuous model. Refining the grid shows the size of the effect:
 
 ```{python}
 #| code-fold: true
@@ -181,21 +187,21 @@ fig.tight_layout()
 plt.show()
 ```
 
-Read this plainly: the *mechanism* — a large positive value premium
-born of dispersion in long-run cash-flow risk — survives at every grid
-size. The *level* my paper prints (a 5.3 percent premium) reflects the
-30-point discretization it was computed on; the converged chain gives
-about 3.4 percent, with a risk-free rate near 1.8 rather than 1.0.
-When you replicate a quadrature-solved model, the grid specification
-is as much a part of the result as the preference parameters. The full
-confrontation with Table VII — simulated samples, standard errors,
-CAPM betas — is [Chapter 10](10-value-premium-resolved.qmd)'s job,
-using `simulate_table_vii`.
+The mechanism survives at every grid size. Dispersion in long-run
+cash-flow risk produces a large positive value premium on every grid
+in the figure. The level my paper prints, a 5.3 percent premium,
+reflects the 30-point discretization it was computed on. The converged
+chain gives about 3.4 percent, with a risk-free rate near 1.8 rather
+than 1.0. When you replicate a quadrature-solved model, the grid
+specification is as much a part of the result as the preference
+parameters. [Chapter 10](10-value-premium-resolved.qmd) runs the full
+comparison with Table VII, including simulated samples, standard
+errors, and CAPM betas, using `simulate_table_vii`.
 
-One last behavior worth knowing. On a very coarse grid the
-over-dispersion is so extreme that the value claim's dividend growth
-outruns its discount rate — the price is genuinely infinite, and the
-solver refuses rather than fabricating a number:
+One more behavior is useful to know. On a very coarse grid the
+over-dispersion is so large that the value claim's dividend growth
+exceeds its discount rate. The price is then infinite, and the
+solver raises an error rather than returning a made-up number:
 
 ```{python}
 from lrrcs.model.solver import SolverDivergenceError
@@ -209,7 +215,7 @@ except SolverDivergenceError as err:
 ::: {.firewall}
 **Where each number comes from.** Every figure in this chapter is
 printed by the cells above at build time: `ModelSolver` (the
-Tauchen–Hussey chain and Euler fixed points),
+Tauchen-Hussey chain and Euler fixed points),
 `compute_asset_pricing_moments` (population moments under the
 stationary distribution), all on `get_table_ii_params()`. Download the
 chapter as a notebook (top of the page) to rerun everything.
@@ -217,24 +223,26 @@ chapter as a notebook (top of the page) to rerun everything.
 
 ## Takeaways
 
-- Tauchen–Hussey replaces the continuous state with a Markov chain
-  whose rows are quadrature approximations of the true conditional
-  densities; pricing reduces to a contraction, one matrix–vector
-  product per iteration.
-- Iterate the Euler equation in its contraction form; the
-  algebraically equivalent un-divided form diverges at rate
-  $1 - \theta$. Solvers should raise on divergence, never clamp.
+- Tauchen-Hussey quadrature replaces the continuous state with a
+  Markov chain whose rows are quadrature approximations of the true
+  conditional densities. Pricing then reduces to a contraction, with
+  one matrix-vector product per iteration.
+- Iterate the Euler equation in its contraction form, because the
+  algebraically equivalent undivided form diverges at rate
+  $1 - \theta$. A solver should raise an error on divergence instead
+  of clamping.
 - The exact solution confirms the log-linear elasticities on a fine
-  grid — and reveals what the approximation hid: the grid itself
-  changes the quantity of long-run risk. Check the chain's stationary
-  dispersion against the process you calibrated.
+  grid. It also shows that the grid itself changes the quantity of
+  long-run risk, so check the chain's stationary dispersion against
+  the process you calibrated.
 
 ## Exercises
 
 1. Rebuild the chain with `n_s = 8` volatility states (keep
-   `n_x = 30`) and recompute the population value premium. Volatility
-   states matter much less than $x$ states here — why, given the
-   prices of risk in [Chapter 6](06-log-linear-solution.qmd)?
+   `n_x = 30`) and recompute the population value premium. Adding
+   volatility states changes the answer much less than adding $x$
+   states. Explain why, given the prices of risk in
+   [Chapter 6](06-log-linear-solution.qmd).
 2. Compute the chain's implied one-month persistence
    $E[x_{t+1} \mid x_t]/x_t$ at a node one standard deviation out, for
    `n_x = 30` and `n_x = 60`. How does the deviation from

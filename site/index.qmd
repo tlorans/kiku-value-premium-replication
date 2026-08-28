@@ -7,29 +7,32 @@ aliases:
 
 <!-- Hero wording: human review requested before cutover (REWRITE_PLAN gate). -->
 
-Every discounted-cash-flow valuation rests on two numbers you made up:
-a growth forecast and a discount rate, each borrowed from a different
-model, neither obliged to agree with the other. This course teaches the
-alternative I used to answer one of asset pricing's oldest questions:
-derive **both** numbers from a single description of the economy — one
-consumption process, one set of preferences — and let the same machine
-price every claim, from the aggregate stock market to a portfolio you
-bring yourself.
+Every discounted cash flow valuation rests on two numbers you made up.
+The growth forecast comes from one model, and the discount rate comes
+from another. Neither is obliged to agree with the other. The course
+teaches the alternative I used to answer one of asset pricing's oldest
+questions. You derive both numbers from a single description of the
+economy, meaning one consumption process and one set of preferences,
+and the same model then prices every claim, from the aggregate stock
+market to a portfolio you bring yourself.
 
-The vehicle is my paper, *Is the Value Premium a Puzzle?* Value firms
-have out-earned growth firms by about six percentage points a year over
-1930–2003, while their market betas are nearly identical — the CAPM
-calls that impossible. By the end of the course you will have rebuilt
-the general-equilibrium model that resolves this, tested it against
-seventy-four years of data, and used it to price a claim of your own.
+The course is built around my paper, *Is the Value Premium a Puzzle?*
+Value firms out-earned growth firms by about six percentage points a
+year over 1930 to 2003, while their market betas are nearly identical.
+Under the CAPM, a higher return requires a higher beta, so the CAPM
+cannot price the premium. By the end of the course you will have
+rebuilt the general equilibrium model that resolves the puzzle, and you
+will have tested it against seventy-four years of data. You will also
+have used the model to price a claim of your own.
 
-## The destination
+## The main result
 
-The table the course builds toward: the model, calibrated to
-consumption and dividends alone — no return ever enters — confronted
-with the returns it was never shown. Data columns are the paper's
-prints (Table I and Table VII); model columns are computed live when
-this page builds.
+The table below is the result the course builds toward. The model is
+calibrated to consumption and dividends alone, with no return data used
+anywhere in the calibration, and is then compared with the returns it
+was never shown. Data columns come from the paper (Table I and
+Table VII), and the code cell computes the model columns when the page
+builds.
 
 ```{python}
 #| code-fold: true
@@ -44,49 +47,55 @@ for name in ("growth", "value", "market"):
     print(f"{name:10s} {data_er[name]:10.2f} {tab['mean_return'][name]:11.2f}")
 print(f"\nvalue premium: about 6 in the data, "
       f"{tab['value_premium']:.1f} in the model")
-print(f"CAPM beta ratio (value/growth): {tab['beta_ratio']:.2f} "
-      f"— lower beta, higher return: the anomaly, reproduced")
+print(f"CAPM beta ratio (value/growth): {tab['beta_ratio']:.2f}, "
+      f"so value has the lower beta and the higher return")
 ```
 
-## The argument, in order
+## The course outline
 
-**Part I — The Puzzle.** A DCF has [two free numbers](chapters/01-two-free-numbers.qmd);
-fixing them honestly requires a model of risk. The
-[data](chapters/02-value-premium-in-the-data.qmd): six points of premium
-the CAPM cannot price.
+**Part I: The puzzle.** A DCF has
+[two free numbers](chapters/01-two-free-numbers.qmd), and fixing them
+honestly requires a model of risk. The
+[data chapter](chapters/02-value-premium-in-the-data.qmd) documents a
+premium of about six percentage points that the CAPM cannot price.
 
-**Part II — The Toolkit.** One equation prices everything
-([the Euler equation](chapters/03-pricing-by-euler-equation.qmd));
-[Epstein–Zin preferences](chapters/04-epstein-zin-preferences.qmd) make
-news about the future priced today; a
-[long-run risks endowment](chapters/05-long-run-risks.qmd) supplies the
-news.
+**Part II: The toolkit.**
+[The Euler equation](chapters/03-pricing-by-euler-equation.qmd) prices
+every claim in the model.
+[Epstein-Zin preferences](chapters/04-epstein-zin-preferences.qmd) make
+news about future growth affect prices today, and the
+[long-run risks consumption process](chapters/05-long-run-risks.qmd)
+supplies the news.
 
-**Part III — Solving.** The
-[log-linear solution](chapters/06-log-linear-solution.qmd) in closed
-form, then the [quadrature solution](chapters/07-quadrature-solution.qmd)
-without approximation — and what each hides.
+**Part III: Solving the model.** The
+[log-linear solution](chapters/06-log-linear-solution.qmd) gives closed
+form answers, and the
+[quadrature solution](chapters/07-quadrature-solution.qmd) avoids the
+approximation. Each chapter also explains what its method leaves out.
 
-**Part IV — Confronting the Data.**
-[Calibrate cash flows](chapters/08-calibrating-cash-flows.qmd) with no
-return in sight; test the [market](chapters/09-the-market-test.qmd);
-watch the [value premium resolve](chapters/10-value-premium-resolved.qmd)
+**Part IV: Testing against the data.** You
+[calibrate the cash flows](chapters/08-calibrating-cash-flows.qmd)
+without using any return data. You then test the model on the
+[aggregate market](chapters/09-the-market-test.qmd), and you check
+whether the
+[value premium comes out right](chapters/10-value-premium-resolved.qmd)
 with nothing re-tuned.
 
-**Part V — Your Turn.**
-[Price your own claim](chapters/11-price-your-own-claim.qmd), then read
-the [objections and the model's honest limits](chapters/12-objections-and-limits.qmd).
+**Part V: Applying the model.** You
+[price a claim of your own](chapters/11-price-your-own-claim.qmd), and
+then you read the
+[objections and the model's limits](chapters/12-objections-and-limits.qmd).
 
-New here? Start with [How to read this course](how-to-read.qmd). The
-claim throughout is not that this model is true — it is that a
-valuation should get its forecast and its discount rate from one
-place, and this is the cleanest working example.
+If you are new, start with [How to read this course](how-to-read.qmd).
+The course does not claim the model is true. The course claims a
+valuation should get its forecast and its discount rate from one place,
+and the model is a clean working example of how to do so.
 
 ::: {.firewall}
-**Where each number comes from.** Every model number on this site is
-printed at build time by the code cell above it, running the
-[`lrrcs`](reference/api.qmd) package on the paper's calibration; data
-numbers are the paper's prints, reproduced offline in
-[Chapter 2](chapters/02-value-premium-in-the-data.qmd). Each chapter
-downloads as a runnable notebook.
+**Where each number comes from.** The code cell above each model number
+prints it at build time, by running the [`lrrcs`](reference/api.qmd)
+package on the paper's calibration. Data numbers are the paper's
+published values, reproduced offline in
+[Chapter 2](chapters/02-value-premium-in-the-data.qmd). You can
+download each chapter as a runnable notebook.
 :::
