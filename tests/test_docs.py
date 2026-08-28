@@ -601,3 +601,32 @@ def test_readme_matches_landing():
     assert "import lrrcs as lrr" in text
     assert "discount rate" in text
     assert "Average returns never enter" in text
+
+
+GLOSSARY_TERMS = (
+    "loading", "persistent component", "P/D ratio", "beta", "EIS",
+    "risk aversion", "Euler equation", "cash-flow news", "discount-rate news", "Table II",
+)
+
+
+def test_background_and_references_pages():
+    """Issues 9+10: three primers with links back; glossary; canonical citations."""
+    bg = _text("background.md")
+    for primer in (
+        "## Epstein-Zin preferences",
+        "## The long-run risks model",
+        "## Why the CAPM misses low-frequency risk",
+    ):
+        assert primer in bg, primer
+    for term in GLOSSARY_TERMS:
+        assert term in bg, term
+    refs = _text("references.md")
+    for citation in (
+        "Kiku, D., 2006",
+        "Bansal, R., and A. Yaron, 2004",
+        "Epstein, L. G., and S. E. Zin, 1989",
+        "Hansen, L. P., and R. Jagannathan, 1991",
+    ):
+        assert citation in refs, citation
+    # No 'Bansal & Yarn' typo.
+    assert "Yarn" not in refs

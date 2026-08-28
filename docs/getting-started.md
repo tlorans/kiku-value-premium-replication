@@ -53,7 +53,7 @@ One shock to $$x_t$$ moves expected dividends for decades and moves marginal uti
 
 ## An economy in five lines
 
-Kiku (2006, Table II) is the default economy: Epstein-Zin preferences, a persistent component $$x_t$$ in consumption growth, time-varying consumption volatility, and three dividend claims (growth, value, market) that differ *only* in how hard their cash flows load on $$x_t$$. The numbers are monthly.
+[Kiku (2006, Table II)]({{ '/references.html' | relative_url }}) is the default economy: Epstein-Zin preferences, a persistent component $$x_t$$ in consumption growth, time-varying consumption volatility, and three dividend claims (growth, value, market) that differ *only* in how hard their cash flows load on $$x_t$$. The numbers are monthly.
 
 ```python
 delta, gamma, psi = 0.999, 10.0, 1.5

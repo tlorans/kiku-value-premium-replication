@@ -12,7 +12,7 @@ A [DCF]({{ '/two-free-numbers.html' | relative_url }}) takes a cash-flow forecas
 
 Here, one process prices both. A single Epstein-Zin household prices the market, value, and growth claims jointly: cash flows and discount rates come from the same consumption process, and average returns never enter the estimation. The cross-section comes out as an output, with nothing re-tuned per claim.
 
-Kiku (2006) is the measuring instrument. Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do. That loading is the only cross-sectional input, and it produces both facts: the higher premium and the lower price-dividend ratio.
+[Kiku (2006)]({{ '/references.html' | relative_url }}) is the measuring instrument. Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do. That loading is the only cross-sectional input, and it produces both facts: the higher premium and the lower price-dividend ratio.
 
 |  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
