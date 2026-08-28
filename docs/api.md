@@ -8,6 +8,10 @@ nav_order: 2
 
 Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The division of labor mirrors the model's two halves: `calibrate_from_data` measures cash-flow exposures (the cash-flow side), `solve_analytical` and `compute_asset_pricing_moments` let the household price them (the discount-rate side), and the outputs are prices and risk premia together.
 
+<!-- Issue 6 (2026-08-28): API page cross-checked against `lrr.__all__` (41 names)
+     via `python -c "import lrrcs as lrr; print(*lrr.__all__)"`. Sections below
+     cover all 41. New public names must be added here in the same PR. -->
+
 ```python
 import numpy as np
 import polars as pl
@@ -17,18 +21,63 @@ import lrrcs as lrr
 
 `market` is the time-series claim. `long` and `short` are the two legs of a sort. `value` / `growth` remain aliases. `print_long_short_premium` prints the spread.
 
-| Object | Call |
-|:---|:---|
-| Book-to-market panel, 1930 to 2003 | `lrr.build_annual_panel` |
-| Consumption, deflator, T-bill | `lrr.load_consumption`, `lrr.load_deflator`, `lrr.real_rf_from_monthly` |
-| Campbell-Shiller dividends | `lrr.campbell_shiller_annual` |
-| Table I / Table VI | `lrr.table_i`, `lrr.table_vi_data` |
-| IMRS, dynamics, solver | `lrr.get_table_ii_params`, `lrr.ModelSolver`, `lrr.solve_analytical` |
-| Expected growth \(x_t\) | `lrr.expected_growth_proxy`, `lrr.filter_expected_growth` |
-| Cash-flow loadings | `lrr.calibrate_from_data` |
-| Valuations and risk premia | `lrr.compute_asset_pricing_moments` |
+## Solve and price
 
-`lrr.build_annual_panel` downloads CRSP/Compustat/CCM through the `tidyfinance` WRDS client, forms NYSE-breakpoint quintiles, builds Campbell-Shiller dividends, and splices historical book equity.
+| Function | Signature | Returns | Example |
+|:---|:---|:---|:---|
+| `get_table_ii_params` | `() -> ModelParams` | Table II calibration | `p = lrr.get_table_ii_params()` |
+| `get_default_params` | `() -> ModelParams` | same as Table II | `p = lrr.get_default_params()` |
+| `get_table_ii_dividends` | `() -> dict` | Table II dividend legs | `lrr.get_table_ii_dividends()["value"]` |
+| `solve_analytical` | `(params=None, mean_zc=3.5) -> AnalyticalSolution` | `A1`, `A2`, `premium_lr`, `mean_log_pd`, prices of risk | `sol = lrr.solve_analytical(p)` |
+| `price_from_loadings` | `(loading, params=None, *, mu=0.0015, phi_sigma=7.5, alpha=0.5) -> dict` | `A1`, `A2`, `premium_lr`, `g_eff`, `gordon_return` for one claim ([Price your own claim]({{ '/price-your-own-claim.html' | relative_url }})) | `out = lrr.price_from_loadings(1.5)` |
+| `print_long_short_premium` | `(sol, long=None, short=None) -> None` | prints premia, spread, `A1`, \\(\Lambda_\epsilon\\) | `lrr.print_long_short_premium(sol)` |
+| `ModelSolver` | `(params=None, n_x=30, n_s=4, n_quad=7)` | numerical solver; `.solve()`, then `compute_asset_pricing_moments` | `s = lrr.ModelSolver(p, n_x=15); s.solve()` |
+| `compute_asset_pricing_moments` | `(solver, long=None, short=None, market=None) -> dict` | `mean_return`, `mean_rf`, `volatility`, `capm_beta`, `mean_log_pd` | `lrr.compute_asset_pricing_moments(s)` |
+| `print_asset_pricing_moments` | `(moments) -> None` | prints the Table VII-style block | `lrr.print_asset_pricing_moments(m)` |
+
+`solve_analytical` is the fast entry: the whole equilibrium in one call. `ModelSolver` is the grid solver behind Table VII; note the doc currently relies on the analytical path (NUMBERS.md, F1).
+
+## Measure loadings
+
+| Function | Signature | Returns | Example |
+|:---|:---|:---|:---|
+| `expected_growth_proxy` | `(dc, window=2) -> ndarray` | moving average of lagged consumption growth (the \\(x_t\\) proxy) | `ma = lrr.expected_growth_proxy(dc, 2)` |
+| `filter_expected_growth` | `(dc) -> dict` | Kalman/MLE \\(\\hat x_t\\); `mu, rho, q, r, loglik, x` | `f = lrr.filter_expected_growth(dc)` |
+| `estimate_long_run_leverage` | `(dc, dd, window=2) -> float` | \\(\\tilde\\phi\\): slope of dividend growth on the MA | `lrr.estimate_long_run_leverage(dc, dd)` |
+| `calibrate_from_data` | `(dc, dd_dict=None, frequency="annual", window=2, default_phi_sigma=7.5, *, long=None, short=None, market=None) -> dict[str, DividendParams]` | monthly dividend parameters from annual data; no argument accepts a return | `div = lrr.calibrate_from_data(dc, market=dd)` |
+| `print_calibration_summary` | `(div) -> None` | prints \\(\\mu, \\phi, \\phi_\\sigma, \\alpha\\) per leg | `lrr.print_calibration_summary(div)` |
+| `simulate_cashflow_moments` | `(n_sims=200, years=74, seed=42, params=None) -> dict` | simulated consumption/dividend moments | `lrr.simulate_cashflow_moments(n_sims=20)` |
+| `print_moments` | `(moments) -> None` | prints them | `lrr.print_moments(m)` |
+
+## Data construction
+
+| Function | Signature | Returns | Example |
+|:---|:---|:---|:---|
+| `load_consumption` | `() -> pd.Series` | real per-capita ND+S growth, 1930–2003 | `dc = lrr.load_consumption()` |
+| `load_deflator` | `() -> pd.Series` | PCE deflator | `lrr.load_deflator()` |
+| `real_rf_from_monthly` | `(t90, cpi) -> pd.Series` | annual real T-bill from monthly | `lrr.real_rf_from_monthly(t90, cpi)` |
+| `campbell_shiller_annual` | `(ret, retx, defl) -> pd.DataFrame` | real dividends/price index from CRSP returns | `lrr.campbell_shiller_annual(ret, retx, defl)` |
+| `consumption_growth_from_levels` | `(nd, sv, pop) -> pd.Series` | log-diff of per-capita consumption | `lrr.consumption_growth_from_levels(nd, sv, pop)` |
+| `build_annual_panel` | `(refresh=False) -> pl.DataFrame` | growth/value/market panel, 1930–2003 | `panel = lrr.build_annual_panel()` |
+| `table_i` | `(bm, start=1930, end=2003) -> pd.DataFrame` | Table I statistics | `lrr.table_i(panel)` |
+| `table_vi_data` | `(bm, dc, start=1930, end=2003) -> pd.DataFrame` | Table VI loadings | `lrr.table_vi_data(panel, dc)` |
+| `EmpiricalDataError` | exception | raised when WRDS credentials are missing | `try: ... except lrr.EmpiricalDataError:` |
+
+## Figures
+
+| Function | Signature | Returns | Example |
+|:---|:---|:---|:---|
+| `figure1` | `(path)` | paper Figure 1 | `lrr.figure1("f1.pdf")` |
+| `figure2` | `(path)` | paper Figure 2 | `lrr.figure2("f2.pdf")` |
+| `figure3` | `(path)` | paper Figure 3 | `lrr.figure3("f3.pdf")` |
+| `figure4` | `(path)` | paper Figure 4 | `lrr.figure4("f4.pdf")` |
+| `figure5` | `(path)` | paper Figure 5 | `lrr.figure5("f5.pdf")` |
+| `figure_lr_premium` | `(path)` | premium-vs-leverage line | `lrr.figure_lr_premium("lr.pdf")` |
+| `figure_mean_pd` | `(solver, path)` | mean P/D by claim | `lrr.figure_mean_pd(s, "pd.pdf")` |
+
+## Classes
+
+`ModelParams`, `PreferencesParams`, `ConsumptionParams`, `DividendParams`, `AnalyticalSolution`, `EpsteinZinPreferences`, `Dynamics`, `StateGrid`, `ModelSolver`, `resolve_legs` — the object layer under the functions above; the flat functions are the documented path.
 
 A new sort is the same loop as [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}): consumption and two dividend legs in, no returns.
 

@@ -153,6 +153,8 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | Python 3.11+ requirement | TRACED | `pyproject.toml` `requires-python` |
 | `((3, 12), '0.5.0')` | TRACED | uv env Python 3.12; `lrrcs.__version__` |
 | Quickstart block (0.39 / 0.80 / 0.34 / 0.40) | TRACED | as Home |
+| Clean-venv check: install 5 s, snippet 4.3 s, 10 s total (2026-08-28, Windows, Python 3.12.12) | TRACED | `docs/_baseline/clean_venv_check.sh` → output committed alongside |
+| "under a minute from install to first valuation" | TRACED | measured: 10 s |
 
 ## API (`docs/api.md`)
 

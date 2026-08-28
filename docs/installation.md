@@ -41,6 +41,10 @@ Approximate annualized long-run risk premia:
 Value-growth spread from long-run risks: 0.40%
 ```
 
+## Verified from a clean environment
+
+Checked 2026-08-28 on Windows, in a fresh `uv` venv (Python 3.12.12) with no cached packages: editable install in 5 seconds, quickstart plus the [Price your own claim]({{ '/price-your-own-claim.html' | relative_url }}) snippet in 4.3 seconds — **10 seconds from install to first valuation**. `tidyfinance` imports with the core install; it is only *used* for the WRDS rebuild below. Re-verify any time with `bash docs/_baseline/clean_venv_check.sh`.
+
 ## Extras
 
 ```bash
