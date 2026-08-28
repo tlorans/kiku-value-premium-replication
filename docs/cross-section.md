@@ -260,6 +260,39 @@ A1 value / A1 growth 2.06
 
 <p class="caption">Analytical long-run premia. The gap is $$\phi_V=6.2$$ versus $$\phi_G=2.6$$.</p>
 
+## Robustness
+
+Vary one parameter at a time, re-solve, and record the market's \(x_t\)-news compensation and the value-growth spread (output of `examples/robustness.py`):
+
+```text
+persistence of x_t
+  persistence of x_t=0.95   market premium_lr   0.14%   value-growth spread   0.19%
+  persistence of x_t=0.98   market premium_lr   0.34%   value-growth spread   0.40%
+  persistence of x_t=0.99   market premium_lr   0.51%   value-growth spread   0.55%
+
+EIS
+  EIS=1.2    market premium_lr   0.31%   value-growth spread   0.41%
+  EIS=1.5    market premium_lr   0.34%   value-growth spread   0.40%
+  EIS=2.0    market premium_lr   0.37%   value-growth spread   0.40%
+
+risk aversion
+  risk aversion=5.0    market premium_lr   0.16%   value-growth spread   0.19%
+  risk aversion=10.0   market premium_lr   0.34%   value-growth spread   0.40%
+  risk aversion=15.0   market premium_lr   0.52%   value-growth spread   0.62%
+
+value loading, Kiku range
+  value loading, Kiku range=5.0    market premium_lr   0.34%   value-growth spread   0.23%
+  value loading, Kiku range=6.2    market premium_lr   0.34%   value-growth spread   0.40%
+  value loading, Kiku range=7.4    market premium_lr   0.34%   value-growth spread   0.58%
+
+growth loading, Kiku range
+  growth loading, Kiku range=2.0    market premium_lr   0.34%   value-growth spread   0.52%
+  growth loading, Kiku range=2.6    market premium_lr   0.34%   value-growth spread   0.40%
+  growth loading, Kiku range=3.2    market premium_lr   0.34%   value-growth spread   0.28%
+```
+
+The spread stays positive at every grid point and keeps its ordering. Its size scales with the persistence of \(x_t\), with risk aversion, and with the gap between the loadings; it barely moves with the EIS. These are the \(x_t\)-news pieces of compensation; the full Euler-equation levels are the Table VII column (F1, [NUMBERS.md](https://github.com/tlorans/kiku-value-premium-replication/blob/main/NUMBERS.md)).
+
 ## Key takeaways
 
 - The six-percent premium and value's cheaper valuation are facts to explain, not calibration targets.

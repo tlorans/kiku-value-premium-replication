@@ -630,3 +630,13 @@ def test_background_and_references_pages():
         assert citation in refs, citation
     # No 'Bansal & Yarn' typo.
     assert "Yarn" not in refs
+
+
+def test_robustness_section():
+    """Issue 12: one-at-a-time grid table from examples/robustness.py."""
+    text = _text("cross-section.md")
+    assert "## Robustness" in text
+    assert "examples/robustness.py" in text
+    for cell in ("0.14%", "0.19%", "0.51%", "0.55%", "0.16%", "0.62%", "0.23%", "0.58%", "0.52%", "0.28%"):
+        assert cell in text, cell
+    assert "stays positive at every grid point" in text
