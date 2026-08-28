@@ -21,7 +21,13 @@ dependencies = [
 
 [project.optional-dependencies]
 fast = ["numba>=0.56"]
-data = ["matplotlib", "pyarrow", "polars", "plotnine"]
+data = [
+    "matplotlib",
+    "pyarrow",
+    "polars",
+    "plotnine",
+    "great-tables>=0.24.0",
+]
 dev = ["pytest", "matplotlib", "numba>=0.56"]
 
 [dependency-groups]
@@ -35,6 +41,7 @@ docs = [
     "polars",
     "pyarrow",
     "pyyaml",
+    "great-tables>=0.24.0",
 ]
 
 [tool.pytest.ini_options]

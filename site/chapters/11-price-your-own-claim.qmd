@@ -4,7 +4,7 @@ aliases:
   - /price-your-own-claim.html
 ---
 
-Everything in this course so far priced my three claims: the market and
+Everything in this course so far priced the paper's three claims: the market and
 the two legs of the book-to-market sort. This chapter shows you how to
 price a claim of your own. Bring a dividend process, e.g., a portfolio's
 dividends, a firm's distributable earnings, or any cash-flow stream you
@@ -75,15 +75,37 @@ if not DATA.exists():
 ```
 
 ```{python}
+import pandas as pd
 import lrrcs as lrr
+from great_tables import GT
 
-print(f"{'firm':6s} {'phi':>5s} {'A1':>7s} {'premium_lr %':>13s} "
-      f"{'g_eff %':>9s} {'gordon %':>9s}")
+KIKU_GT = dict(table_background_color="transparent",
+               table_font_size="0.92rem",
+               heading_title_font_size="1.05rem",
+               heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem",
+               column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+rows = []
 for name, phi in (("A", 0.5), ("B", 1.5)):
     out = lrr.price_from_loadings(phi)
-    print(f"{name:6s} {out['loading']:5.1f} {out['A1']:7.1f} "
-          f"{out['premium_lr'] * 100:13.2f} {out['g_eff'] * 100:9.2f} "
-          f"{out['gordon_return'] * 100:9.2f}")
+    rows.append({"firm": name, "phi": out["loading"], "a1": out["A1"],
+                 "prem": out["premium_lr"] * 100,
+                 "g_eff": out["g_eff"] * 100,
+                 "gordon": out["gordon_return"] * 100})
+
+(
+    GT(pd.DataFrame(rows))
+    .tab_header(title="Two firms that differ only in the loading")
+    .cols_label(firm="firm", phi="phi", a1="A1", prem="premium_lr %",
+                g_eff="g_eff %", gordon="gordon %")
+    .fmt_number(columns="phi", decimals=1)
+    .fmt_number(columns="a1", decimals=1)
+    .fmt_number(columns=["prem", "g_eff", "gordon"], decimals=2)
+    .tab_source_note("lrr.price_from_loadings on the Table II economy.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
 Firm B's dividends track the persistent component of consumption, so
@@ -136,8 +158,13 @@ def leverage(dd):
     return float(np.dot(x, e) / np.dot(x, x))
 
 phi = {c: leverage(dividend_growth(c)) for c in ("Value", "Growth", "Market")}
-for claim, slope in phi.items():
-    print(f"{claim:8s} phi_tilde = {slope:6.2f}")
+(
+    GT(pd.DataFrame({"claim": list(phi), "slope": list(phi.values())}))
+    .tab_header(title="Measured long-run leverages")
+    .cols_label(claim="", slope="phi_tilde")
+    .fmt_number(columns="slope", decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 Value's dividends load heavily on the slow component of consumption,
@@ -155,7 +182,20 @@ div = lrr.calibrate_from_data(
     short=dividend_growth("Growth"),
     market=dividend_growth("Market"),
 )
-lrr.print_calibration_summary(div)
+(
+    GT(pd.DataFrame([
+        {"portfolio": name, "mu": d.mu, "phi": d.phi,
+         "phi_sigma": d.phi_sigma, "alpha": d.alpha}
+        for name, d in div.items()
+    ]))
+    .tab_header(title="Calibrated dividend parameters")
+    .cols_label(portfolio="", mu="mu (monthly)", phi="phi (long-run)",
+                phi_sigma="phi_sigma", alpha="alpha")
+    .fmt_number(columns="mu", decimals=5)
+    .fmt_number(columns="phi", decimals=3)
+    .fmt_number(columns=["phi_sigma", "alpha"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The slopes match the regression run by hand above. The signature has no
@@ -168,15 +208,25 @@ so the only difference between the rows is the measured cash-flow
 exposure:
 
 ```{python}
-print(f"{'leg':8s} {'phi':>6s} {'A1':>7s} {'premium_lr %':>13s}")
+leg_rows = []
 for leg, claim in (("value", "Value"), ("growth", "Growth")):
     out = lrr.price_from_loadings(phi[claim])
-    print(f"{leg:8s} {out['loading']:6.2f} {out['A1']:7.1f} "
-          f"{out['premium_lr'] * 100:13.2f}")
+    leg_rows.append({"leg": leg, "phi": out["loading"], "a1": out["A1"],
+                     "prem": out["premium_lr"] * 100})
 
 spread = (lrr.price_from_loadings(phi["Value"])["premium_lr"]
           - lrr.price_from_loadings(phi["Growth"])["premium_lr"])
-print(f"\nValue-growth spread from long-run risks: {spread * 100:.2f} points")
+print(f"Value-growth spread from long-run risks: {spread * 100:.2f} points")
+
+(
+    GT(pd.DataFrame(leg_rows))
+    .tab_header(title="The two legs priced from measured loadings")
+    .cols_label(leg="", phi="phi", a1="A1", prem="premium_lr %")
+    .fmt_number(columns="phi", decimals=2)
+    .fmt_number(columns="a1", decimals=1)
+    .fmt_number(columns="prem", decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The premium ordering follows the measured leverage. The leg whose

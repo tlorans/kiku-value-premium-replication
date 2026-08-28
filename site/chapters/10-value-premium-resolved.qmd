@@ -51,12 +51,20 @@ if not DATA.exists():
 import numpy as np
 import pandas as pd
 import lrrcs as lrr
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent",
+               table_font_size="0.92rem",
+               heading_title_font_size="1.05rem",
+               heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem",
+               column_labels_font_weight="bold",
+               data_row_padding="4px")
 
 panel = pd.read_csv(DATA / "annual_panel.csv")
 means = {c: float(panel[panel["claim"] == c]["ret"].mean() * 100)
          for c in ("Growth", "Value", "Market")}
-print({c: round(v, 2) for c, v in means.items()},
-      " spread:", round(means["Value"] - means["Growth"], 2))
+print(f"value-growth spread: {means['Value'] - means['Growth']:.2f} points")
 
 rm = panel[panel["claim"] == "Market"].sort_values("year")["ret"].to_numpy()
 rm_d = rm - rm.mean()
@@ -64,6 +72,15 @@ for c in ("Growth", "Value"):
     r = panel[panel["claim"] == c].sort_values("year")["ret"].to_numpy()
     print(f"CAPM beta, {c.lower():6s}: "
           f"{float(rm_d @ (r - r.mean()) / (rm_d @ rm_d)):.2f}")
+
+(
+    GT(pd.DataFrame({"claim": list(means), "ret": list(means.values())}))
+    .tab_header(title="Mean annual returns in the data")
+    .cols_label(claim="", ret="mean return %")
+    .fmt_number(columns="ret", decimals=2)
+    .tab_source_note("From data/annual_panel.csv, 1930 to 2003.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
 Value out-earns growth by 6.18 percentage points a year on the
@@ -79,22 +96,28 @@ cheaper than growth in almost every year, as the figure below shows.
 ```{python}
 #| code-fold: true
 #| fig-cap: "Log price-dividend ratios of the growth and value portfolios, 1930 to 2003. Value trades below growth in essentially every year. Its series has a gap and a distorted print around 1933 to 1934, when its dividends nearly vanished. The value premium and the valuation discount are the same fact."
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from plotnine import (ggplot, aes, geom_line, labs, scale_color_manual,
+                      coord_cartesian, theme_minimal, theme,
+                      element_blank, element_line, element_text)
 
-fig, ax = plt.subplots(figsize=(6.5, 3.4))
-for claim, color in (("Growth", "#1b1714"), ("Value", "#7a1f1f")):
-    sub = panel[panel["claim"] == claim].sort_values("year")
-    ax.plot(sub["year"], np.log(sub["pd"]), color=color, lw=1.3,
-            label=claim.lower())
-ax.set_xlabel("year")
-ax.set_ylabel("log(P/D)")
-ax.set_ylim(2.2, 4.6)
-ax.legend(frameon=False, fontsize=9)
-ax.spines[["top", "right"]].set_visible(False)
-fig.tight_layout()
-plt.show()
+pd_long = panel[panel["claim"].isin(["Growth", "Value"])].copy()
+pd_long["log_pd"] = np.log(pd_long["pd"])
+pd_long["claim"] = pd_long["claim"].str.lower()
+
+p = (
+    ggplot(pd_long, aes("year", "log_pd", color="claim"))
+    + geom_line(size=0.9)
+    + scale_color_manual(values={"growth": "#1b1714", "value": "#7a1f1f"})
+    + coord_cartesian(ylim=(2.2, 4.6))
+    + labs(x="year", y="log(P/D)")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(6.5, 3.4), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_title=element_blank(), legend_position="top")
+)
+p.show()
 ```
 
 ## The model's Table VII
@@ -110,10 +133,36 @@ simply come along:
 params = lrr.get_table_ii_params()
 solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
 tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
-lrr.print_table_vii(tab)
+
+print(f"risk-free rate : {tab['mean_rf']:.2f}%  (SE {tab['mean_rf_se']:.2f})")
+print(f"value premium  : {tab['value_premium']:.2f}%")
+print(f"CAPM beta ratio (value/growth): {tab['beta_ratio']:.2f}")
+
+rows = [tab["short"], tab["long"], tab["market"]]
+(
+    GT(pd.DataFrame({
+        "portfolio": rows,
+        "er": [tab["mean_return"][n] for n in rows],
+        "se": [tab["mean_return_se"][n] for n in rows],
+        "vol": [tab["volatility"][n] for n in rows],
+        "sharpe": [tab["sharpe"][n] for n in rows],
+        "beta": [tab["capm_beta"][n] for n in rows],
+        "pd_level": [tab["mean_pd_level"][n] for n in rows],
+        "log_pd": [tab["mean_log_pd"][n] for n in rows],
+    }))
+    .tab_header(title="Table VII by simulation")
+    .cols_label(portfolio="", er="E[R] %", se="SE", vol="Vol %",
+                sharpe="Sharpe", beta="CAPM beta", pd_level="P/D",
+                log_pd="log P/D")
+    .fmt_number(columns=["er", "se", "vol", "sharpe", "beta", "log_pd"],
+                decimals=2)
+    .fmt_number(columns="pd_level", decimals=1)
+    .tab_source_note("300 simulated samples of 74 years, seed 0.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
-Walk through what the block prints, fact by fact.
+Walk through what the table shows, fact by fact.
 
 **The premium.** The simulated value premium is 5.38 percent, and the
 paper's Table VII prints 5.3 on 1,000 samples. The data show roughly
@@ -171,7 +220,24 @@ import copy
 
 params_eq = copy.deepcopy(params)
 params_eq.dividends["value"].phi = params.dividends["growth"].phi  # 2.6
-lrr.print_long_short_premium(lrr.solve_analytical(params_eq))
+sol_eq = lrr.solve_analytical(params_eq)
+
+spread_eq = sol_eq.premium_lr["value"] - sol_eq.premium_lr["growth"]
+print(f"value-growth spread from long-run risks: {spread_eq:.2%}")
+
+claims = list(sol_eq.premium_lr)
+(
+    GT(pd.DataFrame({
+        "claim": claims,
+        "prem": [sol_eq.premium_lr[n] * 100 for n in claims],
+        "a1": [sol_eq.A1[n] for n in claims],
+    }))
+    .tab_header(title="Analytical long-run premia with equal loadings")
+    .cols_label(claim="", prem="long-run premium %", a1="A1")
+    .fmt_number(columns="prem", decimals=2)
+    .fmt_number(columns="a1", decimals=1)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The 0.40 percent long-run spread of the baseline collapses, but the
@@ -222,8 +288,8 @@ grids = {
     "phi_value": ("value loading", [5.0, 6.2, 7.4]),
     "phi_growth": ("growth loading", [2.0, 2.6, 3.2]),
 }
+rows = []
 for attr, (label, values) in grids.items():
-    print(label)
     for v in values:
         p = copy.deepcopy(params)
         if attr == "rho":
@@ -235,8 +301,16 @@ for attr, (label, values) in grids.items():
         else:
             p.dividends[attr.removeprefix("phi_")].phi = v
         market, spread = lr_spread(p)
-        print(f"  {label} = {v:<5} market x-premium {market:5.2f}%   "
-              f"value-growth spread {spread:5.2f}%")
+        rows.append({"parameter": label, "value": v,
+                     "market": market, "spread": spread})
+
+(
+    GT(pd.DataFrame(rows), rowname_col="value", groupname_col="parameter")
+    .tab_header(title="Long-run premia, one parameter at a time")
+    .cols_label(market="market x-premium %", spread="value-growth spread %")
+    .fmt_number(columns=["market", "spread"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The spread is positive at every grid point. Its size scales with the
@@ -257,11 +331,21 @@ calibration and the same seed:
 
 ```{python}
 #| code-fold: true
+grid_rows = []
 for n_x in (30, 60, 100):
     s = lrr.ModelSolver(params, n_x=n_x, n_s=4).solve()
     t = lrr.simulate_table_vii(s, n_samples=300, years=74, seed=0)
-    print(f"n_x = {n_x:>3}: value premium {t['value_premium']:.2f}%, "
-          f"rf {t['mean_rf']:.2f}%, beta ratio {t['beta_ratio']:.2f}")
+    grid_rows.append({"n_x": n_x, "vp": t["value_premium"],
+                      "rf": t["mean_rf"], "ratio": t["beta_ratio"]})
+
+(
+    GT(pd.DataFrame(grid_rows))
+    .tab_header(title="The same simulation on finer grids")
+    .cols_label(n_x="x-grid size", vp="value premium %",
+                rf="risk-free rate %", ratio="beta ratio")
+    .fmt_number(columns=["vp", "rf", "ratio"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 Refining the grid moves the numbers. The premium prints 5.38 at 30

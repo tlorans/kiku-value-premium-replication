@@ -5,7 +5,7 @@ title: "6. The log-linear solution"
 Every asset pricing model faces the same practical obstacle. The Euler
 equation prices a claim by an expectation over everything that can happen
 next period, and next period contains another expectation, and so on
-forever. In this chapter I solve the recursion the first of two ways,
+forever. In this chapter we solve the recursion the first of two ways,
 with a log-linear approximation that turns the model into three
 numbers per claim. You can read the economics of the value premium
 off those three numbers before running any simulation.
@@ -107,14 +107,40 @@ calibration. No returns enter anywhere. The inputs are preferences and
 cash-flow dynamics only.
 
 ```{python}
+import pandas as pd
 import lrrcs as lrr
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
 
 params = lrr.get_table_ii_params()
 sol = lrr.solve_analytical(params)
-lrr.print_long_short_premium(sol)
+
+spread = sol.premium_lr["value"] - sol.premium_lr["growth"]
+print(f"value-growth spread from long-run risks: {spread:.2%}")
+print(f"price of long-run risk Lambda_eps = {sol.Lambda_eps:.2f}")
+
+claims = list(sol.premium_lr)
+premia = pd.DataFrame({
+    "claim": claims,
+    "A1": [sol.A1[k] for k in claims],
+    "premium": [100 * sol.premium_lr[k] for k in claims],
+})
+(
+    GT(premia)
+    .tab_header(title="Long-run risk premia from the log-linear solution")
+    .cols_label(claim="", A1="A1", premium="long-run premium (% per year)")
+    .fmt_number(columns="A1", decimals=1)
+    .fmt_number(columns="premium", decimals=2)
+    .tab_source_note("Computed by solve_analytical on the Table II calibration.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
-Read the output against @eq-a1. Growth's leverage is $\phi_G = 2.6$ and
+Read the table against @eq-a1. Growth's leverage is $\phi_G = 2.6$ and
 value's is $\phi_V = 6.2$, a ratio of 2.4. The price elasticities
 come out at 43.1 and 88.9, and the annualized long-run risk
 compensation doubles from growth to value. The small denominator in
@@ -136,38 +162,53 @@ A1_market = (phi_m - 1 / psi) / (1 - kappa1 * rho)
 print(f"kappa1 = {kappa1:.3f}, A1(market) = {A1_market:.1f}")
 ```
 
-Finally, I plot the premium as a function of leverage, which
+Finally, we plot the premium as a function of leverage, which
 summarizes the mechanism. Each point in the figure solves the model
 for a claim that differs only in $\phi$:
 
 ```{python}
 #| code-fold: true
 #| fig-cap: "Annualized long-run risk premium against cash-flow leverage φ. The relation steepens because A₁ and the loading both grow with φ; growth (2.6), market (2.8) and value (6.2) are marked."
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from plotnine import (ggplot, aes, geom_line, geom_point, geom_text, labs,
+                      theme_minimal, theme, element_blank, element_line,
+                      element_text)
 
 phis = np.linspace(0.5, 7.5, 40)
-prem = [lrr.price_from_loadings(float(p))["premium_lr"] * 100 for p in phis]
+line_df = pd.DataFrame({
+    "phi": phis,
+    "premium": [lrr.price_from_loadings(float(p))["premium_lr"] * 100
+                for p in phis],
+})
 
-fig, ax = plt.subplots(figsize=(6.5, 3.4))
-ax.plot(phis, prem, color="#7a1f1f", lw=1.6)
-for name, phi in (("growth", 2.6), ("market", 2.8), ("value", 6.2)):
+marks = []
+for name, phi, dy in (("growth", 2.6, -0.45), ("market", 2.8, 0.45),
+                      ("value", 6.2, -0.45)):
     y = lrr.price_from_loadings(phi)["premium_lr"] * 100
-    ax.scatter([phi], [y], color="#1b1714", zorder=3, s=18)
-    ax.annotate(name, (phi, y), textcoords="offset points",
-                xytext=(6, -2), fontsize=9)
-ax.set_xlabel("long-run leverage φ")
-ax.set_ylabel("long-run premium (% per year)")
-ax.spines[["top", "right"]].set_visible(False)
-fig.tight_layout()
-plt.show()
+    marks.append({"name": name, "phi": phi, "premium": y,
+                  "label_x": phi + 0.1, "label_y": y + dy})
+pts = pd.DataFrame(marks)
+
+p = (
+    ggplot(line_df, aes("phi", "premium"))
+    + geom_line(color="#7a1f1f", size=1.1)
+    + geom_point(pts, aes("phi", "premium"), color="#1b1714", size=2)
+    + geom_text(pts, aes(x="label_x", y="label_y", label="name"),
+                color="#1b1714", size=9, ha="left")
+    + labs(x="long-run leverage φ", y="long-run premium (% per year)")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(6.5, 3.4), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_title=element_blank(), legend_position="top")
+)
+p.show()
 ```
 
 ::: {.firewall}
-**Where each number comes from.** Every figure in this chapter is
-printed by the code cells above, which run when the site is built:
-`solve_analytical` and `price_from_loadings` on the Table II
+**Where each number comes from.** Every table and figure in this
+chapter is computed by the code cells above, which run when the site
+is built: `solve_analytical` and `price_from_loadings` on the Table II
 calibration (`get_table_ii_params`). Download the chapter as a notebook
 (top of the page) to rerun everything.
 :::

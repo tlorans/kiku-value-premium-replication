@@ -169,13 +169,30 @@ print(f"real T-bill:        mean {df.rf.mean():.2%}")
 
 The endowment is smooth, with consumption growth moving about two
 points a year, and the real bill earns roughly nothing. The next cell
-prints the premia the kernel has to explain:
+shows the premia the kernel has to explain:
 
 ```{python}
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+rows = []
 for name in ("Growth", "Value", "Market"):
     ex = df[name] - df.rf
-    print(f"{name:8s} mean excess {ex.mean():6.2%}   "
-          f"sd {ex.std():6.2%}   Sharpe {ex.mean() / ex.std():.2f}")
+    rows.append({"claim": name, "mean_excess": ex.mean() * 100,
+                 "sd": ex.std() * 100, "sharpe": ex.mean() / ex.std()})
+premia = pd.DataFrame(rows)
+(
+    GT(premia)
+    .tab_header(title="Excess returns over the real bill, 1930 to 2003")
+    .cols_label(claim="", mean_excess="Mean excess (%)", sd="SD (%)",
+                sharpe="Sharpe ratio")
+    .fmt_number(columns=["mean_excess", "sd", "sharpe"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 Feed the excess returns into @eq-boe with a conventional risk aversion
@@ -183,16 +200,26 @@ of $\gamma = 10$:
 
 ```{python}
 gamma = 10.0
+rows = []
 for name in ("Growth", "Value", "Market"):
     ex = df[name] - df.rf
     cov = np.cov(ex, df.dc, ddof=1)[0, 1]
-    print(f"{name:8s} actual {ex.mean():6.2%}   "
-          f"power utility, gamma=10: {gamma * cov:6.2%}")
+    rows.append({"claim": name, "actual": ex.mean() * 100,
+                 "predicted": gamma * cov * 100})
+comparison = pd.DataFrame(rows)
 
 ex_m = df["Market"] - df.rf
 cov_m = np.cov(ex_m, df.dc, ddof=1)[0, 1]
-print(f"\ngamma needed to match the market premium: "
+print(f"gamma needed to match the market premium: "
       f"{ex_m.mean() / cov_m:.0f}")
+(
+    GT(comparison)
+    .tab_header(title="Actual premia against the power-utility prediction")
+    .cols_label(claim="", actual="Actual (%)",
+                predicted="Power utility, gamma = 10 (%)")
+    .fmt_number(columns=["actual", "predicted"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The failures are described below, from least to most severe.
@@ -278,7 +305,7 @@ endowment in which there is persistent news to be had.
    investor could have?
 
 ::: {.firewall}
-**Where each number comes from.** Every number above is printed by the
+**Where each number comes from.** Every number above is computed by the
 cells on this page from three files built in Part I
 (`data/consumption_annual.csv`, `data/rf_annual.csv`, and
 `data/annual_panel.csv`), using only `numpy` and `pandas`. The

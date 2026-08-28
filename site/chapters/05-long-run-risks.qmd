@@ -70,8 +70,8 @@ with all shocks standard normal. In words, line by line:
   noise scaled by $\varphi_{\sigma,i}$ (the residual $u_{i,t+1}$
   correlates with the consumption shock $\eta_{t+1}$ at a rate
   $\alpha_i$). $\phi_i$ is the only parameter in the whole model that
-  differs across claims in an economically central way. In Table II I
-  set $\phi = 2.6$ for growth, $6.2$ for value, and $2.8$ for the
+  differs across claims in an economically central way. Table II sets
+  $\phi = 2.6$ for growth, $6.2$ for value, and $2.8$ for the
   market. A value firm's cash flows are levered to long-run news more
   than twice as strongly as a growth firm's. Everything the rest of the
   course says about the value premium follows from the one contrast.
@@ -147,32 +147,65 @@ Units are monthly.
 
 ```{python}
 #| code-fold: true
+import pandas as pd
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
 p = lrr.get_table_ii_params()
 prefs, c = p.prefs, p.cons
 
-print("Table II calibration (monthly), from lrr.get_table_ii_params()")
-print()
-print("Preferences (household)")
-print(f"  delta   = {prefs.delta}    | time preference")
-print(f"  gamma   = {prefs.gamma}     | risk aversion")
-print(f"  psi     = {prefs.psi}      | elasticity of intertemporal substitution")
-print(f"  theta   = {prefs.theta:.1f}    | derived: (1-gamma)/(1-1/psi)")
-print()
-print("Consumption process (endowment)")
-print(f"  mu      = {c.mu}   | mean monthly growth (~1.8 %/yr)")
-print(f"  rho     = {c.rho}     | persistence of x_t (half-life ~3 yrs)")
-print(f"  phi_x   = {c.phi_x}    | sd of x_t shocks, relative to sigma")
-print(f"  sigma   = {c.sigma}   | mean monthly volatility (~2.2 %/yr)")
-print(f"  nu      = {c.nu}     | persistence of volatility")
-print(f"  sigma_w = {c.sigma_w}  | sd of volatility shocks")
-print()
-print("Cash-flow processes (per claim)")
-print(f"  {'claim':8s} {'mu_d':>8s} {'phi':>5s} {'phi_sigma':>10s} {'alpha':>6s}")
-for name, d in p.dividends.items():
-    print(f"  {name:8s} {d.mu:8.4f} {d.phi:5.1f} {d.phi_sigma:10.1f} {d.alpha:6.2f}")
+calib_df = pd.DataFrame({
+    "block": ["Preferences (household)"] * 4 + ["Consumption process (endowment)"] * 6,
+    "parameter": ["delta", "gamma", "psi", "theta",
+                  "mu", "rho", "phi_x", "sigma", "nu", "sigma_w"],
+    "value": [f"{prefs.delta}", f"{prefs.gamma}", f"{prefs.psi}",
+              f"{prefs.theta:.1f}",
+              f"{c.mu}", f"{c.rho}", f"{c.phi_x}", f"{c.sigma}",
+              f"{c.nu}", f"{c.sigma_w}"],
+    "meaning": ["time preference", "risk aversion",
+                "elasticity of intertemporal substitution",
+                "derived, (1 - gamma) / (1 - 1/psi)",
+                "mean monthly growth (about 1.8 %/yr)",
+                "persistence of x_t (half-life about 3 yrs)",
+                "sd of x_t shocks, relative to sigma",
+                "mean monthly volatility (about 2.2 %/yr)",
+                "persistence of volatility",
+                "sd of volatility shocks"],
+})
+(
+    GT(calib_df, rowname_col="parameter", groupname_col="block")
+    .tab_header(title="Table II calibration, monthly units")
+    .cols_label(value="value", meaning="meaning")
+    .tab_source_note("Read from lrr.get_table_ii_params() at build time.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
-Read the table with the firewall in mind. The preference block and the
+```{python}
+#| code-fold: true
+cash_df = pd.DataFrame(
+    [{"claim": name, "mu": d.mu, "phi": d.phi,
+      "phi_sigma": d.phi_sigma, "alpha": d.alpha}
+     for name, d in p.dividends.items()]
+)
+(
+    GT(cash_df)
+    .tab_header(title="Table II cash-flow processes, monthly units")
+    .cols_label(claim="claim", mu="mu_d", phi="phi",
+                phi_sigma="phi_sigma", alpha="alpha")
+    .fmt_number(columns=["mu"], decimals=4)
+    .fmt_number(columns=["phi", "phi_sigma"], decimals=1)
+    .fmt_number(columns=["alpha"], decimals=2)
+    .tab_source_note("Read from lrr.get_table_ii_params() at build time.")
+    .tab_options(**KIKU_GT)
+)
+```
+
+Read the tables with the firewall in mind. The preference block and the
 consumption block are disciplined by aggregate moments only: the mean,
 volatility, and autocorrelation of consumption growth, and the
 risk-free rate. The cash-flow block is disciplined by dividends only.
@@ -191,25 +224,34 @@ expected-growth state underneath it:
 ```{python}
 #| code-fold: true
 #| fig-cap: "Forty years of simulated monthly consumption growth (gray) and the expected-growth component μ_c + x_t underneath it (dark red). The persistent state is an order of magnitude smaller than the noise, yet it carries the priced risk."
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from plotnine import (ggplot, aes, geom_line, geom_hline, labs,
+                      scale_color_manual, theme_minimal, theme,
+                      element_blank, element_line, element_text)
 
 sim = lrr.Dynamics(lrr.get_table_ii_params(), seed=3).simulate_cashflows(480)
-years = np.arange(480) / 12
+path_df = pd.DataFrame({
+    "years": np.arange(480) / 12,
+    "realized": 100 * sim["dc"],
+    "expected": 100 * (cons.mu + sim["x"]),
+})
 
-fig, ax = plt.subplots(figsize=(6.5, 3.4))
-ax.plot(years, 100 * sim["dc"], color="#b0aca6", lw=0.7,
-        label="realized growth  Δc")
-ax.plot(years, 100 * (cons.mu + sim["x"]), color="#7a1f1f", lw=1.6,
-        label="expected growth  μ + x")
-ax.axhline(100 * cons.mu, color="#1b1714", lw=0.6, ls=":")
-ax.set_xlabel("years")
-ax.set_ylabel("monthly growth (%)")
-ax.legend(frameon=False, fontsize=9)
-ax.spines[["top", "right"]].set_visible(False)
-fig.tight_layout()
-plt.show()
+plot = (
+    ggplot(path_df, aes("years"))
+    + geom_line(aes(y="realized", color='"realized growth Δc"'), size=0.5)
+    + geom_line(aes(y="expected", color='"expected growth μ + x"'), size=0.9)
+    + geom_hline(yintercept=100 * cons.mu, color="#1b1714",
+                 linetype="dotted", size=0.4)
+    + scale_color_manual(values={"realized growth Δc": "#b0aca6",
+                                 "expected growth μ + x": "#7a1f1f"})
+    + labs(x="years", y="monthly growth (%)")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(6.5, 3.4), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_title=element_blank(), legend_position="top")
+)
+plot.show()
 ```
 
 The gray series is what an econometrician observes, and the dark line
@@ -222,8 +264,8 @@ informative about $x_t$ in a way realized consumption is not.
 ## Simulation to annual data: a warning about aggregation
 
 One detail affects every comparison of the model's monthly output to
-annual data, and skipping it corrupts the comparison. In the paper I
-build annual consumption the way NIPA builds it. First, sum twelve
+annual data, and skipping it corrupts the comparison. The paper
+builds annual consumption the way NIPA builds it. First, sum twelve
 monthly levels to an annual level. Then take log growth of the annual
 sums. The level construction is not the same as summing twelve monthly
 log growth rates, and the difference is visible in exactly the moment
@@ -253,7 +295,7 @@ print(f"  AC1, summing log growth rates:             {ac1(g_logs):.2f}")
 ::: {.callout-warning title="Time-aggregate levels, not log growth"}
 The same simulated economy prints an annual AC1 of 0.43 when monthly
 levels are summed within the year, and only 0.20 when monthly log
-growth rates are summed. The 0.43 matches the model AC1 I print in
+growth rates are summed. The 0.43 matches the model AC1 in the paper's
 Table III and sits next to the 0.41 measured in the data above.
 Summing levels within the year overlaps adjacent years' information
 and adds persistence that the log-growth aggregation throws away. A
@@ -296,7 +338,7 @@ to reproduce Table III.
    frequency would you now look for the state in the data?
 
 ::: {.firewall}
-**Where each number comes from.** The half-life, the calibration table,
+**Where each number comes from.** The half-life, the calibration tables,
 the simulated figure, and both AC1 prints come from
 `lrr.get_table_ii_params()` and `lrr.Dynamics(...).simulate_cashflows`
 in the cells above. The data AC1 of 0.41 is computed from
