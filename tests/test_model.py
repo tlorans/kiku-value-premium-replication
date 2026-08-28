@@ -24,8 +24,9 @@ def test_analytical_value_has_higher_lr_premium():
     assert sol.premium_lr["value"] > sol.premium_lr["growth"]
 
 
-def test_tiny_solver_runs():
-    solver = ModelSolver(get_table_ii_params(), n_x=5, n_s=2, n_quad=3)
+def test_small_solver_runs():
+    # 15 x 4 is the smallest grid on which every claim has a finite price
+    solver = ModelSolver(get_table_ii_params(), n_x=15, n_s=4)
     solver.solve()
     assert solver.converged
     assert "value" in solver.z

@@ -60,7 +60,7 @@ def test_analytical_and_moments_accept_long_short():
     sol = solve_analytical(params)
     assert sol.premium_lr["long"] > sol.premium_lr["short"]
     print_long_short_premium(sol)
-    solver = ModelSolver(params, n_x=5, n_s=2, n_quad=3)
+    solver = ModelSolver(params, n_x=15, n_s=4)
     solver.solve()
     mom = compute_asset_pricing_moments(solver)
     assert mom["long"] == "long" and mom["short"] == "short"
