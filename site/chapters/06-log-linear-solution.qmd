@@ -235,3 +235,39 @@ calibration (`get_table_ii_params`). Download the chapter as a notebook
    prices react to good news about growth?
 3. Use `price_from_loadings` to find the leverage $\phi$ at which a
    claim's long-run premium equals zero. Why is it $1/\psi$ and not 0?
+
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+import copy
+
+# Exercise 1: value elasticity at rho = 0.95
+p95 = copy.deepcopy(params)
+p95.cons.rho = 0.95
+print(f"A1 value, rho = 0.98: {sol.A1['value']:.1f}")
+print(f"A1 value, rho = 0.95: {lrr.solve_analytical(p95).A1['value']:.1f}")
+
+# Exercise 2: market elasticity at psi = 0.9
+p09 = copy.deepcopy(params)
+p09.prefs.psi = 0.9
+print(f"A1 market, psi = 1.5: {sol.A1['market']:.1f}")
+print(f"A1 market, psi = 0.9: {lrr.solve_analytical(p09).A1['market']:.1f}")
+
+# Exercise 3: the zero-premium loading
+for phi_v in (0.5, 1/1.5, 0.8):
+    out = lrr.price_from_loadings(phi_v)
+    print(f"phi = {phi_v:.3f}:  A1 = {out['A1']:7.2f}   "
+          f"premium_lr = {100 * out['premium_lr']:+.3f} %/yr")
+```
+
+About two thirds of the elasticity survives the drop in persistence, and the
+robustness grid of Chapter 10 shows the spread shrinking with rho for the
+same reason. The market elasticity stays positive at psi = 0.9 but shrinks,
+because the numerator phi - 1/psi narrows. The premium crosses zero between
+phi = 0.5 and phi = 0.8, at the household's 1/psi: a claim whose cash flows
+grow with expected consumption exactly as the household's own consumption
+does is riskless in the long run, so it earns no long-run compensation,
+while a claim below the threshold is a hedge and earns a discount.
+
+:::

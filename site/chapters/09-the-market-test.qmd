@@ -312,6 +312,41 @@ the market does not rank firms. The cross-section is the next chapter.
    Which claim's dividends are more volatile, and does volatility alone
    rank the premia? (Keep your answer; Chapter 10 tests it.)
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: seed-to-seed movement against the SE columns
+for sd in (1, 2):
+    t = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=sd)
+    print(f"seed {sd}: market E[R] = {t['mean_return']['market']:.2f} "
+          f"(SE {t['mean_return_se']['market']:.2f}), "
+          f"rf = {t['mean_rf']:.2f}")
+
+# Exercise 2: more samples
+t1000 = lrr.simulate_table_vii(solver, n_samples=1000, years=74, seed=0)
+print(f"n=300:  market E[R] = {tab['mean_return']['market']:.2f}, "
+      f"premium = {tab['value_premium']:.2f}")
+print(f"n=1000: market E[R] = {t1000['mean_return']['market']:.2f}, "
+      f"premium = {t1000['value_premium']:.2f}")
+
+# Exercise 3: dividend moments from the chapter's own simulation
+for name in ("growth", "value"):
+    m = mom["dividends"][name]
+    print(f"{name:6s}: E[dd] = {m['E[dd]']:.2f}%, "
+          f"vol = {m['sigma(dd)']:.2f}%")
+```
+
+Seed-to-seed movement is on the order of the printed standard errors, which
+is what the SE columns are for. Quadrupling the samples moves the means by
+less than the seed changes do. Growth's dividends come out slightly the
+more volatile (18.06 against 17.38 percent) while value earns the higher
+premium, so volatility alone does not rank the premia, because the model
+prices the loading on persistent news, not total variance. Chapter 10 uses
+exactly that fact.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** Data numbers are printed by the cells
 above from `data/consumption_annual.csv`, `data/annual_panel.csv`, and

@@ -337,6 +337,73 @@ to reproduce Table III.
    $\mu_c + x_t$ for both. How does the figure change, and at which
    frequency would you now look for the state in the data?
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+import copy
+
+# Exercise 1: half-lives at lower persistence
+for rho in (0.95, 0.90):
+    print(f"rho = {rho}:  half-life = "
+          f"{np.log(0.5) / np.log(rho):.1f} months")
+
+# Exercise 2: no persistent component at all
+p0 = copy.deepcopy(lrr.get_table_ii_params())
+p0.cons.phi_x = 0.0
+dc0 = lrr.Dynamics(p0, seed=0).simulate_cashflows(12 * 20000)["dc"]
+level0 = np.exp(np.cumsum(dc0))
+ann0 = level0.reshape(-1, 12).sum(axis=1)
+g_lvl = np.diff(np.log(ann0))
+g_log = dc0.reshape(-1, 12).sum(axis=1)[1:]
+print(f"AC1, level convention:  {np.corrcoef(g_lvl[:-1], g_lvl[1:])[0,1]:.2f}")
+print(f"AC1, log convention:    {np.corrcoef(g_log[:-1], g_log[1:])[0,1]:.2f}")
+```
+
+```{python}
+#| code-fold: true
+#| fig-cap: "The expected-growth state at rho = 0.98 (dark red) against rho = 0.90 (gray). Lower persistence turns the slow swings into quick fades."
+from plotnine import ggplot, aes, geom_line, labs, scale_color_manual, \
+    theme_minimal, theme, element_blank, element_line, element_text
+
+T = 480
+x98 = lrr.Dynamics(lrr.get_table_ii_params(), seed=7).simulate_cashflows(T)["x"]
+p90 = copy.deepcopy(lrr.get_table_ii_params())
+p90.cons.rho = 0.90
+x90 = lrr.Dynamics(p90, seed=7).simulate_cashflows(T)["x"]
+paths = pd.DataFrame({
+    "years": np.arange(T) / 12,
+    "rho = 0.98": 100 * (cons.mu + x98),
+    "rho = 0.90": 100 * (cons.mu + x90),
+}).melt(id_vars="years", var_name="rho", value_name="expected")
+
+(
+    ggplot(paths, aes("years", "expected", color="rho"))
+    + geom_line(size=0.8)
+    + scale_color_manual(values={"rho = 0.98": "#7a1f1f",
+                                 "rho = 0.90": "#b0aca6"})
+    + labs(x="years", y="expected growth (%)")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(6.5, 2.8), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_title=element_blank(), legend_position="top")
+)
+```
+
+The half-life falls from 34 months to about 14 at rho = 0.95 and about 7 at
+rho = 0.90, and the claim that loses most is value, whose phi puts the most
+of its valuation on the persistent state. With phi_x = 0 the log
+convention prints a near-zero AC1 but the level convention still prints
+0.24, so the overlap in the level construction adds persistence on its
+own. Reaching the 0.43 the paper reports needs the persistent component
+on top of the convention.
+The figure shows the state decaying quickly at rho = 0.90, so you would
+look for it in shorter moving averages.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** The half-life, the calibration tables,
 the simulated figure, and both AC1 prints come from

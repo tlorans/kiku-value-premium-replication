@@ -304,6 +304,57 @@ loading below $1/\psi$ means the opposite.
    loading, the premium, and the Gordon return. Which of the three
    numbers would a DCF valuation of the same portfolio have shown you?
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+```{python}
+#| code-fold: true
+# Exercise 1: the riskless long-run loading
+out0 = lrr.price_from_loadings(1 / 1.5)
+print(f"phi = 1/psi = {1/1.5:.3f}:  A1 = {out0['A1']:.3f}, "
+      f"premium_lr = {100 * out0['premium_lr']:+.3f} %/yr")
+
+# Exercise 2: a different proxy window
+ma3 = lrr.expected_growth_proxy(dc, window=3)
+def leverage_on(dd, proxy):
+    mask = np.isfinite(proxy) & np.isfinite(dd)
+    x = proxy[mask] - proxy[mask].mean()
+    e = dd[mask] - dd[mask].mean()
+    return float(np.dot(x, e) / np.dot(x, x))
+for c in ("Value", "Growth"):
+    print(f"{c:6s}  window 2: {phi[c]:7.2f}"
+          f"   window 3: {leverage_on(dividend_growth(c), ma3):7.2f}")
+
+# Exercise 3: dropping 1930-1945
+years_c = (pl.read_csv(DATA / "consumption_annual.csv").sort("year")
+           ["year"].to_numpy())
+keep = years_c >= 1946
+ma_post = lrr.expected_growth_proxy(dc[keep], window=2)
+prem = {}
+for c in ("Value", "Growth"):
+    dd_post = (panel.filter(pl.col("claim") == c)
+               .filter(pl.col("year") >= 1946).sort("year")
+               ["dgrowth"].to_numpy())
+    lev = leverage_on(dd_post, ma_post)
+    prem[c] = lrr.price_from_loadings(lev)["premium_lr"] * 100
+    print(f"{c:6s}  post-war phi: {lev:7.2f}   premium: {prem[c]:+.2f} %/yr")
+print(f"post-war spread: {prem['Value'] - prem['Growth']:.2f} points")
+```
+
+At the household's own loading the claim is long-run riskless, so both the
+elasticity and the premium are zero; the threshold is 1/psi rather than 0
+because a claim growing with expected consumption moves exactly as the
+household's consumption does. The window change is not innocuous: at window 3 the value slope turns
+negative, the same fragility the Chapter 8 check showed, so treat the
+level of any single-window leverage estimate with caution. The pre-war years carry a large share of the identifying
+variation, so the post-war slopes and the spread shrink, a warning about
+how much data the loading estimates need.
+
+Exercise 4 is yours: run the four steps on a series you bring, and note
+that a DCF of the same portfolio would have shown you only the Gordon
+return, never the loading or the premium decomposition.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** The two-firm table and the leg
 pricing are `lrr.price_from_loadings` on the Table II economy; the

@@ -92,6 +92,20 @@ def test_no_jekyll_residue():
             assert pat not in text, f"Jekyll residue {pat!r} in {path.name}"
 
 
+def _chapter_files():
+    return [p for p in _qmd_files() if "chapters" in p.parts]
+
+
+def test_exercises_have_answer_checks():
+    """Chapters with exercises ship a collapsed answer-check callout."""
+    for path in _chapter_files():
+        text = path.read_text(encoding="utf-8")
+        if "## Exercises" in text:
+            assert 'title="Check your answer"' in text, (
+                f"exercises without answer check: {path.name}"
+            )
+
+
 def test_freeze_covers_every_executed_page():
     freeze = SITE / "_freeze"
     for path in _qmd_files():

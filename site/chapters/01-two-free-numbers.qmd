@@ -220,6 +220,43 @@ Before building the model, we establish what it has to explain. [Chapter 2](02-v
 2. Equalize the loadings by setting `params.dividends["value"].phi = 2.6` and re-solving with `lrr.solve_analytical`. What happens to the long-run spread printed by `lrr.print_long_short_premium`? What does the result say about the source of the model's cross-sectional differences?
 3. Sweep `phi` for the value claim from 2.6 to 7.4 in steps of 0.4, re-solving each time, and plot `sol.A1["value"]` against `sol.premium_lr["value"]`. Panel C is two points on the resulting line, and the exercise traces the whole line. Valuation elasticity and risk compensation move together everywhere.
 
+::: {.callout-note collapse="true" title="Check your answer"}
+
+Run each check against your own output; the cells use the objects defined
+on this page.
+
+```{python}
+#| code-fold: true
+import copy
+
+# Exercise 1: the ranking at two common rates
+for r in (0.08, 0.10):
+    print(f"r = {r:.0%}:  P/D value = {1/(r - g['value']):.1f}"
+          f"   P/D growth = {1/(r - g['growth']):.1f}")
+
+# Exercise 2: equal loadings collapse the spread
+params_eq = copy.deepcopy(params)
+params_eq.dividends["value"].phi = 2.6
+lrr.print_long_short_premium(lrr.solve_analytical(params_eq))
+
+# Exercise 3: sweep phi and watch elasticity and compensation move together
+for phi_v in np.arange(2.6, 7.41, 0.4):
+    p = copy.deepcopy(params)
+    p.dividends["value"].phi = float(phi_v)
+    s = lrr.solve_analytical(p)
+    print(f"phi = {phi_v:.1f}:  A1 = {s.A1['value']:6.1f}   "
+          f"premium_lr = {100 * s.premium_lr['value']:.2f} %/yr")
+```
+
+Exercise 1 confirms value carries the higher price-dividend ratio at both
+rates. Exercise 2 shows the spread collapses to zero once the loadings are
+equal, with the printed spread at -0.12 percent, because the loading
+is the only cross-sectional input.
+Exercise 3 traces the line that panel C sits on: the elasticity and the
+compensation rise together at every loading.
+
+:::
+
 ::: {.firewall}
 **Where each number comes from.** Every number above is computed by this page's cells on the Table II economy (`lrr.get_table_ii_params`, `lrr.solve_analytical`, and `lrr.Dynamics`), and the same numbers are reproduced by `examples/dcf_counterfactual.py` in the repository. The data facts (13.88 vs 7.81, log P/D 3.25 vs 3.61) and the Table VII market premium are from the paper's printed tables. The chapter can be downloaded as a notebook from the link at the top of the page.
 :::
