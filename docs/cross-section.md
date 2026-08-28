@@ -11,7 +11,7 @@ nav_order: 7
 
 Nothing about the household changes. Same preferences, same consumption process, same Euler equation as [Does the market still fit?]({{ '/time-series.html' | relative_url }}). A model that needed a new discount rate for every asset class would just be DCF with extra steps.
 
-Value stocks have out-earned growth stocks by about six percentage points a year over this sample. Calling them cheap restates the fact. Calling them high-beta is false, because their market betas sit near one. An equilibrium answer must name the *risk* the extra return pays for, measure that risk somewhere other than in the returns themselves, and then deliver both facts at once, the higher premium *and* the lower price-dividend ratio.
+Value stocks have out-earned growth stocks by about six percentage points a year over this sample. Calling them cheap restates the fact. Calling them high-beta is false, because their market betas sit near one. [Two free numbers]({{ '/two-free-numbers.html' | relative_url }}) showed where the DCF and the CAPM lose the spread; this chapter is the equilibrium accounting. An equilibrium answer must name the *risk* the extra return pays for, measure that risk somewhere other than in the returns themselves, and then deliver both facts at once, the higher premium *and* the lower price-dividend ratio.
 
 Each claim brings only its cash-flow numbers. Value's dividends are levered to long-run consumption news far harder than growth's. The six-percent gap and value's cheaper valuation are facts to explain, not numbers you feed the calibrator. Average returns never enter the cash-flow step.
 

@@ -8,7 +8,7 @@ permalink: /
 
 *Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows.*
 
-A DCF takes a cash-flow forecast from one model and a discount rate from another. Nothing constrains the pair.
+A [DCF]({{ '/two-free-numbers.html' | relative_url }}) takes a cash-flow forecast from one model and a discount rate from another. Nothing constrains the pair.
 
 Here, one process prices both. A single Epstein-Zin household prices the market, value, and growth claims jointly: cash flows and discount rates come from the same consumption process, and average returns never enter the estimation. The cross-section comes out as an output, with nothing re-tuned per claim.
 

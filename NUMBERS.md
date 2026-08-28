@@ -41,6 +41,24 @@ Gate: `uv run pytest` (85 passed at baseline).
 | "about 0.4 percent on the value-growth spread" | TRACED | `print_long_short_premium` → 0.40% |
 | Sample period 1930–2003 | GOLDEN | `goldens.START/END` |
 
+## Two free numbers (`docs/two-free-numbers.md`) — added by Issue 4
+
+All numbers below are printed by `examples/dcf_counterfactual.py` (TRACED, run 2026-08-28).
+
+| Number | Status | Reproduces via |
+|---|---|---|
+| g_eff growth / value / market = 3.24 / 6.04 / 3.32 %/yr | TRACED | panel (A), expected dividend growth incl. convexity |
+| Implied value-growth premium under one common rate: 0.00 pp (exact) | TRACED | panel (A), identity |
+| Value grows +2.80 pp/yr faster; DCF prices value richer | TRACED | panel (A) |
+| Data P/D ranking 3.25 vs 3.61 | GOLDEN | `goldens.TABLE_I` |
+| "5.3 pp model gap" / "data: 13.88 − 7.81 = 6.07 pp" | UNTRACED (model side, F1) / GOLDEN (data side) | — |
+| CAPM betas (affine innovations) growth 0.89, value 0.50; ratio 0.56 | TRACED | panel (B), 200×74y simulation, seed 7 |
+| CAPM spread −2.4 pp ("with the Table VII premium level") | UNTRACED — derived from the site's F1-blocked 0.92/5.3 numbers, not script output | — |
+| φ 6.2 → 7.4: g_eff 6.04 → 7.07 %/yr (DCF world) | TRACED | panel (C) |
+| A1 value 88.9 → 108.2; premium_lr 0.80% → 0.97% (equilibrium) | TRACED | panel (C), `solve_analytical` |
+
+**Gate note (open):** panel (B)'s page line "the CAPM-fitted spread is negative: the wrong sign" is script-backed; the parenthetical "prices near −2.4" leans on the site's Table VII numbers, which F1 blocks. Also open: the site elsewhere claims ratio 0.92 (model betas) while the level-free affine count gives 0.56. Both belong to the F1 resolution.
+
 ## The result (`docs/getting-started.md`)
 
 | Number | Status | Reproduces via |
