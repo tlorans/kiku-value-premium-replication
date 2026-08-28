@@ -189,7 +189,9 @@ def test_home_spine():
     """Issue 1: tagline under the title, verbatim hero, scoping line after the table."""
     text = _text("index.md")
     assert "Valuations and risk premia depend on the amount of low-frequency risks embodied in cash flows." in text
-    assert "A DCF takes a cash-flow forecast from one model and a discount rate from another." in text
+    # Hero sentence; "DCF" carries the link to Two free numbers (Issue 4).
+    assert "takes a cash-flow forecast from one model and a discount rate from another." in text
+    assert "[DCF]({{ '/two-free-numbers.html' | relative_url }})" in text
     assert "The claim is not that this model is true." in text
     # Tagline must not appear twice (promoted from footer in Issue 1).
     assert text.count(
@@ -216,6 +218,29 @@ def test_firewall_callout_on_home_and_measuring():
         assert 'class="firewall"' in text, name
         for line in FIREWALL_LINES:
             assert line in text, f"{name}: {line[:40]}"
+
+
+TFN_H2S = ("## A. One rate for everything", "## B. A rate fitted to the CAPM", "## C. A forecast is not a valuation")
+
+
+def test_two_free_numbers_page():
+    """Issue 4: three panels; every number printed by examples/dcf_counterfactual.py."""
+    text = _text("two-free-numbers.md")
+    assert "# Two free numbers" in text
+    positions = [text.index(h) for h in TFN_H2S]
+    assert positions == sorted(positions)
+    for snippet in (
+        "the premium prices at 0.00",
+        "The data say six points.",
+        "ratio 0.56",
+        "a DCF has no slot",
+        "6.04 to 7.07",
+        "88.9 to 108.2",
+        "0.80 to 0.97",
+        "The difference is the premium.",
+        "dcf_counterfactual.py",
+    ):
+        assert snippet in text, snippet
 
 
 GS_H2S = (
