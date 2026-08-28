@@ -9,3 +9,7 @@ __pycache__/
 site/_site/
 site/.quarto/
 .jupyter_cache/
+
+# the source paper, kept locally at the repo root
+2006 Kiku is The Value Premium a Puzzle.pdf
+docs/
