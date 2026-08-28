@@ -4,7 +4,7 @@ title: "7. The quadrature solution"
 
 The log-linear solution of [Chapter 6](06-log-linear-solution.qmd) is
 an approximation. It assumes the valuation ratio is a linear function
-of the state variables and solves for the slopes. In this chapter I use
+of the state variables and solves for the slopes. In this chapter we use
 the second method, the one behind the paper's quantitative results.
 The method makes no assumption about the shape of the solution. Instead
 it replaces the continuous state space with a finite Markov chain over
@@ -44,7 +44,7 @@ The one free choice is $\omega$. Tauchen and Hussey suggest the
 one-step conditional density at the mean state. With persistence
 $\rho = 0.98$, the suggested scaling puts all thirty nodes within two
 unconditional standard deviations of $x$. The narrow grid truncates
-the range the process visits, and I show below that it also removes
+the range the process visits, and we show below that it also removes
 most of the value premium. The package scales $\omega$ to the
 unconditional distribution of $x$ instead, so the grid covers the
 states the economy actually visits.
@@ -113,18 +113,26 @@ grid.
 
 The exact solution should agree with the approximation of
 [Chapter 6](06-log-linear-solution.qmd) on a fine grid, because the
-two methods solve the same economy. I compare the
+two methods solve the same economy. We compare the
 numerical slope $\partial z/\partial x$ at the center of the grid with
 the log-linear $A_1$ evaluated at each claim's own valuation level:
 
 ```{python}
 #| code-fold: true
+import pandas as pd
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
 solver60 = lrr.ModelSolver(params, n_x=60, n_s=4).solve(tol=1e-8)
 g = solver60.grid
 c = params.cons
 is_mid = int(np.argmin(np.abs(g.s2_nodes - c.sigma**2)))
 mid = g.n_x // 2
-print(f"{'claim':10s} {'dz/dx (numerical)':>18s} {'A1 (log-linear)':>16s}")
+rows = []
 for name, d in params.dividends.items():
     z2d = solver60.z[name].reshape(g.n_x, g.n_s)
     slope = ((z2d[mid + 1, is_mid] - z2d[mid - 1, is_mid])
@@ -132,7 +140,16 @@ for name, d in params.dividends.items():
     zbar = float(np.dot(solver60.stationary, solver60.z[name]))
     kappa1 = np.exp(zbar) / (1 + np.exp(zbar))
     a1 = (d.phi - 1 / params.prefs.psi) / (1 - kappa1 * c.rho)
-    print(f"{name:10s} {slope:18.0f} {a1:16.0f}")
+    rows.append({"claim": name, "slope": slope, "a1": a1})
+
+(
+    GT(pd.DataFrame(rows))
+    .tab_header(title="Numerical slope against the log-linear elasticity")
+    .cols_label(claim="", slope="dz/dx (numerical)", a1="A1 (log-linear)")
+    .fmt_number(columns=["slope", "a1"], decimals=0)
+    .tab_source_note("Slopes from a 60-point grid solved to tolerance 1e-8.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
 The two methods agree within ten percent, claim by claim.
@@ -161,11 +178,6 @@ the continuous model. Refining the grid shows the size of the effect:
 
 ```{python}
 #| code-fold: true
-#| fig-cap: "Grid convergence. The population value premium and risk-free rate as the x-grid refines: the premium computed on the paper's 30-point grid carries the grid's extra x-dispersion; the converged model settles near 3.4% with a higher risk-free rate."
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 sizes = (20, 30, 40, 60, 100)
 vps, rfs = [], []
 for n_x in sizes:
@@ -173,23 +185,56 @@ for n_x in sizes:
     m = lrr.compute_asset_pricing_moments(s)
     vps.append(m["value_premium"])
     rfs.append(m["mean_rf"])
-    print(f"n_x = {n_x:3d}: value premium {m['value_premium']:.2f} %,  "
-          f"rf {m['mean_rf']:.2f} %")
 
-fig, ax = plt.subplots(figsize=(6.5, 3.2))
-ax.plot(sizes, vps, "o-", color="#7a1f1f", label="value premium")
-ax.plot(sizes, rfs, "s--", color="#1f4e79", label="risk-free rate")
-ax.set_xlabel("x-grid size $n_x$")
-ax.set_ylabel("percent per year")
-ax.legend(frameon=False)
-ax.spines[["top", "right"]].set_visible(False)
-fig.tight_layout()
-plt.show()
+conv = pd.DataFrame({"n_x": sizes, "vp": vps, "rf": rfs})
+(
+    GT(conv)
+    .tab_header(title="Grid convergence of the population moments")
+    .cols_label(n_x="x-grid size",
+                vp="value premium (% per year)",
+                rf="risk-free rate (% per year)")
+    .fmt_number(columns=["vp", "rf"], decimals=2)
+    .tab_options(**KIKU_GT)
+)
+```
+
+```{python}
+#| code-fold: true
+#| fig-cap: "Grid convergence. The population value premium and risk-free rate as the x-grid refines: the premium computed on the paper's 30-point grid carries the grid's extra x-dispersion; the converged model settles near 3.4% with a higher risk-free rate."
+from plotnine import (ggplot, aes, geom_line, geom_point, labs,
+                      scale_color_manual, scale_linetype_manual,
+                      scale_shape_manual, theme_minimal, theme,
+                      element_blank, element_line, element_text)
+
+conv_long = conv.melt(id_vars="n_x", var_name="series", value_name="value")
+conv_long["series"] = conv_long["series"].map(
+    {"vp": "value premium", "rf": "risk-free rate"})
+
+p = (
+    ggplot(conv_long, aes("n_x", "value", color="series",
+                          linetype="series", shape="series"))
+    + geom_line(size=0.9)
+    + geom_point(size=2)
+    + scale_color_manual(values={"value premium": "#7a1f1f",
+                                 "risk-free rate": "#1f4e79"})
+    + scale_linetype_manual(values={"value premium": "solid",
+                                    "risk-free rate": "dashed"})
+    + scale_shape_manual(values={"value premium": "o",
+                                 "risk-free rate": "s"})
+    + labs(x="x-grid size n_x", y="percent per year")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(6.5, 3.2), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_title=element_blank(), legend_position="top")
+)
+p.show()
 ```
 
 The mechanism survives at every grid size. Dispersion in long-run
 cash-flow risk produces a large positive value premium on every grid
-in the figure. The level my paper prints, a 5.3 percent premium,
+in the figure. The level the paper prints, a 5.3 percent premium,
 reflects the 30-point discretization it was computed on. The converged
 chain gives about 3.4 percent, with a risk-free rate near 1.8 rather
 than 1.0. When you replicate a quadrature-solved model, the grid

@@ -41,6 +41,12 @@ figcaption, .caption, .figure-caption {
   margin: 0.4rem 0 1.6rem;
 }
 
+// great_tables output spacing; GT colors/fonts are set per table via tab_options
+.cell-output-display .gt_table {
+  margin-top: 0.5rem;
+  margin-bottom: 1.4rem;
+}
+
 .cell-output img, figure img {
   border: 1px solid #e2d6c4;
   background: #fff;

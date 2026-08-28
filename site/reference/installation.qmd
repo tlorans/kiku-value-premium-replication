@@ -42,7 +42,7 @@ lrr.print_long_short_premium(lrr.solve_analytical(params))
 
 ## Verified from a clean environment
 
-I checked the install on 2026-08-28 on Windows, in a fresh `uv` venv
+We checked the install on 2026-08-28 on Windows, in a fresh `uv` venv
 (Python 3.12.12) with no cached packages. The editable install took 5
 seconds, and the quickstart plus the
 [Price your own claim](../chapters/11-price-your-own-claim.qmd) snippet
