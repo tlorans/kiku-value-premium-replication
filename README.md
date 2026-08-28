@@ -4,16 +4,15 @@ Python package `lrrcs`. Kiku (2006) in code: cash-flow leverage on long-run cons
 
 A DCF takes expected cash flows and a discount rate as two independent inputs. This model derives both from one process, consumption growth. Dividends load on a small, highly persistent component of consumption growth; an Epstein-Zin household prices those loadings. Value firms are more exposed to that component than growth firms, so the same household returns value's high premium and low price-dividend ratio together.
 
-**Documentation:** [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
+**The course:** [Valuing Asset Claims in General Equilibrium](https://tlorans.github.io/kiku-value-premium-replication/) — twelve chapters from the puzzle to pricing your own claim. Every model number on the site is printed at build time by the code cell above it, and each chapter downloads as a runnable notebook.
 
-| Page | What it is |
+| Part | Chapters |
 | --- | --- |
-| [The result](https://tlorans.github.io/kiku-value-premium-replication/getting-started.html) | Install, Table II, the scoreboard |
-| [The long-run risks model](https://tlorans.github.io/kiku-value-premium-replication/long-run-risks-model.html) | Where growth and the discount rate come from |
-| [Measuring leverage](https://tlorans.github.io/kiku-value-premium-replication/measuring-leverage.html) | Equation (19), no returns |
-| [Does the market still fit?](https://tlorans.github.io/kiku-value-premium-replication/time-series.html) | Same household, the market pair |
-| [Value versus growth](https://tlorans.github.io/kiku-value-premium-replication/cross-section.html) | Two legs, nothing re-tuned |
-| [Financial data](https://tlorans.github.io/kiku-value-premium-replication/financial-data.html) | Rebuild 1930 to 2003 from the raw records |
+| I — The Puzzle | [Two free numbers](https://tlorans.github.io/kiku-value-premium-replication/chapters/01-two-free-numbers.html) · [The value premium in the data](https://tlorans.github.io/kiku-value-premium-replication/chapters/02-value-premium-in-the-data.html) |
+| II — The Toolkit | [Pricing by Euler equation](https://tlorans.github.io/kiku-value-premium-replication/chapters/03-pricing-by-euler-equation.html) · [Epstein–Zin preferences](https://tlorans.github.io/kiku-value-premium-replication/chapters/04-epstein-zin-preferences.html) · [Long-run risks](https://tlorans.github.io/kiku-value-premium-replication/chapters/05-long-run-risks.html) |
+| III — Solving | [Log-linear](https://tlorans.github.io/kiku-value-premium-replication/chapters/06-log-linear-solution.html) · [Quadrature](https://tlorans.github.io/kiku-value-premium-replication/chapters/07-quadrature-solution.html) |
+| IV — Confronting the Data | [Calibrating cash flows](https://tlorans.github.io/kiku-value-premium-replication/chapters/08-calibrating-cash-flows.html) · [The market test](https://tlorans.github.io/kiku-value-premium-replication/chapters/09-the-market-test.html) · [The value premium, resolved](https://tlorans.github.io/kiku-value-premium-replication/chapters/10-value-premium-resolved.html) |
+| V — Your Turn | [Price your own claim](https://tlorans.github.io/kiku-value-premium-replication/chapters/11-price-your-own-claim.html) · [Objections and limits](https://tlorans.github.io/kiku-value-premium-replication/chapters/12-objections-and-limits.html) |
 
 ## Install
 
@@ -31,7 +30,11 @@ import lrrcs as lrr
 lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 ```
 
-WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package). Details live on the [installation](https://tlorans.github.io/kiku-value-premium-replication/installation.html) page.
+WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package). Details live on the [installation](https://tlorans.github.io/kiku-value-premium-replication/reference/installation.html) page.
+
+## Site
+
+The site is a Quarto project in `site/`, rendered and deployed by `.github/workflows/publish.yml` (GitHub Pages, source: GitHub Actions). Chapters execute the package at render time; the committed `site/_freeze/` carries the executed outputs, and `.github/workflows/freshness.yml` re-executes everything weekly from scratch. Locally: `make preview` / `make site`.
 
 ## License
 
