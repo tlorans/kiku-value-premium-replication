@@ -24,6 +24,19 @@ fast = ["numba>=0.56"]
 data = ["matplotlib", "pyarrow", "polars", "plotnine"]
 dev = ["pytest", "matplotlib", "numba>=0.56"]
 
+[dependency-groups]
+docs = [
+    "ipykernel",
+    "jupyter-cache",
+    "nbformat",
+    "nbclient",
+    "matplotlib",
+    "plotnine",
+    "polars",
+    "pyarrow",
+    "pyyaml",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = ["-m", "not wrds"]

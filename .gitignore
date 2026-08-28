@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 *.egg-info/
+site/_site/
+site/.quarto/
+.jupyter_cache/

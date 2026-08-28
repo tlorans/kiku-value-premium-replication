@@ -1,0 +1,6 @@
+---
+title: "How to read this course"
+toc: false
+---
+
+Stub - content lands with the front-matter PR.

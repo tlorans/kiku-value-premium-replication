@@ -1,0 +1,9 @@
+---
+title: "Valuing Asset Claims in General Equilibrium"
+toc: false
+aliases:
+  - /getting-started.html
+---
+
+Placeholder home page for the scaffold render. The hero and course map
+land with the content PRs.

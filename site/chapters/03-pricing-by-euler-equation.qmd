@@ -1,0 +1,5 @@
+---
+title: "3. Pricing by Euler equation"
+---
+
+Stub — content lands with its part's PR.
