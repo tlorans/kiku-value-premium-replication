@@ -5,12 +5,13 @@ ROOT = Path(__file__).resolve().parents[1] / "docs"
 BOOK_PAGES = (
     "index.md",
     "getting-started.md",
-    "financial-data.md",
     "long-run-risks-model.md",
+    "measuring-leverage.md",
     "time-series.md",
     "cross-section.md",
     "package.md",
     "installation.md",
+    "financial-data.md",
     "api.md",
 )
 
@@ -49,25 +50,13 @@ def test_book_pages_exist():
     assert not (ROOT / "recipe.md").exists()
 
 
-def test_new_chapter_front_matter():
-    gs = _text("getting-started.md")
-    assert "title: From DCF to general equilibrium" in gs
-    assert "# From DCF to general equilibrium" in gs
+def test_argument_nav_order():
     assert _parent("getting-started.md") is None
     assert _front_nav_order("getting-started.md") == 2
-
-    fd = _text("financial-data.md")
-    assert "title: Financial data" in fd
-    assert "# Financial data" in fd
-    assert _parent("financial-data.md") is None
-    assert _front_nav_order("financial-data.md") == 3
-
-    cf = _text("long-run-risks-model.md")
-    assert "title: The long-run risks model" in cf
-    assert "# The long-run risks model" in cf
     assert _parent("long-run-risks-model.md") is None
-    assert _front_nav_order("long-run-risks-model.md") == 4
-
+    assert _front_nav_order("long-run-risks-model.md") == 3
+    assert _parent("measuring-leverage.md") is None
+    assert _front_nav_order("measuring-leverage.md") == 4
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
     assert _parent("cross-section.md") is None
@@ -75,6 +64,7 @@ def test_new_chapter_front_matter():
     assert _front_nav_order("package.md") == 7
     assert _parent("installation.md") == "Package"
     assert _parent("api.md") == "Package"
+    assert _parent("financial-data.md") == "Package"
 
 
 def test_mathjax_and_sidebar_theme():
@@ -85,8 +75,6 @@ def test_mathjax_and_sidebar_theme():
     assert (ROOT / "_sass" / "color_schemes" / "kiku.scss").exists()
 
 
-# The old Tidy Finance follow-along framing is banned from the book's prose.
-# `import tidyfinance as tf` and `tf.` utility calls in code stay legal.
 BANNED_PROSE = (
     "Tidy Finance",
     "tidy-finance.org",
@@ -114,7 +102,6 @@ def test_package_pages():
         assert "connect_wrds" not in text
         assert "from lrrcs.model import" not in text
         assert "from lrrcs.empirical import" not in text
-    # The WRDS client is documented where credentials and downloads live.
     assert "import tidyfinance as tf" in _text("installation.md")
     assert "import tidyfinance as tf" in _text("api.md")
     assert "set_wrds_credentials" in _text("installation.md")
@@ -142,15 +129,20 @@ def test_home_is_landing():
     assert "# Long-run risks" in text
     assert "## Introduction" not in text
     assert "I show" not in text
-    assert "Start here" in text
+    assert "Run the experiment" in text
     assert "getting-started" in text
     assert "financial-data" in text
     assert "long-run-risks-model" in text
+    assert "measuring-leverage" in text
     assert "time-series" in text
     assert "cross-section" in text
     assert "```python" in text
     assert "import lrrcs as lrr" in text
     assert "print_long_short_premium" in text
+    assert "5.3" in text
+    assert "0.92" in text
+    assert "figures/lrr_sml.svg" in text
+    assert "## The argument" in text
     for stem in (
         "empirical",
         "calibration",
@@ -166,8 +158,6 @@ def test_home_is_landing():
     assert "{{ '/model.html'" not in text
 
 
-# The book's arc: the reader arrives knowing DCF; the equilibrium derives
-# both of the DCF's inputs from the consumption process.
 def test_dcf_to_ge_arc():
     home = _text("index.md")
     gs = _text("getting-started.md")
@@ -180,32 +170,35 @@ def test_dcf_to_ge_arc():
 
 GS_H2S = (
     "## Two numbers you made up",
-    "## One primitive instead",
-    "## Install",
+    "## One process instead",
     "## An economy in five lines",
+    "## What if the loadings are equal",
     "## Key takeaways",
 )
 
 
 def test_getting_started():
     text = _text("getting-started.md")
+    assert "title: The result" in text
+    assert "# The result" in text
     positions = [text.index(h) for h in GS_H2S]
     assert positions == sorted(positions)
     assert "uv pip install -e ." in text
     assert "import lrrcs as lrr" in text
     assert "solve_analytical" in text
-    assert "financial-data" in text
+    assert "long-run-risks-model" in text
     assert "set_wrds_credentials" not in text
     assert "What that did not" in text
     assert "r - g" in text or "r-g" in text
+    assert "5.3" in text
+    assert "0.92" in text
+    assert 'dividends["value"].phi = 2.6' in text
 
 
 def test_financial_data_chapter():
     text = _text("financial-data.md")
     assert "title: Financial data" in text
     assert "# Financial data" in text
-    assert _parent("financial-data.md") is None
-    assert _front_nav_order("financial-data.md") == 3
     assert "data/consumption_annual.csv" in text
     assert "data/annual_panel.csv" in text
     assert "data/rf_annual.csv" in text
@@ -230,7 +223,6 @@ def test_financial_data_chapter():
     assert "figures/market_dd_vs_dc.svg" in text
     assert "figures/market_log_pd.svg" in text
     assert "8.52" in text and "13.67" in text
-    # Each data object is tagged with the side of the model it feeds.
     assert "cash-flow side" in text
     assert "discount-rate side" in text
 
@@ -238,7 +230,7 @@ def test_financial_data_chapter():
 MODEL_H2S = (
     "## The consumption process",
     "## The household",
-    "## The security market line",
+    "## Compensation versus cash-flow leverage",
 )
 
 
@@ -247,7 +239,7 @@ def test_long_run_risks_model_chapter():
     assert "title: The long-run risks model" in text
     assert "# The long-run risks model" in text
     assert _parent("long-run-risks-model.md") is None
-    assert _front_nav_order("long-run-risks-model.md") == 4
+    assert _front_nav_order("long-run-risks-model.md") == 3
     positions = [text.index(h) for h in MODEL_H2S]
     assert positions == sorted(positions)
     assert "## Consumption is not white noise" not in text
@@ -265,8 +257,7 @@ def test_long_run_risks_model_chapter():
     assert "figures/lrr_consumption_paths.svg" in text
     assert "## Key takeaways" in text
     assert "## Exercises" in text
-    assert "time-series" in text
-    assert "cross-section" in text
+    assert "measuring-leverage" in text
     assert "8.56" not in text
     assert "13.88" not in text
     assert "cash-flows-then-prices" not in text
@@ -274,59 +265,66 @@ def test_long_run_risks_model_chapter():
     assert "kalman_filter" not in text
 
 
+MEASURE_H2S = (
+    "## The two-year MA",
+    "## Equation (19)",
+    "## Key takeaways",
+    "## Exercises",
+)
+
+
+def test_measuring_leverage_chapter():
+    text = _text("measuring-leverage.md")
+    assert "title: Measuring leverage" in text
+    assert "# Measuring leverage" in text
+    assert _parent("measuring-leverage.md") is None
+    positions = [text.index(h) for h in MEASURE_H2S]
+    assert positions == sorted(positions)
+    assert "expected_growth_proxy" in text
+    assert "calibrate_from_data" in text
+    assert "phi_hat" in text
+    assert "0.722" in text
+    assert "12.129" in text
+    assert "import lrrcs as lrr" in text
+    assert "import polars as pl" in text
+    assert "p9.ggplot" in text
+    assert "figures/consumption_ma.svg" in text
+    assert "figures/vg_dd_vs_ma.svg" in text
+    assert "figures/market_dd_vs_ma.svg" in text
+    assert "kiku_value_premium" not in text
+    assert "from lrrcs.model import" not in text
+    assert "time-series" in text
+
+
 MARKET_H2S = (
     "## Preparing the sample",
-    "## Extract expected growth",
-    "## One cash-flow exposure",
+    "## The loadings are already measured",
     "## Simulate cash flows",
     "## Solve and check returns and prices",
+    "## Appendix: extracting",
 )
 
 
 def test_market_chapter():
     text = _text("time-series.md")
-    assert "title: The Time Series" in text
-    assert "# The Time Series" in text
+    assert "title: Does the market still fit?" in text
+    assert "# Does the market still fit?" in text
     assert _parent("time-series.md") is None
     assert _front_nav_order("time-series.md") == 5
     positions = [text.index(h) for h in MARKET_H2S]
     assert positions == sorted(positions)
-    assert "## Data" not in text
-    assert "## What long-run risk is" not in text
-    assert "## Calibrate dividends" not in text
     assert "8.56" in text and "7.53" in text
     assert "expected_growth_proxy" in text
     assert "filter_expected_growth" in text
     assert "simulate_cashflow_moments" in text
     assert "compute_asset_pricing_moments" in text
-    assert "import polars as pl" in text
-    assert "import plotnine as p9" in text
-    assert "p9.ggplot" in text
     assert "import lrrcs as lrr" in text
-    assert "```python" in text
-    assert "from lrrcs.model import" not in text
-    assert "kiku_value_premium" not in text
-    assert "Melin" not in text
-    assert "other-risk-premia" not in text
-    assert "cross-section" in text
-    assert "figures/consumption_ma.svg" in text
-    assert "figures/xt_proxy_filter.svg" in text
-    assert "figures/market_log_pd.svg" in text
-    assert "figures/market_dd_vs_ma.svg" in text
-    assert "figures/sim_xt.svg" in text
-    assert "figures/sim_dd.svg" in text
-    assert "figures/sim_log_pd.svg" in text
     assert "0.722" in text
-    assert "1.82" in text
-    assert "Lambda_eps" in text
     assert "kalman_filter" in text
     assert "one_path" in text
-    assert "# ... Kalman" not in text
-    assert "2.36 percent" not in text  # the printed output says 2.37
+    assert "wrong price\u2013dividend ratio is a fail" in text
     assert "## Key takeaways" in text
     assert "## Exercises" in text
-    # The chapter's standard, stated in the lede.
-    assert "wrong price–dividend ratio is a fail" in text
 
 
 TUTORIAL_FIGURES = (
@@ -358,45 +356,28 @@ def test_tutorial_figures_exist():
 
 CROSS_H2S = (
     "## Preparing the sample",
-    "## Two cash-flow exposures",
-    "## Elasticity of price–dividend to x_t",
+    "## The loadings are already measured",
+    "## Elasticity of price\u2013dividend to x_t",
     "## Solve and check rankings",
 )
 
 
 def test_value_versus_growth_chapter():
     text = _text("cross-section.md")
-    assert "title: The Cross Section" in text
-    assert "# The Cross Section" in text
-    assert _parent("cross-section.md") is None
-    assert _front_nav_order("cross-section.md") == 6
+    assert "title: Value versus growth" in text
+    assert "# Value versus growth" in text
     positions = [text.index(h) for h in CROSS_H2S]
     assert positions == sorted(positions)
-    assert "## Data" not in text
     assert "7.81" in text and "13.88" in text
     assert "5.3" in text
     assert "calibrate_from_data" in text
-    assert "expected_growth_proxy" in text
-    assert "compute_asset_pricing_moments" in text
-    assert "```python" in text
-    assert "import lrrcs as lrr" in text
-    assert "import polars as pl" in text
-    assert "import plotnine as p9" in text
-    assert "p9.ggplot" in text
     assert "phi_hat" in text
     assert "capm_beta" in text
-    assert "## Key takeaways" in text
-    assert "## Exercises" in text
+    assert "0.92" in text
+    assert "nothing about the household changes" in text.lower()
     assert "figures/vg_spread.svg" in text
     assert "figures/vg_log_pd.svg" in text
     assert "figures/vg_dd_vs_ma.svg" in text
-    assert "figures/figure1.svg" not in text
-    assert "other-risk-premia" not in text
-    assert "climate.html" not in text
-    # The household is not re-tuned across assets, and the model reproduces
-    # the CAPM anomaly rather than a beta story.
-    assert "nothing about the household changes" in text.lower()
-    assert "0.92" in text
 
 
 DELETED = (
@@ -425,6 +406,7 @@ def test_package_page_points_at_the_book():
     assert "generalization" not in text
     assert "getting-started" in text or "time-series" in text or "long-run-risks-model" in text
     assert "financial-data" in text
+    assert "measuring-leverage" in text
 
 
 def test_readme_matches_landing():
@@ -435,9 +417,11 @@ def test_readme_matches_landing():
     assert "getting-started" in text
     assert "financial-data" in text
     assert "long-run-risks-model" in text
+    assert "measuring-leverage" in text
     assert "time-series" in text
     assert "cross-section" in text
     assert "other-risk-premia" not in text
     assert "climate.html" not in text
     assert "import lrrcs as lrr" in text
     assert "discount rate" in text
+    assert "Average returns never enter" in text

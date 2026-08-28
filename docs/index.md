@@ -6,25 +6,39 @@ permalink: /
 
 # Long-run risks
 
-A general-equilibrium model of **asset prices and risk premia**.
+Kiku (2006) in code: cash-flow leverage on long-run consumption risk prices the value premium. Average returns never enter.
 
-You already know how to price a stock: forecast the cash flows, pick a discount rate, divide. Both numbers are yours to choose, and nothing in the method ties one to the other. This book prices assets the other way around. It builds a small model economy — a *general equilibrium*, meaning prices are not assumed but must adjust until a single investor is content to hold every asset that exists — in which expected cash flows and discount rates both trace back to one measurable source: aggregate consumption. Consumption growth has a small, slow-moving component. Dividends inherit it, some firms much more than others. And an investor who dreads bad news about the distant future prices those dividends. The extra return that investor demands for holding a risky asset — the *risk premium* — is not an input. It comes out of the model, next to the price itself.
+Value earned about six extra points a year over 1930 to 2003 and was cheaper. Market betas sit near one, so the CAPM does not explain the spread. Value dividends load harder on the persistent piece of consumption growth than growth dividends do, and that loading produces both facts. One Epstein-Zin household prices both claims. The outputs are a high premium *and* a low price-dividend ratio. The same household still prices the market.
 
-And not only for the market as a whole. Value firms — stocks that are cheap relative to their accounting net worth — turn out to have dividends that track the economy's slow component closely; growth firms' dividends barely respond to it. Hand the model those two facts about cash flows and it returns the rest: value's lower price per dollar of dividend *and* its higher expected return, together, from the same investor who prices the market. Average returns never enter the inputs. They are what the model gets graded on.
+|  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
+|:---|---:|---:|---:|---:|
+| Growth | 7.81 (1.98) | 6.07 (2.91) | 3.61 (0.18) | 3.65 (0.06) |
+| Value | 13.88 (1.74) | 11.36 (4.30) | 3.25 (0.12) | 3.10 (0.15) |
+| Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
+
+The model gap is about 5.3 percent against about 6 in the data. Value's model CAPM beta is *lower* than growth's (ratio 0.92) while its premium is higher. An econometrician running CAPM regressions would print a puzzle. The household does not, because the priced risk is the cash-flow loading on \(x_t\). Cash flows and the discount rate are not two free numbers. They come from one process. A DCF treats the cash flow forecast and the discount rate as independent inputs.
 
 ```python
 import lrrcs as lrr
 
-lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
+sol = lrr.solve_analytical(lrr.get_table_ii_params())
+lrr.print_long_short_premium(sol)
 ```
 
-[Start here]({{ '/getting-started.html' | relative_url }})
+The printout is only compensation for news about \(x_t\), about 0.4 percent on the value-growth spread. The table above is the Euler equation on the whole claim (short-run shocks and volatility news included). Do not subtract 0.4 from 5.3 and call it a miss.
 
-## The book
+![Long-run premium versus leverage](figures/lrr_sml.svg)
 
-1. [Financial data]({{ '/financial-data.html' | relative_url }}) — consumption, dividends, the safe rate, and the value and growth portfolios, built from public records.
-2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — where cash-flow growth comes from, where the discount rate comes from, and the one expression where they meet.
-3. [The Time Series]({{ '/time-series.html' | relative_url }}) — measure the market's cash-flow risk, let the investor price it, and check the risk premium *and* the valuation.
-4. [The Cross Section]({{ '/cross-section.html' | relative_url }}) — same investor, nothing re-tuned; only the cash flows differ, and the value premium falls out.
+<p class="caption">Compensation against cash-flow leverage on long-run consumption news, not CAPM \(\beta\). Value sits to the right of growth because its dividends load harder on \(x_t\).</p>
 
-[Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [GitHub](https://github.com/tlorans/kiku-value-premium-replication)
+[Run the experiment]({{ '/getting-started.html' | relative_url }})
+
+## The argument
+
+1. [The result]({{ '/getting-started.html' | relative_url }}), Gordon, Table II, the pair of outputs, one what-if.
+2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}), where cash-flow growth comes from, where the discount rate comes from, and the fraction where they meet.
+3. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}), equation (19): dividend growth on a two-year MA of consumption. No returns.
+4. [Does the market still fit?]({{ '/time-series.html' | relative_url }}), the same household still prices the market.
+5. [Value versus growth]({{ '/cross-section.html' | relative_url }}), two legs, nothing re-tuned; the value premium and the CAPM anomaly.
+
+[Package]({{ '/package.html' | relative_url }}), [Installation]({{ '/installation.html' | relative_url }}), [Financial data]({{ '/financial-data.html' | relative_url }}), [API]({{ '/api.html' | relative_url }}), [GitHub](https://github.com/tlorans/kiku-value-premium-replication)

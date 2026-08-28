@@ -1,17 +1,17 @@
 ---
-title: The Time Series
+title: Does the market still fit?
 nav_order: 5
 ---
 
-# The Time Series
+# Does the market still fit?
 {: .no_toc }
 
 1. TOC
 {:toc}
 
-Now we test the model where Bansal and Yaron (2004) built it to be tested: the aggregate market, year after year. Two questions have organized this field for forty years. Why is the equity premium so large — why does a claim on aggregate cash flows out-earn a Treasury bill by six to eight percentage points a year? And why do prices move so much — why does the market's price–dividend ratio swing from 10 to 88 across this sample? A DCF has no answer to either; it takes the premium and the valuation as inputs. The model must produce both as outputs, from cash flows alone, and it gets no partial credit: *a match on the equity premium with the wrong price–dividend ratio is a fail.*
+Now we test the model where Bansal and Yaron (2004) built it to be tested, on the aggregate market, year after year. The equity premium is large. One claim on aggregate cash flows out-earns a Treasury bill by six to eight percentage points. Valuations also move a lot. The market's price-dividend ratio swings from 10 to 88 across this sample. A DCF has no answer to either fact, because it takes the premium and the valuation as inputs. The equilibrium must produce both as outputs, from cash flows alone, and it gets no partial credit: *a match on the equity premium with the wrong price–dividend ratio is a fail.*
 
-The plan follows the model's two halves. First the cash-flow side, built from data: extract the slow component $$x_t$$ from consumption growth, measure how hard the market's dividends lever it, and confirm that simulated cash flows look like sample cash flows. Then the discount-rate side does its work: the investor prices those measured cash flows, and we read off the premium and the valuation together. Average returns appear nowhere until the final scoreboard. One claim only; ranking firms is [The Cross Section]({{ '/cross-section.html' | relative_url }}).
+The loadings are already measured. [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}) ran equation (19) on the market. This chapter does not re-estimate $$x_t$$ or $$\phi$$. It asks whether the same Table II household, given those cash-flow numbers, still prices the aggregate claim, premium and valuation together. Average returns appear nowhere until the scoreboard. One claim; the ranking of firms is [Value versus growth]({{ '/cross-section.html' | relative_url }}). How one extracts $$x_t$$ from seventy-four annual observations is the appendix.
 
 We use the following packages. Run the chunks **in order**: later snippets reuse `dc`, `mkt`, and `y`.
 
@@ -30,7 +30,7 @@ y = dc["dc"].to_numpy()
 
 ## Preparing the sample
 
-[Financial data]({{ '/financial-data.html' | relative_url }}) already wrote annual consumption growth and Campbell–Shiller market dividends for 1930–2003. We do not rebuild those series. Join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price–dividend ratio.
+[Financial data]({{ '/financial-data.html' | relative_url }}) already wrote annual consumption growth and Campbell-Shiller market dividends for 1930 to 2003. We do not rebuild those series. Join them on `year`. `ret` is the real simple return, `dgrowth` is log dividend growth, `pd` is the year-end price-dividend ratio.
 
 ```python
 mkt = (
@@ -51,7 +51,7 @@ mkt.head()
  1935  Market  0.419     0.077     30.34   0.042
 ```
 
-Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.37 percent — the economy's diet is astonishingly steady, which is precisely why the premium is a puzzle. Its first autocorrelation (AC1 from here on) is 0.41: this year's growth tells you something real about next year's, and that autocorrelation is the crack the whole model climbs through. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33). The real T-bill on this reconstruction is near zero; Kiku's printed sample has 0.91 percent.
+Seventy-four annual observations. Consumption growth averages 1.75 percent with volatility 2.37 percent. The endowment is smooth, which is why the premium is a puzzle. Its first autocorrelation is 0.41: expected growth is not a constant. Market returns average 8.5 percent; mean $$P/D$$ is about 31 (log $$P/D$$ about 3.33). The real T-bill on this reconstruction is near zero; Kiku's printed sample is 0.91 percent.
 
 ```python
 print(len(y), y.mean() * 100, y.std(ddof=1) * 100)
@@ -86,190 +86,19 @@ Look at the last column. The valuation is not a constant the way a Gordon formul
 )
 ```
 
-![Market log price–dividend](figures/market_log_pd.svg)
+![Market log price-dividend](figures/market_log_pd.svg)
 
-<p class="caption">Market $$\log(P/D)$$ from Campbell–Shiller on CRSP. Prices and premia have to match together.</p>
+<p class="caption">Market $$\log(P/D)$$ from Campbell-Shiller on CRSP. Valuations and risk premia have to match together.</p>
 
-## Extract expected growth
+## The loadings are already measured
 
-This section and the next are the cash-flow model, built from data. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) split consumption growth into a slow piece $$x_t$$ and a transitory shock. Fine on paper — but does the annual sample contain such an object, and can we see it? If growth were coin-flip noise, only the current shock would matter and the chapter would end here. It is not: AC1 is 0.41.
+Equation (19) on the market is in [Measuring leverage]({{ '/measuring-leverage.html' | relative_url }}). The annual slope is $$\tilde\phi=0.722$$. That number is a ranking check, not a monthly loading. Table II uses monthly $$\phi=2.8$$, and that is the number the solver and the simulation below use.
 
-You can already *see* $$x_t$$ with no machinery at all. Average the last two years of consumption growth. Raw $$\Delta c$$ is jagged; the moving average is the slow part — the annual picture of the component the model is named for.
-
-Kiku's equation (19) — her label for the regression we will run in the next section — uses that two-year moving average as the regressor for dividend growth. Write it without the package: at date $$t$$, average $$\Delta c_{t-2}$$ and $$\Delta c_{t-1}$$ (not the current year). Then the shortcut.
-
-```python
-window = 2
-ma = np.full(len(y), np.nan)
-for t in range(window, len(y)):
-    ma[t] = float(np.mean(y[t - window : t]))
-dc.with_columns(pl.Series("ma", ma)).head(6)
-lrr.expected_growth_proxy(y, window=2)[:6]
-```
-
-```text
- year     dc      ma
- 1930  -0.053     NA
- 1931  -0.024     NA
- 1932  -0.088  -0.038
- 1933  -0.021  -0.056
- 1934   0.062  -0.055
- 1935   0.042   0.020
-```
-
-The first two years are missing by construction. Plot the same `ma` we will regress on.
-
-```python
-plot_df = dc.with_columns(pl.Series("ma", ma))
-(
-    p9.ggplot(plot_df.to_pandas(), p9.aes("year"))
-    + p9.geom_line(p9.aes(y="dc"))
-    + p9.geom_line(p9.aes(y="ma"), color="steelblue")
-    + p9.labs(
-        x="Year",
-        y="Δc",
-        title="Consumption growth and a two-year MA of lags",
-    )
-)
-```
-
-![Consumption growth and two-year MA](figures/consumption_ma.svg)
-
-<p class="caption">Raw annual $$\Delta c$$ (black) and the two-year moving average of lagged growth (blue). The blue line is the annual picture of $$x_t$$.</p>
-
-Table II puts this object on a monthly clock with $$\rho=0.98$$ (about $$0.98^{12}\approx 0.78$$ per year in a simple compounding sense; the annual moving average is the counterpart we can plot).
-
-A moving average is honest but crude. The solver does not iterate a moving average; it iterates a state that decays at a constant rate — an AR(1), for autoregressive of order one. The annual analogue is the system
-
-$$
-y_t=\mu+x_t+v_t,\qquad x_{t+1}=\rho x_t+w_t,
-$$
-
-with $$v_t\sim N(0,r)$$ and $$w_t\sim N(0,q)$$ — observed growth is a hidden state plus noise, and the state fades at rate $$\rho$$. The Kalman filter is the standard recursion for tracking a hidden state through noisy observations; it delivers the best guess $$E[x_t\mid y_{1:t}]$$ one year at a time. We choose $$(\rho,q,r)$$ by maximum likelihood — pick the parameter values under which the series we actually observed would have been most probable. Here is the whole procedure, fifteen lines, no black box:
-
-```python
-from scipy.optimize import minimize
-
-def kalman_filter(y, mu, rho, q, r):
-    n = y.size
-    x_filt = np.empty(n)
-    x_pred = 0.0
-    p_pred = q / max(1.0 - rho * rho, 1e-8)
-    loglik = 0.0
-    for t in range(n):
-        innov = y[t] - mu - x_pred
-        s = p_pred + r
-        k = p_pred / s
-        x_upd = x_pred + k * innov
-        p_upd = (1.0 - k) * p_pred
-        loglik += -0.5 * (np.log(2.0 * np.pi * s) + innov * innov / s)
-        x_filt[t] = x_upd
-        x_pred = rho * x_upd
-        p_pred = rho * rho * p_upd + q
-    return loglik, x_filt
-
-mu = float(y.mean())
-var = float(np.var(y))
-rho0 = float(np.clip(np.corrcoef(y[:-1], y[1:])[0, 1], 1e-6, 0.999))
-q0 = r0 = max(var / 2.0, 1e-12)
-
-def nll(theta):
-    rho, q, r = theta
-    ll, _ = kalman_filter(y, mu, rho, q, r)
-    return -ll if np.isfinite(ll) else 1e20
-
-res = minimize(
-    nll,
-    x0=np.array([rho0, q0, r0]),
-    method="L-BFGS-B",
-    bounds=[(1e-6, 0.999), (1e-12, None), (1e-12, None)],
-)
-rho, q, r = res.x
-loglik, x_filt = kalman_filter(y, mu, rho, q, r)
-rho, q, r, loglik
-```
-
-```text
-(0.43, 0.00046, 1e-12, 178.9)
-```
-
-Annual persistence comes back at about 0.43, close to the raw AC1 of 0.41. The measurement-noise variance lands on its lower bound: once $$x_t$$ is in the model, almost all of the annual series is state, not noise. `lrr.filter_expected_growth(y)` is this filter plus the likelihood maximization. Overlay the two extractors:
-
-```python
-plot_df = dc.with_columns(
-    pl.Series("ma", ma),
-    pl.Series("x_filt", x_filt),
-)
-(
-    p9.ggplot(plot_df.to_pandas(), p9.aes("year"))
-    + p9.geom_line(p9.aes(y="dc"))
-    + p9.geom_line(p9.aes(y="ma"), color="steelblue")
-    + p9.geom_line(p9.aes(y="x_filt"), color="darkorange")
-    + p9.labs(x="Year", y="Δc", title="MA proxy and filtered x̂_t")
-)
-```
-
-![MA proxy and filtered expected growth](figures/xt_proxy_filter.svg)
-
-<p class="caption">Consumption growth, the moving-average proxy (blue), and the Kalman filter's $$\hat x_t$$ (orange). Filtered annual $$\rho\approx 0.43$$; the solver iterates the monthly counterpart, $$0.98$$.</p>
-
-Do **not** take $$\phi$$ or Table II numbers from this filter. Calibration uses the moving average, as in the paper.
-
-## One cash-flow exposure
-
-We have the state. Now, how hard do the market's dividends lever it? This is the model's $$g$$, estimated — and notice what sits on the right-hand side of Kiku's equation (19): the consumption moving average, and nothing else.
-
-$$
-\Delta d_t=d_0+\tilde\phi\,\mathrm{MA}(\Delta c,2)+\varepsilon_t.
-$$
-
-No return, no price, no premium. Align the market's `dgrowth` series with the same `ma` and fit the straight line by ordinary least squares, intercept included.
+`lrr.expected_growth_proxy` is the two-year MA. `lrr.calibrate_from_data` wraps the annual OLS. Neither function takes a return.
 
 ```python
 dd = mkt["dgrowth"].to_numpy()
-mask = np.isfinite(ma) & np.isfinite(dd)
-x = ma[mask] - ma[mask].mean()
-e = dd[mask] - dd[mask].mean()
-phi_tilde = float(np.dot(x, e) / np.dot(x, x))
-resid = dd[mask] - (dd[mask].mean() + phi_tilde * (ma[mask] - ma[mask].mean()))
-innov = np.empty_like(y)
-innov[0] = 0.0
-rho_c = float(np.corrcoef(y[:-1], y[1:])[0, 1])
-innov[1:] = y[1:] - rho_c * y[:-1]
-alpha = float(np.corrcoef(resid, innov[mask])[0, 1])
-phi_sigma = float(np.std(resid) / np.std(innov[mask]))
-mu_d_annual = float(np.mean(dd))
-phi_tilde, mu_d_annual, phi_sigma, alpha
-```
-
-```text
-(0.722, 0.0092, 5.33, 0.57)
-```
-
-The slope $$\tilde\phi=0.72$$ is the *ranking check* — Kiku's Table VI, her table of these same regressions, prints about 0.66 for the market, with a large standard error. Seventy-four annual observations buy you a ranking, not a third decimal. Plot the same regression.
-
-```python
-plot_df = mkt.with_columns(pl.Series("ma", ma)).filter(
-    pl.col("ma").is_finite() & pl.col("dgrowth").is_finite()
-)
-(
-    p9.ggplot(plot_df.to_pandas(), p9.aes("ma", "dgrowth"))
-    + p9.geom_point()
-    + p9.labs(
-        x="Two-year MA of lagged Δc",
-        y="Market Δd",
-        title="Market cash-flow exposure, not returns",
-    )
-)
-```
-
-![Market dividend growth against the MA](figures/market_dd_vs_ma.svg)
-
-<p class="caption">Market dividend growth against the two-year moving average of lagged consumption growth. Average returns never entered.</p>
-
-`lrr.estimate_long_run_leverage` and `lrr.calibrate_from_data` wrap the same arithmetic.
-
-```python
+ma = lrr.expected_growth_proxy(y, window=2)
 lrr.estimate_long_run_leverage(y, dd, window=2)
 lrr.print_calibration_summary(
     lrr.calibrate_from_data(y, market=dd, frequency="annual", window=2)
@@ -282,11 +111,11 @@ Portfolio          μ (m)     φ (long-run)   φ_σ      α
 market              0.00076     0.722       5.33    0.57
 ```
 
-The solver wants *monthly* $$\phi$$. Table II locks $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. Locking cash-flow parameters to the measured facts is all that "calibration" means in this book, and simulation and pricing below use those locked numbers, not the annual slope pretending to be a monthly loading. Average returns never entered.
+Simulation and pricing use Table II: $$\mu=0.0012$$, $$\phi=2.8$$, $$\varphi_\sigma=7.5$$, $$\alpha=0.55$$. How one sees $$x_t$$ (the MA versus a Kalman AR(1)) is the appendix. Do **not** take $$\phi$$ from the filter.
 
 ## Simulate cash flows
 
-Before the investor is allowed to price anything, the calibrated cash-flow model has to pass its own exam: simulate it, and check that simulated consumption and dividends look like the sample. This is where the cash-flow side either earns its keep or gets sent back. Two mechanics to note in the code. First, the variance $$\sigma_t^2$$ is itself a moving target — $$\nu$$ close to one makes it persistent, and $$\sigma_w$$ sets the size of its shocks — so uncertainty rises and falls the way the model chapter promised. Second, we annualize by summing twelve monthly log growth rates. Write one path, then repeat it twenty times and average the sample statistics — a small Monte Carlo, which is just the name for answering a distribution question by simulating it many times. Then the shortcut.
+Before the household is allowed to price anything, the calibrated cash-flow model has to pass its own exam: simulate it, and check that simulated consumption and dividends look like the sample. This is where the cash-flow side either earns its keep or gets sent back. Two mechanics to note in the code. First, the variance $$\sigma_t^2$$ is itself a moving target — $$\nu$$ close to one makes it persistent, and $$\sigma_w$$ sets the size of its shocks — so uncertainty rises and falls the way the model chapter promised. Second, we annualize by summing twelve monthly log growth rates. Write one path, then repeat it twenty times and average the sample statistics — a small Monte Carlo, which is just the name for answering a distribution question by simulating it many times. Then the shortcut.
 
 ```python
 mu_c, rho, phi_x, sigma = 0.0015, 0.98, 0.032, 0.0064
@@ -342,11 +171,11 @@ for _ in range(n_sims):
 {'E[dc]': 1.82, 'sigma(dc)': 2.44, 'AC1': 0.16, 'E[dd]': 0.68, 'sigma(dd)': 16.36}
 ```
 
-Twenty samples of 74 years are noisy (annual AC1 in particular). With 1000 samples the model sits close to the data on consumption: mean 1.86 vs 1.96, volatility 2.16 vs 2.20, AC1 0.43 vs 0.44. `lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)` is the same Monte Carlo. If those cash-flow statistics fail, stop. A premium matched afterward would be a free parameter in disguise.
+Twenty samples of 74 years are too noisy to grade persistence. With 1,000 samples the model is close to the data on consumption: mean 1.86 vs 1.96, volatility 2.16 vs 2.20, AC1 0.43 vs 0.44. `lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)` is the same Monte Carlo. If those cash-flow moments fail, stop. A premium matched afterward would be a free parameter in disguise.
 
 ## Solve and check returns and prices
 
-Now, and only now, the discount-rate machinery. The pricing condition is the Euler equation from [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — $$E_t[M_{t+1}R_{i,t+1}]=1$$, with the Epstein–Zin exchange rate $$M_{t+1}$$ — and we do not re-derive it. Nothing on the discount-rate side is re-tuned for this chapter: the investor is the one calibrated in Table II, and she now prices the cash flows we just built. Approximated around the average, the log price–dividend ratio of a claim is a straight-line function of the two states,
+Now, and only now, the discount-rate machinery. The Euler equation is $$E_t[M_{t+1}R_{i,t+1}]=1$$ with the Epstein-Zin IMRS from [the long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}); we do not re-derive it. Nothing on the discount-rate side is re-tuned to this chapter, the household is the one calibrated in Table II, and it now prices the cash flows we just built. The log-linear price-dividend ratio of a claim is affine in the state,
 
 $$
 z_t=\bar z+A_1 x_t+A_2(\sigma_t^2-\bar\sigma^2),
@@ -358,7 +187,7 @@ $$
 A_1=\frac{\phi-1/\psi}{1-\kappa_1\rho}.
 $$
 
-There it is again — cash-flow leverage $$\phi$$ over the investor's $$1/\psi$$, amplified by persistence. A larger $$\phi$$ means prices rise more when expected growth is high, and the long-run premium is $$A_1$$ times the price of $$x$$-news. With Table II's market $$\phi=2.8$$, $$\psi=1.5$$, $$\rho=0.98$$, and $$\bar z=3.24$$:
+There it is again, cash-flow leverage $$\phi$$ over the household's $$1/\psi$$, amplified by persistence. Larger $$\phi$$ means prices rise more when expected growth is high, and the long-run premium is $$A_1$$ times the price of $$x$$-news. With Table II's market $$\phi=2.8$$, $$\psi=1.5$$, $$\rho=0.98$$, and $$\bar z=3.24$$:
 
 ```python
 phi, psi, rho = 2.8, 1.5, 0.98
@@ -390,16 +219,18 @@ A1 (PD elasticity to x): growth=43.1, value=88.9
 Price of long-run risk Lambda_eps = 5.95
 ```
 
-The scoreboard. `lrr.compute_asset_pricing_moments` solves the Euler equation exactly, by numerical integration on a grid, rather than by the linear approximation; Kiku's Table VII — her model-versus-data table, computed from 1000 simulated samples — is the comparison. Remember the standard: the premium and the valuation come as a pair, and a match on one with a miss on the other is a fail.
+The 0.40 percent is only compensation for news about $$x_t$$. The table below is the Euler equation on the whole claim, short-run shocks and volatility news included. Do not subtract 0.40 from 5.3 and call it a miss; this chapter grades the *market* row.
 
-|  | E[R] % data | E[R] % model | E[pd] data | E[pd] model |
+The scoreboard. `lrr.compute_asset_pricing_moments` integrates the Euler equation on a grid; Kiku's Table VII (1000 samples) is the comparison. Remember the standard: the premium and the valuation come as a pair, and a match on one with a miss on the other is a fail.
+
+|  | E[R] % data | E[R] % model | Mean log P/D data | Mean log P/D model |
 |:---|---:|---:|---:|---:|
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
-Look at the pair, not just the first column. The model earns 7.53 percent against 8.56 in the data — a little short — *and* prices the claim at a mean log $$P/D$$ of 3.24 against 3.34. Market return volatility is 20.1 percent in both. The blemish is the safe rate, about seventy basis points too high. The verdict: not a bullseye, but both members of the pair land, from cash flows that never saw a return. Close enough to ask a second question — and the second question is the cross section.
+Look at the pair, not the first column alone. The model earns 7.53 percent against 8.56 in the data (a little short) *and* prices the claim at a mean log $$P/D$$ of 3.24 against 3.34. Market return volatility is 20.1 percent in both. The blemish is the safe rate, about seventy basis points too high. The verdict is not exact, but both members of the pair land, from cash flows that never saw a return. Close enough to ask a second question, and the second question is the cross section.
 
-One simulated monthly path, using the straight-line map we just wrote. $$A_2$$ is the second slope: how much $$\log P/D$$ falls when uncertainty itself rises — when $$\sigma_t^2$$ climbs above its average — from the same analytical solution.
+One simulated monthly path, using the affine map we just wrote. $$A_2$$ is the elasticity of $$\log P/D$$ to news about future economic uncertainty (time-variation in the conditional volatility of consumption) from the same analytical solution.
 
 ```python
 x, s2, dc_m, dd_m = one_path(np.random.default_rng(1), 74 * 12)
@@ -431,19 +262,159 @@ sim = pd.DataFrame({"t": np.arange(len(x)), "x": x, "dd": dd_m, "log_pd": z})
 
 <p class="caption">Market dividend growth along the same path. High $$x_t$$ raises $$\Delta d$$ by $$\phi=2.8$$.</p>
 
-![Model price–dividend along the path](figures/sim_log_pd.svg)
+![Model price-dividend along the path](figures/sim_log_pd.svg)
 
 <p class="caption">Model $$\log(P/D)$$ from $$z=\bar z+A_1 x+A_2(\sigma^2-\bar\sigma^2)$$. Prices and premia have to match together.</p>
 
+## Appendix: extracting $$x_t$$
+
+The solver iterates an AR(1). The annual sample is seventy-four points. Two extractors live here so the main chapter does not.
+
+You can already *see* $$x_t$$ with no machinery. Average the last two years of consumption growth, not the current year. Raw $$\Delta c$$ is jagged; the moving average is the slow component.
+
+```python
+window = 2
+ma = np.full(len(y), np.nan)
+for t in range(window, len(y)):
+    ma[t] = float(np.mean(y[t - window : t]))
+dc.with_columns(pl.Series("ma", ma)).head(6)
+lrr.expected_growth_proxy(y, window=2)[:6]
+```
+
+```text
+ year     dc      ma
+ 1930  -0.053     NA
+ 1931  -0.024     NA
+ 1932  -0.088  -0.038
+ 1933  -0.021  -0.056
+ 1934   0.062  -0.055
+ 1935   0.042   0.020
+```
+
+```python
+plot_df = dc.with_columns(pl.Series("ma", ma))
+(
+    p9.ggplot(plot_df.to_pandas(), p9.aes("year"))
+    + p9.geom_line(p9.aes(y="dc"))
+    + p9.geom_line(p9.aes(y="ma"), color="steelblue")
+    + p9.labs(
+        x="Year",
+        y="Δc",
+        title="Consumption growth and a two-year MA of lags",
+    )
+)
+```
+
+![Consumption growth and two-year MA](figures/consumption_ma.svg)
+
+<p class="caption">Raw annual $$\Delta c$$ (black) and the two-year MA of lagged growth (blue). The blue line is the annual picture of $$x_t$$.</p>
+
+A moving average is honest but crude. The annual analogue of the solver's state is the linear Gaussian system
+
+$$
+y_t=\mu+x_t+v_t,\qquad x_{t+1}=\rho x_t+w_t,
+$$
+
+with $$v_t\sim N(0,r)$$ and $$w_t\sim N(0,q)$$. The Kalman filter gives $$E[x_t\mid y_{1:t}]$$, and $$(\rho,q,r)$$ are estimated by maximum likelihood. Fifteen lines, no black box:
+
+```python
+from scipy.optimize import minimize
+
+def kalman_filter(y, mu, rho, q, r):
+    n = y.size
+    x_filt = np.empty(n)
+    x_pred = 0.0
+    p_pred = q / max(1.0 - rho * rho, 1e-8)
+    loglik = 0.0
+    for t in range(n):
+        innov = y[t] - mu - x_pred
+        s = p_pred + r
+        k = p_pred / s
+        x_upd = x_pred + k * innov
+        p_upd = (1.0 - k) * p_pred
+        loglik += -0.5 * (np.log(2.0 * np.pi * s) + innov * innov / s)
+        x_filt[t] = x_upd
+        x_pred = rho * x_upd
+        p_pred = rho * rho * p_upd + q
+    return loglik, x_filt
+
+mu = float(y.mean())
+var = float(np.var(y))
+rho0 = float(np.clip(np.corrcoef(y[:-1], y[1:])[0, 1], 1e-6, 0.999))
+q0 = r0 = max(var / 2.0, 1e-12)
+
+def nll(theta):
+    rho, q, r = theta
+    ll, _ = kalman_filter(y, mu, rho, q, r)
+    return -ll if np.isfinite(ll) else 1e20
+
+res = minimize(
+    nll,
+    x0=np.array([rho0, q0, r0]),
+    method="L-BFGS-B",
+    bounds=[(1e-6, 0.999), (1e-12, None), (1e-12, None)],
+)
+rho, q, r = res.x
+loglik, x_filt = kalman_filter(y, mu, rho, q, r)
+rho, q, r, loglik
+```
+
+```text
+(0.43, 0.00046, 1e-12, 178.9)
+```
+
+Annual persistence comes back at about 0.43, close to the raw AC1 of 0.41. Measurement-error variance sits on the lower bound: once $$x_t$$ is in the model, almost all of the annual series is state, not noise. `lrr.filter_expected_growth(y)` is this filter plus the MLE.
+
+```python
+plot_df = dc.with_columns(
+    pl.Series("ma", ma),
+    pl.Series("x_filt", x_filt),
+)
+(
+    p9.ggplot(plot_df.to_pandas(), p9.aes("year"))
+    + p9.geom_line(p9.aes(y="dc"))
+    + p9.geom_line(p9.aes(y="ma"), color="steelblue")
+    + p9.geom_line(p9.aes(y="x_filt"), color="darkorange")
+    + p9.labs(x="Year", y="Δc", title="MA proxy and filtered x̂_t")
+)
+```
+
+![MA proxy and filtered expected growth](figures/xt_proxy_filter.svg)
+
+<p class="caption">Consumption growth, the MA proxy (blue), and the Kalman filter $$\hat x_t$$ (orange). Filtered annual $$\rho\approx 0.43$$. The solver iterates the monthly counterpart $$0.98$$.</p>
+
+Calibration uses the MA, as in the paper. Do **not** take $$\phi$$ or Table II numbers from this filter.
+
+The market slope on that MA is the same 0.722 already used above. Plot it once so the appendix is self-contained.
+
+```python
+plot_df = mkt.with_columns(pl.Series("ma", ma)).filter(
+    pl.col("ma").is_finite() & pl.col("dgrowth").is_finite()
+)
+(
+    p9.ggplot(plot_df.to_pandas(), p9.aes("ma", "dgrowth"))
+    + p9.geom_point()
+    + p9.labs(
+        x="Two-year MA of lagged Δc",
+        y="Market Δd",
+        title="Market cash-flow exposure, not returns",
+    )
+)
+```
+
+![Market dividend growth against the MA](figures/market_dd_vs_ma.svg)
+
+<p class="caption">Market dividend growth against the two-year MA of lagged consumption. Average returns never entered.</p>
+
 ## Key takeaways
 
-- The cash-flow model is built from data in two estimated steps: extract $$x_t$$ from consumption growth (a two-year moving average, or a Kalman filter — annual $$\rho\approx 0.43$$ either way), then regress dividend growth on it ($$\tilde\phi\approx 0.72$$). No return appears in either step.
-- Simulated cash flows have to look like the sample *before* you look at prices or premia. If they fail, stop; a later match on returns would be a free parameter in disguise.
-- The discount-rate side is not re-tuned: the same Table II investor prices the calibrated claim through the Euler equation.
-- The model is graded on the pair — the equity premium *and* the mean valuation. Table II lands both for the market (7.53 vs 8.56 percent; log $$P/D$$ 3.24 vs 3.34), with the safe rate as the visible blemish.
-- $$A_2$$ prices rising uncertainty, alongside $$A_1$$ for expected growth.
+- Cash-flow leverage on the market was measured before this chapter. The annual slope is $$\tilde\phi\approx 0.722$$; the solver uses monthly $$\phi=2.8$$.
+- Simulated cash-flow moments have to look like the sample *before* you look at prices or premia. If they fail, stop; a later match on returns would be a free parameter in disguise.
+- The discount-rate side is not re-tuned: the same Table II household prices the calibrated claim through the Euler equation.
+- The equilibrium is graded on the pair, the equity premium *and* the mean valuation. Table II lands both for the market (7.53 vs 8.56 percent; log $$P/D$$ 3.24 vs 3.34), with the safe rate as the visible blemish.
+- $$A_2$$ prices news about future economic uncertainty, alongside $$A_1$$ for the growth-rate component. The Kalman filter is an appendix object, not an input.
 
-Value and growth are [The Cross Section]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.
+Value and growth are [Value versus growth]({{ '/cross-section.html' | relative_url }}). Matching the market does not rank firms.
 
 ## Exercises
 
