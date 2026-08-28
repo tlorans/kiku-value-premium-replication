@@ -25,7 +25,7 @@ import lrrcs as lrr
 
 ## The consumption process
 
-Annual U.S. consumption growth is not white noise: its first autocorrelation is about 0.41. That matters more than it looks. The Mehra-Prescott equity-premium puzzle is stated under i.i.d. consumption growth and power utility, and under those assumptions the model premium is a rounding error. Bansal and Yaron (2004) change the endowment, not the arithmetic: split growth into a small persistent piece $$x_t$$ and a transitory shock,
+Annual U.S. consumption growth is not white noise: its first autocorrelation is about 0.41. That matters more than it looks. The Mehra-Prescott equity-premium puzzle is stated under i.i.d. consumption growth and power utility, and under those assumptions the model premium is a rounding error. [Bansal and Yaron (2004)]({{ '/references.html' | relative_url }}) change the endowment, not the arithmetic: split growth into a small persistent piece $$x_t$$ and a transitory shock,
 
 $$
 \Delta c_{t+1}=\mu+x_t+\sigma_t\eta_{t+1},\qquad
@@ -89,7 +89,7 @@ For the DCF reader: mean growth is $$\mu$$. $$x_t$$ is the *deviation* of expect
 
 ## The household
 
-Now the discount rate. Under power utility one parameter does two jobs: risk aversion $$\gamma$$ and the elasticity of intertemporal substitution are forced to be reciprocals, $$\gamma = 1/\psi$$. An investor who dislikes consumption *risk* is thereby forced to dislike consumption *growth*, which is absurd, and quantitatively fatal, because persistent good news about growth would crush valuations through the interest-rate channel. Epstein and Zin (1989) and Weil (1989) cut the knot. The intertemporal marginal rate of substitution is
+Now the discount rate. Under power utility one parameter does two jobs: risk aversion $$\gamma$$ and the elasticity of intertemporal substitution are forced to be reciprocals, $$\gamma = 1/\psi$$. An investor who dislikes consumption *risk* is thereby forced to dislike consumption *growth*, which is absurd, and quantitatively fatal, because persistent good news about growth would crush valuations through the interest-rate channel. [Epstein and Zin (1989)]({{ '/references.html' | relative_url }}) and Weil (1989) cut the knot. The intertemporal marginal rate of substitution is
 
 $$
 M_{t+1}=\delta^\theta (C_{t+1}/C_t)^{-\theta/\psi} R_{c,t+1}^{\theta-1},
