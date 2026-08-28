@@ -243,6 +243,28 @@ def test_two_free_numbers_page():
         assert snippet in text, snippet
 
 
+def test_price_your_own_claim_page():
+    """Issue 5: recipe, exact script table, runnable snippet, forward link."""
+    text = _text("price-your-own-claim.md")
+    assert "# Price your own claim" in text
+    # Recipe, verbatim (plan Issue 5).
+    assert "Bring a dividend process. The model returns the price-dividend ratio" in text
+    assert "never from returns" in text
+    # Table = exact examples/two_firms.py output.
+    for row in (
+        "A        0.5    -3.0         -0.03      3.20      6.89",
+        "B        1.5    15.2          0.14      3.32      7.01",
+    ):
+        assert row in text, row
+    assert "two_firms.py" in text
+    # Snippet runs the public entry point; single forward link to Installation.
+    assert "lrr.price_from_loadings(phi)" in text
+    assert "installation.html" in text
+    # No audience speculation (plan: synthetic firms, full stop).
+    for banned in ("use this for", "use it for", "practitioners", "analysts", "CFO"):
+        assert banned not in text, banned
+
+
 GS_H2S = (
     "## Two numbers you made up",
     "## One process instead",

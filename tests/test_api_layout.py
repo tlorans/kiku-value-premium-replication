@@ -41,6 +41,7 @@ def test_root_api_has_companion_names():
         "solve_analytical",
         "get_table_ii_params",
         "print_long_short_premium",
+        "price_from_loadings",
         "ModelSolver",
         "calibrate_from_data",
         "compute_asset_pricing_moments",

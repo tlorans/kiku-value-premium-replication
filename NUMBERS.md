@@ -59,6 +59,17 @@ All numbers below are printed by `examples/dcf_counterfactual.py` (TRACED, run 2
 
 **Gate note (open):** panel (B)'s page line "the CAPM-fitted spread is negative: the wrong sign" is script-backed; the parenthetical "prices near −2.4" leans on the site's Table VII numbers, which F1 blocks. Also open: the site elsewhere claims ratio 0.92 (model betas) while the level-free affine count gives 0.56. Both belong to the F1 resolution.
 
+## Price your own claim (`docs/price-your-own-claim.md`) — added by Issue 5
+
+All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loadings` (TRACED, run 2026-08-28).
+
+| Number | Status | Reproduces via |
+|---|---|---|
+| Firm A (φ=0.5): A1 −3.0, premium_lr −0.03%, g_eff 3.20%, gordon 6.89% | TRACED | `price_from_loadings(0.5)` |
+| Firm B (φ=1.5): A1 15.2, premium_lr 0.14%, g_eff 3.32%, gordon 7.01% | TRACED | `price_from_loadings(1.5)` |
+| Anchor mean log P/D 3.30 (linearization point, not a fitted level) | TRACED | `solve_analytical` default for custom claims |
+| "Gordon column puts the two firms 0.12 points apart" | CHUNK | 7.01 − 6.89 |
+
 ## The result (`docs/getting-started.md`)
 
 | Number | Status | Reproduces via |
