@@ -312,3 +312,11 @@ rf = lrr.real_rf_from_monthly(t90ret, cpi)             # real 90-day bill
 ::: {.firewall}
 **Where each number comes from.** Every number above is computed by this page's cells from the repository's `data/annual_panel.csv`, `data/consumption_annual.csv`, and `data/rf_annual.csv` (via `lrr.table_i` and pandas arithmetic); the vintage figures quoted for comparison (13.88 vs 7.81, log P/D 3.25 vs 3.61, correlations 0.75 and 0.32, betas near 1.03, real rate 0.91) are from the paper's printed tables. The chapter can be downloaded as a notebook from the link at the top of the page.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Kiku (2006), Table I, on the sort and the sample
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

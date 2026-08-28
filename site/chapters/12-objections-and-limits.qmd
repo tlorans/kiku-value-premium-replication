@@ -156,3 +156,11 @@ Answer from memory before opening.
    premia) and short samples leave the loadings imprecise. Trust the
    ordering and the channel; treat exact levels as uncertain.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is the [references page](../reference/references.qmd) as a whole, and the working papers behind each objection
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

@@ -435,3 +435,11 @@ in the cells above. The data AC1 of 0.41 is computed from
 `data/consumption_annual.csv`. Download the chapter as a notebook (top
 of the page) to rerun everything.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Bansal and Yaron (2004)
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

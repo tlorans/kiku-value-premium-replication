@@ -306,3 +306,11 @@ power-utility check uses `lrr.PreferencesParams(gamma=10.0, psi=0.1)`.
 No number on this page is typed by hand. Download the chapter as a
 notebook (top of the page) to rerun everything.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Epstein and Zin (1989)
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::

@@ -12,6 +12,9 @@ aliases:
   and Expectations of Future Dividends and Discount Factors*, Review of
   Financial Studies 1(3), 195–228.
   [Published version](https://doi.org/10.1093/rfs/1.3.195)
+- Cochrane, J. H., *Asset Pricing*, revised edition, Princeton
+  University Press, 2005.
+  [Author's page with the free draft](https://www.johnhcochrane.com/asset-pricing)
 - Epstein, L. G., and S. E. Zin, 1989, *Substitution, Risk Aversion,
   and the Temporal Behavior of Consumption and Asset Returns I: A
   Theoretical Framework*, Econometrica 57(4), 937–969.

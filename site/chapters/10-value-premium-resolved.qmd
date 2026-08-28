@@ -497,3 +497,11 @@ counterfactual, the robustness grid, and the grid refinement cell. The
 valuations are the paper's prints. Download the chapter as a notebook
 (top of the page) to rerun everything.
 :::
+
+::: {.callout-note title="Where to go next"}
+The canonical treatment of this chapter's topic is Kiku (2006), the cross-section section, with Bansal and Yaron (2004) for the model class
+([references](../reference/references.qmd)). Stuck, or spot an
+error? Open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
+you.
+:::
