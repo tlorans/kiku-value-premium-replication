@@ -8,9 +8,9 @@ permalink: /
 
 A general-equilibrium model of **asset prices and risk premia**.
 
-You already know how to price a stock: forecast the cash flows, pick a discount rate, divide. This book is about where those two numbers come from — and why they are really one number. In the economy of Bansal and Yaron (2004) and Kiku (2006), consumption growth carries a small but highly persistent component, and its volatility moves over time. Dividends load on that persistent component — this is the cash-flow model, and the loadings are estimated from data. An Epstein–Zin household, whose marginal utility responds to news about the *entire future* of consumption, prices those dividends — this is the discount-rate model. One shock moves expected cash flows for decades and marginal utility at the same instant, and that comovement is the risk premium.
+You already know how to price a stock: forecast the cash flows, pick a discount rate, divide. Both numbers are yours to choose, and nothing in the method ties one to the other. This book prices assets the other way around. It builds a small model economy — a *general equilibrium*, meaning prices are not assumed but must adjust until a single investor is content to hold every asset that exists — in which expected cash flows and discount rates both trace back to one measurable source: aggregate consumption. Consumption growth has a small, slow-moving component. Dividends inherit it, some firms much more than others. And an investor who dreads bad news about the distant future prices those dividends. The extra return that investor demands for holding a risky asset — the *risk premium* — is not an input. It comes out of the model, next to the price itself.
 
-The same machinery is not confined to the market. Value firms' cash flows are highly exposed to long-run consumption shocks; growth firms' are driven more by short-lived fluctuations. Feed the equilibrium those two exposures and it returns value's low price–dividend ratio and high expected return together — prices *and* premia, aggregate *and* cross section, from one household. Average returns never enter the cash-flow step; they are what the model gets graded on.
+And not only for the market as a whole. Value firms — stocks that are cheap relative to their accounting net worth — turn out to have dividends that track the economy's slow component closely; growth firms' dividends barely respond to it. Hand the model those two facts about cash flows and it returns the rest: value's lower price per dollar of dividend *and* its higher expected return, together, from the same investor who prices the market. Average returns never enter the inputs. They are what the model gets graded on.
 
 ```python
 import lrrcs as lrr
@@ -22,9 +22,9 @@ lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
 
 ## The book
 
-1. [Financial data]({{ '/financial-data.html' | relative_url }}) — consumption, dividends, the real rate, and the value and growth cash flows, built from the raw records.
-2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — where growth comes from, where the discount rate comes from, and the one expression where they meet.
-3. [The Time Series]({{ '/time-series.html' | relative_url }}) — estimate the market's cash-flow exposure, let preferences price it, and check the premium *and* the valuation level.
-4. [The Cross Section]({{ '/cross-section.html' | relative_url }}) — same household, nothing re-tuned; only the cash-flow exposures differ, and the value premium falls out.
+1. [Financial data]({{ '/financial-data.html' | relative_url }}) — consumption, dividends, the safe rate, and the value and growth portfolios, built from public records.
+2. [The long-run risks model]({{ '/long-run-risks-model.html' | relative_url }}) — where cash-flow growth comes from, where the discount rate comes from, and the one expression where they meet.
+3. [The Time Series]({{ '/time-series.html' | relative_url }}) — measure the market's cash-flow risk, let the investor price it, and check the risk premium *and* the valuation.
+4. [The Cross Section]({{ '/cross-section.html' | relative_url }}) — same investor, nothing re-tuned; only the cash flows differ, and the value premium falls out.
 
 [Package]({{ '/package.html' | relative_url }}) · [Installation]({{ '/installation.html' | relative_url }}) · [API]({{ '/api.html' | relative_url }}) · [GitHub](https://github.com/tlorans/kiku-value-premium-replication)

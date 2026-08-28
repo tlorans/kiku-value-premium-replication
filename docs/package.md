@@ -7,7 +7,7 @@ has_toc: false
 
 # Package
 
-`lrrcs` maps the low-frequency risks embodied in cash flows into **asset prices and risk premia**. The inputs are consumption growth and dividend growth; the outputs are valuations and ex-ante compensations, for the aggregate market and for the legs of a sort. Average returns never enter the cash-flow step — they are what the model gets graded on.
+`lrrcs` turns measured cash-flow risk into **asset prices and risk premia**. The inputs are consumption growth and dividend growth; the outputs are price–dividend ratios and expected-return premia, for the aggregate market and for the legs of a sort. Average returns never enter the cash-flow step — they are what the model gets graded on.
 
 ```python
 import numpy as np

@@ -6,7 +6,7 @@ nav_order: 2
 
 # API
 
-Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The division of labor mirrors the model's two halves: `calibrate_from_data` measures cash-flow exposures (the cash-flow side), `solve_analytical` and `compute_asset_pricing_moments` let the household price them (the discount-rate side), and the outputs are valuations and risk premia together.
+Public names live at the package root. Submodules (`lrrcs.model`, `lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for organization but are not the documented path. The division of labor mirrors the model's two halves: `calibrate_from_data` measures cash-flow exposures (the cash-flow side), `solve_analytical` and `compute_asset_pricing_moments` let the investor price them (the discount-rate side), and the outputs are prices and risk premia together.
 
 ```python
 import numpy as np
