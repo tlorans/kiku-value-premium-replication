@@ -102,6 +102,10 @@ Price of long-run risk Lambda_eps = 5.95
 | Market | 8.56 (1.79) | 7.53 (2.69) | 3.34 (0.13) | 3.24 (0.07) |
 | Risk-free | 0.91 (0.39) | 1.58 (0.01) |  |  |
 
+![Data vs model: expected return and mean log P/D, data with standard errors, model as open markers](figures/results_pair.svg)
+
+<p class="caption">The Home table as a picture. Filled markers with bars: data (Kiku's printed Newey-West standard errors). Open markers: model. The model E[R] dots are Table VII as printed — not regenerable from the package (NUMBERS.md, F1) — so they carry no intervals; the model P/D dots come from the analytical solution.</p>
+
 The model gap is about 5.3 percent against about 6 in the data. Mean price-dividend levels come out near 24.7 on value versus 39.8 on growth. The market row is not a separate model: the same household still prices the index. The visible blemish is the safe rate, about seventy basis points too high.
 
 And the result that pays for the book: the model's ratio of value to growth CAPM betas is 0.92. Value's market beta is *lower* while its premium is five points higher. An econometrician running CAPM regressions inside this economy would print the same puzzle the data printed. The household sees no puzzle. It is paid for the low-frequency consumption risk embodied in cash flows, which market betas (dominated by transitory price fluctuations) cannot see.

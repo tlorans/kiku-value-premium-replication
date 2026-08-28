@@ -504,7 +504,22 @@ TUTORIAL_FIGURES = (
     "vg_spread.svg",
     "vg_log_pd.svg",
     "vg_dd_vs_ma.svg",
+    "results_pair.svg",
+    "premium_decomposition.svg",
 )
+
+
+def test_figures_embedded_and_regenerable():
+    """Issue 11: Fig A on The result, Fig B beside the Home warning; make target exists."""
+    home = _text("index.md")
+    gs = _text("getting-started.md")
+    assert "figures/results_pair.svg" in gs
+    assert "figures/premium_decomposition.svg" in home
+    # Fig B caption is the warning sentence, verbatim (plan Issue 11).
+    assert "Do not subtract 0.4 from 5.3 and call it a miss.</p>" in home
+    maker = (ROOT.parent / "figures" / "make_figures.py").read_text(encoding="utf-8")
+    assert "results_pair.svg" in maker and "premium_decomposition.svg" in maker
+    assert (ROOT.parent / "Makefile").read_text(encoding="utf-8").count("figures:") == 1
 
 
 def test_tutorial_figures_exist():
