@@ -8,7 +8,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from typing import Dict
-from .params import ModelParams, get_default_params
+from .params import ModelParams, DividendParams, get_default_params
 from .legs import resolve_legs
 from .preferences import EpsteinZinPreferences
 
@@ -107,6 +107,72 @@ def solve_analytical(params: ModelParams | None = None,
         premium_lr=premium_lr,
         mean_log_pd=used_mean_z,
     )
+
+
+def price_from_loadings(
+    loading: float,
+    params: ModelParams | None = None,
+    *,
+    mu: float = 0.0015,
+    phi_sigma: float = 7.5,
+    alpha: float = 0.5,
+) -> dict:
+    """Price one dividend claim from its cash-flow loading on \\(x_t\\).
+
+    Thin wrapper around :func:`solve_analytical` for a single synthetic
+    claim ("bring a dividend process"). Nothing is estimated here: the
+    loading is measured from cash flows elsewhere
+    (:func:`lrrcs.calibration.leverage.estimate_long_run_leverage`), never
+    from returns.
+
+    The claim anchors at the default linearization point (mean log P/D
+    3.30). ``mean_log_pd`` below is that anchor, not a fitted level.
+
+    Returns
+    -------
+    dict with
+        loading : the supplied \\(\\phi\\)
+        A1, A2 : PD elasticities to \\(x_t\\) and to volatility news
+        premium_lr : annualized compensation for \\(x_t\\)-news (the
+            long-run piece; short-run and volatility news add more)
+        g_eff : annualized expected dividend growth incl. convexity
+        gordon_return : g_eff + D/P at the anchor; the growth channel
+            alone, blind to risk (see examples/dcf_counterfactual.py)
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    out = lrr.price_from_loadings(1.5)
+    print(out["A1"], out["premium_lr"])
+    ```
+    """
+    base = params if params is not None else get_default_params()
+    single = ModelParams(
+        prefs=base.prefs,
+        cons=base.cons,
+        dividends={
+            "claim": DividendParams(mu=mu, phi=loading, phi_sigma=phi_sigma, alpha=alpha)
+        },
+    )
+    sol = solve_analytical(single)
+    c = single.cons
+    gamma0 = (c.phi_x * c.sigma) ** 2 / (1.0 - c.rho**2)
+    g_eff = (
+        mu
+        + 0.5 * phi_sigma**2 * c.sigma**2
+        + 0.5 * loading**2 * gamma0 * (1.0 + c.rho) / (1.0 - c.rho)
+    ) * 12.0
+    anchor = sol.mean_log_pd["claim"]
+    return {
+        "loading": loading,
+        "A1": sol.A1["claim"],
+        "A2": sol.A2["claim"],
+        "premium_lr": sol.premium_lr["claim"],
+        "mean_log_pd": anchor,
+        "g_eff": g_eff,
+        "gordon_return": g_eff + float(np.exp(-anchor)),
+    }
 
 
 def print_long_short_premium(
