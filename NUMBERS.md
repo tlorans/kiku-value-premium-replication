@@ -146,6 +146,19 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | "5.3" / "about 6" / 0.92 / "five points higher" | as Home | — |
 | Equal-φ block (spread 0.00) | **STALE (F2)** | code now prints −0.12 |
 
+## Robustness (cross-section.md §Robustness) — added by Issue 12
+
+All grid values are printed by `examples/robustness.py` (TRACED, run 2026-08-28).
+
+| Number | Status | Reproduces via |
+|---|---|---|
+| Baseline market premium_lr 0.34%, spread 0.40% | TRACED | `solve_analytical(Table II)` |
+| ρ ∈ {0.95, 0.98, 0.99}: market 0.14/0.34/0.51%, spread 0.19/0.40/0.55% | TRACED | grid, `cons.rho` |
+| ψ ∈ {1.2, 1.5, 2.0}: market 0.31/0.34/0.37%, spread 0.41/0.40/0.40% | TRACED | grid, `prefs.psi` |
+| γ ∈ {5, 10, 15}: market 0.16/0.34/0.52%, spread 0.19/0.40/0.62% | TRACED | grid, `prefs.gamma` |
+| φ_V ∈ {5.0, 6.2, 7.4}: spread 0.23/0.40/0.58% (market flat) | TRACED | grid, `dividends[value].phi` |
+| φ_G ∈ {2.0, 2.6, 3.2}: spread 0.52/0.40/0.28% (market flat) | TRACED | grid, `dividends[growth].phi` |
+
 ## Installation (`docs/installation.md`)
 
 | Number | Status | Reproduces via |
