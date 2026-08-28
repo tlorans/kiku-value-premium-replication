@@ -281,6 +281,28 @@ chapter as a notebook (top of the page) to rerun everything.
   long-run risk, so check the chain's stationary dispersion against
   the process you calibrated.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. What does the quadrature method put in place of the continuous state
+   space, and what reduces pricing to?
+2. The Euler equation has an algebraically equivalent form whose
+   iteration diverges. Which step keeps iteration stable?
+3. The 30-point grid over-disperses expected growth. In which direction
+   does that push computed premia and prices?
+
+**Answers.**
+
+1. A finite Markov chain over $(x_t, \sigma_t^2)$; a contraction solved
+   by matrix-vector products.
+2. Dividing by $\theta$ before iterating: the undivided form has local
+   slope $1 - \theta = 28$ and diverges.
+3. Premia run high and prices run low relative to the continuous model,
+   because more dispersion in $x$ is more long-run risk.
+
+:::
+
 ## Exercises
 
 1. Rebuild the chain with `n_s = 8` volatility states (keep

@@ -331,6 +331,28 @@ the monthly frequency.
   equation (19) slopes match the data's slopes. The annual regression
   fixes the ordering and provides the check.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. What is the model's characteristic, and from what is it measured?
+2. Which quantity is the reliable result of the equation (19)
+   regression: the slope levels or the ordering?
+3. Which loadings actually feed the solver, and what role do the annual
+   slopes play?
+
+**Answers.**
+
+1. Cash-flow leverage: the slope of dividend growth on a two-year
+   moving average of lagged consumption growth. Dividends alone; no
+   return enters.
+2. The ordering, value far above growth with the market between. The
+   point estimates are noisy.
+3. Table II's monthly loadings (2.6, 6.2, 2.8); the annual regression
+   fixes the ordering and provides the check.
+
+:::
+
 ## Exercises
 
 1. Rerun the three regressions with

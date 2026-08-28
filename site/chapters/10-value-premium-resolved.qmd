@@ -405,6 +405,26 @@ compensation is paid in returns.
   (3.64 at $n_x = 100$) and the paper's beta ratio. Trust the ordering
   and the channel, and treat the exact level as uncertain.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. With nothing re-tuned, what premium does the model print, against
+   what data fact?
+2. State the CAPM anomaly the model reproduces.
+3. What happens to the simulated premium when the two long-run loadings
+   are equalized?
+
+**Answers.**
+
+1. 5.38 percent, against about six points in the data (the paper prints
+   5.3).
+2. Value's beta is below growth's (0.72 against 0.90) while value earns
+   five points more.
+3. It collapses, from 5.38 to about zero.
+
+:::
+
 ## Exercises
 
 1. Rerun the equal-$\phi$ counterfactual, but instead of lowering

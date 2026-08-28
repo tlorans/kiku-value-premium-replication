@@ -300,6 +300,25 @@ the market does not rank firms. The cross-section is the next chapter.
   74-year samples, with cross-sample dispersion, which is the right way
   to compare a model to one 74-year history.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. Which row of the market test is out of sample, and why?
+2. Why is Table VII a sampling object rather than one number?
+3. The simulated annual AC1 comes out below the data's 0.41. What
+   explains the gap?
+
+**Answers.**
+
+1. The market return row: preferences came from consumption and cash
+   flows from dividends, so returns were never used anywhere.
+2. It reports means over hundreds of simulated 74-year samples with
+   cross-sample dispersion, the right comparison to one 74-year history.
+3. The annualization convention, not a persistence failure.
+
+:::
+
 ## Exercises
 
 1. Rerun `simulate_table_vii` with `seed=1` and `seed=2`. How much do

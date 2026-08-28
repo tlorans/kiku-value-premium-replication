@@ -222,6 +222,28 @@ Consumption growth has a volatility of 2.37 percent a year. The rest of the cour
 - The CAPM cannot explain the spread. Betas of 0.95 and 1.28 imply under half the observed premium here, and both betas are near 1.03 on the paper's vintage.
 - Every series is constructed without using average returns, and the tables above are the targets the equilibrium model must match.
 
+::: {.callout-note collapse="true" title="Recall"}
+
+Answer from memory before opening.
+
+1. Value earned about six points more than growth over 1930 to 2003.
+   Which valuation fact travels with that return fact?
+2. Rank the claim by Sharpe ratio: is value's above or below growth's?
+3. Returns on the two portfolios correlate at 0.72 while their dividend
+   growth correlates at 0.29. What does that gap say about where the
+   distinguishing risk lives?
+
+**Answers.**
+
+1. Value traded at a persistently lower price-dividend ratio. The higher
+   premium and the cheaper valuation are one joint fact.
+2. Value's Sharpe ratio (0.46) is above growth's (0.37), so the premium
+   survives risk adjustment by volatility.
+3. The risks that distinguish the claims sit in cash flows at low
+   frequency, not in return comovement.
+
+:::
+
 ## Exercises
 
 1. Compute the value-growth spread decade by decade (group `wide_ret["Value"] - wide_ret["Growth"]` by `year // 10`). In how many decades is it negative? What does the answer say about how long an investor must wait to see the premium?
