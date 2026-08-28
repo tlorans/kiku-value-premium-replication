@@ -369,6 +369,28 @@ def test_long_run_risks_model_chapter():
     assert "cash-flows-then-prices" not in text
     assert "expected_growth_proxy" not in text
     assert "kalman_filter" not in text
+    # Issue 7: calibration section — page values == code values.
+    assert "## The calibration in one table" in text
+    assert "table_ii_calibration.py" in text
+
+
+def test_calibration_table_matches_code():
+    """Issue 7: every Table II value on the page equals get_table_ii_params()."""
+    import lrrcs as lrr
+
+    p = lrr.get_table_ii_params()
+    text = _text("long-run-risks-model.md")
+    expected = [
+        f"{p.prefs.delta}", f"{p.prefs.gamma}", f"{p.prefs.psi}",
+        f"{p.prefs.theta:.1f}".replace("-", "\u2212"),
+        f"{p.cons.mu}", f"{p.cons.rho}", f"{p.cons.phi_x}", f"{p.cons.sigma}",
+        f"{p.cons.nu}", f"{p.cons.sigma_w}",
+    ]
+    for name in ("growth", "value", "market"):
+        d = p.dividends[name]
+        expected += [f"{d.mu:.4f}", f"{d.phi}", f"{d.phi_sigma}", f"{d.alpha}"]
+    missing = [v for v in expected if v not in text]
+    assert not missing, missing
 
 
 MEASURE_H2S = (

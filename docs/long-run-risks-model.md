@@ -115,6 +115,29 @@ $$\theta = -27$$, not 1. That is the whole trick. With $$\gamma > 1/\psi$$, the 
 
 The pricing theory is still one line (the Euler equation, $$\mathrm{E}_t[M_{t+1}R_{i,t+1}]=1$$) and its outputs are valuations and risk premia together.
 
+## The calibration in one table
+
+Every number below is printed by `examples/table_ii_calibration.py` from `lrr.get_table_ii_params()` — the same object the solver consumes. Monthly units.
+
+| Block | Symbol | Value | What it is | Disciplined by |
+|:---|:---|---:|:---|:---|
+| Household | \\(\delta\\) | 0.999 | time preference | Kiku (2006) Table II |
+| Household | \\(\gamma\\) | 10.0 | risk aversion | Kiku (2006) Table II |
+| Household | \\(\psi\\) | 1.5 | elasticity of intertemporal substitution | Kiku (2006) Table II |
+| Household | \\(\theta\\) | −27.0 | derived: \\((1-\gamma)/(1-1/\psi)\\) | identity |
+| Endowment | \\(\mu\\) | 0.0015 | mean monthly growth (~1.8 %/yr) | aggregate consumption moments only |
+| Endowment | \\(\rho\\) | 0.98 | persistence of \\(x_t\\) (half-life ~3 yrs) | aggregate consumption moments only |
+| Endowment | \\(\varphi_x\\) | 0.032 | sd of \\(x_t\\) shocks | aggregate consumption moments only |
+| Endowment | \\(\sigma\\) | 0.0064 | mean monthly volatility (~2.2 %/yr) | aggregate consumption moments only |
+| Endowment | \\(\nu\\) | 0.99 | persistence of volatility | aggregate consumption moments only |
+| Endowment | \\(\sigma_w\\) | 1.7e-06 | sd of volatility shocks | aggregate consumption moments only |
+| Cash flows | \\(\mu_d\\) | 0.0009 / 0.0019 / 0.0012 | mean dividend growth (growth / value / market) | dividends only |
+| Cash flows | \\(\phi\\) | 2.6 / 6.2 / 2.8 | loading on \\(x_t\\) — the only cross-sectional input | dividends on the consumption MA, [equation (19)]({{ '/measuring-leverage.html' | relative_url }}); no returns |
+| Cash flows | \\(\varphi_\sigma\\) | 8.4 / 7.4 / 7.5 | loading on short-run volatility | dividends only |
+| Cash flows | \\(\alpha\\) | 0.27 / 0.15 / 0.55 | correlation with the consumption innovation | dividends only |
+
+The estimation recipe in prose, mirroring the firewall: the Table II parameters come from aggregate consumption moments only; the cash-flow loadings come from dividends regressed on a two-year moving average of consumption, with no returns anywhere; returns appear once, at the end, as the thing to be explained. A reader with the package and this table can reproduce the calibration: `lrr.get_table_ii_params()` returns exactly these objects, and `lrr.solve_analytical` prices them.
+
 ## Compensation versus cash-flow leverage
 
 The cash-flow model for an individual claim is one equation:
