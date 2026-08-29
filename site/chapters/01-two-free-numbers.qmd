@@ -7,58 +7,35 @@ You already know how to price a stock. You forecast the cash flows and discount 
 
 Choosing the two numbers separately is the problem. A firm whose cash flows collapse in bad times should carry a high discount rate, because the rate is compensation for the risk in the cash flows. If you choose the numerator and the denominator separately, you assume away the question the course answers, which is why risky cash flows earn high expected returns, and how high.
 
-The chapter makes the cost of the two free numbers concrete. We take the model economy from Kiku (2006) and hand its own cash flows to a DCF, and then we read off what the DCF gets wrong. First, a common rate prices the value premium at exactly zero and ranks value richer than growth. Second, a rate fitted with the CAPM prices the premium with the wrong sign. Third, shocking the cash flow forecast while holding the rate fixed produces a forecast rather than a valuation. The rest of the course builds the fix, which is one model that produces the forecast and the discount rate from the same consumption process.
+The rest of this chapter makes that cost visible on a napkin. Two plants, one common rate, Gordon's formula. The arithmetic already loses the value premium and ranks the claims backwards. Chapter 2 records the same two facts in seventy-four years of data. Chapters 3 to 10 build the model that produces the forecast and the rate from one consumption process, and then reruns the DCF on those cash flows.
+
+## Two plants
+
+Each plant pays a dividend of $1 this year.
+
+- Analysts write a growth rate of 3 percent for Growth and 6 percent for Value.
+- The committee uses one cost of capital, 8 percent, for both.
+
+Write down which plant is worth more, and what expected return each offers. The attractive answer is that Value is the richer plant and that both expected returns equal 8 percent, because that is the rate that went into the valuation. That answer is also what every textbook DCF does.
 
 ## The economics
 
-Start with the simplest valuation formula. If dividends grow at a constant rate $g$ and you discount at a constant rate $r$, the price-dividend ratio is
+If dividends grow at a constant rate $g$ and you discount at a constant rate $r$, the price-dividend ratio is
 
 $$
-\frac{P}{D} = \frac{1}{r - g}.
+\\frac{P}{D} = \\frac{1}{r - g}.
 $$ {#eq-gordon}
 
-Everything the course studies enters the formula through $r - g$, and @eq-gordon says nothing about either half. The choice has large effects on the price. At $r - g = 4\%$ the price-dividend ratio is 25. Cut the discount rate by one percentage point and the ratio rises to 33, so a third of the firm's value depends on a number you made up.
+@eq-gordon says nothing about where either half came from. The implied expected return of the claim equals the $r$ you put in, by construction. The rate contains no term for the risk in the cash flows, so a premium cannot come out of a common rate.
 
-To measure what the framework loses, we need cash flows whose risk we control exactly. The paper's calibrated economy (Table II there; [Chapter 8](08-calibrating-cash-flows.qmd) shows where the numbers come from) supplies them. Consumption growth contains a small persistent component $x_t$, and each claim's dividend growth multiplies the component by a loading $\phi$:
+The choice still moves the price. At $r - g = 4\\%$ the ratio is 25. Cut the discount rate by one percentage point and the ratio rises to 33, so a third of the firm's value depends on a number you made up.
 
-$$
-\Delta d_{t+1} = \mu_d + \phi\, x_t + \varphi_d\, \sigma\, u_{t+1},
-\qquad
-x_{t+1} = \rho\, x_t + \varphi_x\, \sigma\, e_{t+1}.
-$$ {#eq-dividends}
+## Hands-on: the napkin DCF
 
-The claims differ only in $\phi$. The loading on long-run consumption news is 2.6 for growth, 6.2 for value, and 2.8 for the market, and nothing else about the claims differs. Whatever a pricing framework says about the three claims, it says because of the risk in their cash flows. There is nothing else in the inputs.
-
-A DCF needs one number for the forecast, so we compress each claim's dividend process into its long-horizon expected growth rate $g_{\text{eff}}$, which is the constant $g$ that a DCF user would write down for @eq-gordon if they knew the process in @eq-dividends exactly.
-
-::: {.callout-note collapse="true" title="Derivation: the effective growth rate of a levered claim"}
-Dividend levels are lognormal, so expected dividends grow faster than the mean of log growth by a convexity term. Summing @eq-dividends,
-
-$$
-\mathbb{E}\!\left[\frac{D_t}{D_0}\right]
-= \exp\!\Big( t\big(\mu_d + \tfrac{1}{2}\varphi_d^2 \sigma^2\big)
-+ \tfrac{1}{2}\phi^2\, \mathrm{Var}\!\Big(\textstyle\sum_{s=0}^{t-1} x_s\Big) \Big),
-$$
-
-holding volatility at its unconditional mean $\sigma$. For an AR(1) with stationary variance $\gamma_0 = (\varphi_x \sigma)^2 / (1-\rho^2)$, the variance of the cumulated component grows linearly at long horizons:
-
-$$
-\mathrm{Var}\!\Big(\textstyle\sum_{s=0}^{t-1} x_s\Big) \;\approx\; t\,\gamma_0\,\frac{1+\rho}{1-\rho}.
-$$
-
-The long-horizon growth rate per month is therefore $\mu_d + \tfrac{1}{2}\varphi_d^2\sigma^2 + \tfrac{1}{2}\phi^2 \gamma_0 (1+\rho)/(1-\rho)$; multiplying by 12 annualizes it. Note that $\phi$ enters through the variance term. With $\rho = 0.98$, the factor $(1+\rho)/(1-\rho) = 99$ makes even a small persistent component a large contributor to expected long-run growth for a heavily levered claim.
-:::
-
-Persistence drives the result. A claim with $\phi = 6.2$ grows faster on average, and its long-run prospects also move with every piece of news about $x_t$. A DCF's $g$ records the average and discards the movement. The question for the chapter is what the discount rate should do with the movement, and what happens when it does nothing.
-
-## Hands-on: pricing the model's claims the DCF way
-
-We solve the economy once and keep the solution, and every panel below reuses it.
+Name the two inputs and apply @eq-gordon. The cell prints the table the rest of the chapter uses.
 
 ```{python}
-import numpy as np
 import pandas as pd
-import lrrcs as lrr
 from great_tables import GT
 
 KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
@@ -66,153 +43,146 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-params = lrr.get_table_ii_params()
-sol = lrr.solve_analytical(params)
-sigma, rho, phi_x = params.cons.sigma, params.cons.rho, params.cons.phi_x
-phis = pd.DataFrame({"claim": list(params.dividends),
-                     "phi": [d.phi for d in params.dividends.values()]})
-(
-    GT(phis)
-    .tab_header(title="Loading on long-run consumption news")
-    .cols_label(claim="", phi="phi")
-    .fmt_number(columns="phi", decimals=1)
-    .tab_options(**KIKU_GT)
-)
-```
+# 1. name the inputs (decimals, not percents)
+dividend = 1.0
+g = {"growth": 0.03, "value": 0.06}
+r = 0.08
 
-The next cell computes the effective growth rates from the derivation above:
+# 2. Gordon price-dividend ratio
+pd_ratio = {k: 1.0 / (r - gk) for k, gk in g.items()}
 
-```{python}
-gamma0 = (phi_x * sigma) ** 2 / (1.0 - rho**2)
+# 3. implied expected return equals the rate you put in
+implied_er = {k: r for k in g}
 
-def g_effective(phi, mu, phi_sigma):
-    monthly = (mu + 0.5 * phi_sigma**2 * sigma**2
-               + 0.5 * phi**2 * gamma0 * (1.0 + rho) / (1.0 - rho))
-    return 12.0 * monthly
-
-geff = pd.DataFrame({
-    "claim": list(params.dividends),
-    "g_eff": [100 * g_effective(d.phi, d.mu, d.phi_sigma)
-              for d in params.dividends.values()],
+table = pd.DataFrame({
+    "claim": list(g),
+    "g": [100 * g[k] for k in g],
+    "r": [100 * r for k in g],
+    "pd": [pd_ratio[k] for k in g],
+    "er": [100 * implied_er[k] for k in g],
 })
+print(f"implied value-growth premium: "
+      f"{implied_er['value'] - implied_er['growth']:+.2f}")
 (
-    GT(geff)
-    .tab_header(title="Effective long-horizon growth rates")
-    .cols_label(claim="", g_eff="g_eff (% per year)")
-    .fmt_number(columns="g_eff", decimals=2)
+    GT(table)
+    .tab_header(title="Gordon DCF at a common 8 percent rate")
+    .cols_label(claim="", g="g (%)", r="r (%)", pd="P/D", er="implied E[R] (%)")
+    .fmt_number(columns=["g", "r", "er"], decimals=1)
+    .fmt_number(columns="pd", decimals=1)
     .tab_options(**KIKU_GT)
 )
 ```
 
-Value's cash flows grow at 6.04 percent a year against growth's 3.24, because value's loading on $x_t$ is larger.
+Two facts fall out of the arithmetic.
 
-### A. One rate for everything
+1. The implied value-minus-growth premium is exactly zero. Both claims were discounted at the same rate, so both implied expected returns equal that rate.
+2. Value is richer than growth. The high-$g$ claim gets the high price-dividend ratio, 50 against 20.
 
-The simplest DCF choice is to discount both claims' cash flows at one common rate $r$. The step that follows is exact rather than an estimate. A price is a present value at some rate, so if you discount both claims at the same rate, each claim's implied expected return equals the rate. The implied value-growth premium is zero at any $r$ you pick. The rate contains no term for the risk in the cash flows, so the premium cannot come out of it.
-
-The ranking comes out wrong too, and the direction of the error is informative:
+The data show the opposite pairing. In the paper's Table I vintage, value is the cheap portfolio and it out-earns growth by about six points:
 
 ```{python}
-g = {k: g_effective(d.phi, d.mu, d.phi_sigma) for k, d in params.dividends.items()}
-print(f"value cash flows grow {(g['value'] - g['growth']) * 100:+.2f} pp/yr faster")
+# Kiku (2006), Table I printed vintage (1930 to 2003)
+table_i = pd.DataFrame({
+    "claim": ["growth", "value"],
+    "ret": [7.81, 13.88],
+    "log_pd": [3.61, 3.25],
+})
+print(f"data premium: {table_i.loc[1, 'ret'] - table_i.loc[0, 'ret']:.2f} pp/yr")
+(
+    GT(table_i)
+    .tab_header(title="Table I vintage: returns and valuations")
+    .cols_label(claim="", ret="mean return (%)", log_pd="mean log P/D")
+    .fmt_number(columns=["ret", "log_pd"], decimals=2)
+    .tab_source_note("Kiku (2006), Table I. Chapter 2 rebuilds the series.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
-At a common rate, the claim with faster expected dividend growth gets the higher price-dividend ratio, so the DCF prices value richer than growth. The data show the opposite. In the paper's sample, value is the cheap portfolio, with a mean log price-dividend ratio of 3.25 against growth's 3.61, and it out-earns growth 13.88 percent to 7.81, a premium of about six points. With one rate, both facts are lost. The premium is zero, and the ranking is backwards.
+With one rate, both facts are lost. The premium is zero, and the ranking is backwards.
+
+```{python}
+#| fig-cap: "At a common rate, the high-g claim is expensive. Value's Gordon P/D is 50 against growth's 20. In the data value is the cheap portfolio."
+from plotnine import (ggplot, aes, geom_col, geom_text, labs,
+                      scale_fill_manual, ylim, theme_minimal, theme,
+                      element_blank, element_line, element_text)
+
+bars = pd.DataFrame({
+    "claim": ["growth", "value"],
+    "pd": [pd_ratio["growth"], pd_ratio["value"]],
+})
+p = (
+    ggplot(bars, aes("claim", "pd", fill="claim"))
+    + geom_col(width=0.55, show_legend=False)
+    + geom_text(aes(label="pd"), nudge_y=2.5, size=10)
+    + scale_fill_manual(values={"growth": "#1b1714", "value": "#7a1f1f"})
+    + ylim(0, 60)
+    + labs(x="", y="price-dividend ratio")
+    + theme_minimal(base_size=11)
+    + theme(figure_size=(5.2, 3.2), text=element_text(color="#2d2926"),
+            panel_grid_minor=element_blank(),
+            panel_grid_major_x=element_blank(),
+            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
+            axis_line=element_line(color="#1b1714", size=0.5),
+            legend_position="none")
+)
+p.show()
+```
+
+### A. Change only the rate
+
+The common rate was 8 percent. Raise it to 10 percent and recompute. The premium is still zero. Value is still richer. A common rate cannot manufacture a premium, whatever number you pick.
+
+```{python}
+def gordon_table(rate):
+    ratios = {k: 1.0 / (rate - gk) for k, gk in g.items()}
+    premium = rate - rate
+    return ratios, premium
+
+for rate in (0.08, 0.10):
+    ratios, premium = gordon_table(rate)
+    print(f"r = {rate:.0%}:  P/D value = {ratios['value']:.1f}   "
+          f"P/D growth = {ratios['growth']:.1f}   "
+          f"premium = {premium:+.2f}")
+```
 
 ### B. A rate fitted to the CAPM
 
-Perhaps the fault was using one common rate. The standard repair fits each claim its own rate from a CAPM regression: $r_i = r_f + \beta_i (\mathbb{E}[R_m] - r_f)$. Inside the model economy we can compute the betas exactly rather than estimate them, using the log return innovations of the affine solution. Mean levels cancel out of a beta, so only the loadings enter.
+The usual repair gives each claim its own rate from a market-beta regression,
 
-::: {.callout-note collapse="true" title="Derivation: model betas from return innovations"}
-Write $z_t$ for the log price-dividend ratio. The log-linear return approximation is $r_{t+1} \approx \text{const} + \Delta d_{t+1} + \kappa_1 z_{t+1} - z_t$, and on the affine solution $z_t = A_0 + A_1 x_t + A_2(\sigma_t^2 - \bar\sigma^2)$ ([Chapter 6](06-log-linear-solution.qmd) derives the $A$ coefficients). A CAPM beta is a ratio of covariances, so the constants drop out; simulating the innovations and forming $\mathrm{Cov}(r_i, r_m)/\mathrm{Var}(r_m)$ gives the beta an econometrician would estimate for each claim from data generated by the economy.
+$$
+r_i = r_f + \\beta_i\\,(\\mathbb{E}[R_m] - r_f).
+$$
+
+That repair only works if the beta that shows up in monthly returns is the cash-flow risk that needs to be priced. It is not. High-frequency returns are dominated by transitory price moves. The extra risk in value lives in the low-frequency behavior of its cash flows. Chapter 2 measures the data version of this failure: value's market beta is not large enough to explain six points, and on the paper's vintage the two betas sit near one. Chapter 10 shows the same wrong sign inside the model, once the cash flows exist.
+
+A discount rate built from market betas therefore need not reflect the risk the premium pays for. The failure is structural. The DCF has no slot where the riskiness of the cash flows enters the rate.
+
+### C. Shock the forecast, hold the rate
+
+News arrives that value's cash flows are more tied to bad times than the committee thought. Two reactions.
+
+In a DCF the rate is an input, so it does not move. The committee raises $g$, the Gordon price rises, and the implied expected return is unchanged. That is a forecast update.
+
+In a consistent valuation the same news is risk. The required return has to move with the forecast, so the price response is not only a higher numerator. The gap between those two answers is the premium.
+
+The course will derive both numbers from one consumption process. Value and growth will differ by one loading on the persistent part of consumption. That single difference will move the forecast and the rate together. That calculation lives in [Chapter 10](10-value-premium-resolved.qmd), after the process and the preference exist. The script that prints it on the Table II economy is `examples/dcf_counterfactual.py`.
+
+::: {.callout-note collapse="true" title="Later in the course"}
+Chapter 5 writes the dividend process. Chapter 6 solves for the valuation elasticities. Chapter 8 measures the loadings from cash flows alone. Chapter 10 then hands those cash flows back to a DCF and to the equilibrium solver, and compares the two answers. Nothing in that machinery is required to follow the napkin arithmetic on this page.
 :::
-
-```{python}
-#| code-fold: true
-rng_dyn = lrr.Dynamics(params, seed=7)
-names = ("growth", "value", "market")
-T = 74 * 12
-kappa1 = {k: np.exp(sol.mean_log_pd[k]) / (1.0 + np.exp(sol.mean_log_pd[k]))
-          for k in names}
-lr = {k: [] for k in names}
-for _ in range(200):
-    path = rng_dyn.simulate_cashflows(T)
-    s2 = path["sigma2"]
-    for k in names:
-        z = sol.A1[k] * path["x"] + sol.A2[k] * (s2 - sigma**2)
-        lr[k].append(path[f"dd_{k}"][1:] + kappa1[k] * z[1:] - z[:-1])
-lr = {k: np.concatenate(v) for k, v in lr.items()}
-r_m = lr["market"] - lr["market"].mean()
-var_m = float(r_m @ r_m / r_m.size)
-betas = {k: float((lr[k] - lr[k].mean()) @ r_m / r_m.size / var_m)
-         for k in ("growth", "value")}
-print(f"beta ratio value/growth: {betas['value'] / betas['growth']:.3f}")
-(
-    GT(pd.DataFrame({"claim": list(betas), "beta": list(betas.values())}))
-    .tab_header(title="CAPM betas inside the model economy")
-    .cols_label(claim="", beta="beta")
-    .fmt_number(columns="beta", decimals=3)
-    .tab_options(**KIKU_GT)
-)
-```
-
-Value's beta is lower, 0.50 against growth's 0.89, a ratio of 0.56. The spread fitted from the CAPM is $(\beta_V - \beta_G)(\mathbb{E}[R_m] - r_f)$, and with a negative beta gap it is negative. The next cell puts a level on it, using the market premium from the paper's Table VII simulation, where the market return is 7.53 percent over a risk-free rate of 1.58:
-
-```{python}
-mkt_premium = 7.53 - 1.58  # Table VII: E[R_m] and r_f, percent per year
-print(f"CAPM-fitted value-growth spread: "
-      f"{(betas['value'] - betas['growth']) * mkt_premium:+.2f} pp/yr")
-```
-
-The sign is wrong, against a data premium of about six points. The error is not an estimation accident. Market betas are dominated by transitory price fluctuations, while value's extra risk shows up in the low-frequency behavior of its cash flows. A discount rate built from market betas therefore does not reflect the risk that the premium pays for. The failure is structural, because the DCF has no term through which the riskiness of the cash flows enters the rate.
-
-### C. Changing the forecast while holding the rate fixed
-
-The last counterfactual is the subtlest. Suppose news arrives that value's cash flows are riskier than we thought, so we raise value's loading on $x_t$ from 6.2 to 7.4. The question is what the price should do.
-
-In the DCF, the discount rate is an input, so it does not move. Expected dividend growth rises, and the price rises with it. The implied expected return is unchanged, so you have revised a forecast without revaluing anything.
-
-In equilibrium the same news moves both objects at once. Nothing is re-estimated. We change the one loading and solve again:
-
-```{python}
-import copy
-
-params_hi = copy.deepcopy(params)
-params_hi.dividends["value"].phi = 7.4
-sol_hi = lrr.solve_analytical(params_hi)
-d = params.dividends["value"]
-change = pd.DataFrame({
-    "quantity": ["g_eff (% per year)", "A1 (PD elasticity to x)",
-                 "premium_lr (% per year)"],
-    "base": [100 * g_effective(6.2, d.mu, d.phi_sigma),
-             sol.A1["value"], 100 * sol.premium_lr["value"]],
-    "hi": [100 * g_effective(7.4, d.mu, d.phi_sigma),
-           sol_hi.A1["value"], 100 * sol_hi.premium_lr["value"]],
-})
-(
-    GT(change)
-    .tab_header(title="The value claim before and after the risk news")
-    .cols_label(quantity="", base="Table II (phi = 6.2)",
-                hi="counterfactual (phi = 7.4)")
-    .fmt_number(columns=["base", "hi"], decimals=2)
-    .tab_options(**KIKU_GT)
-)
-```
-
-The forecast piece moves in both settings, and expected growth rises from 6.04 to 7.07 percent a year. In equilibrium, the price-dividend elasticity to long-run news also rises, from 88.9 to 108.2. The compensation for bearing the news rises from 0.80 to 0.97 percent, because the household demands more for holding a claim whose long-run prospects now move more. If you shock the cash flows and hold the price of risk fixed, you have a forecast. In equilibrium, the same news moves the forecast and the discount rate together, and the gap between the two answers is the premium.
 
 ## Where the course goes
 
-The three panels share one diagnosis. The DCF's two numbers are free because they come from two unrelated models, so nothing forces the discount rate to account for the risk in the cash flows. The repair is a single model in which both numbers are outputs of the same measurable process, which is aggregate consumption. On the cash flow side, each claim's dividends load on the persistent component of consumption growth. On the discount rate side, the household's marginal utility prices the same component. One shock moves expected dividends for decades and moves marginal utility at the same time, and the comovement between the two is the premium.
+The diagnosis is already in view. The DCF's two numbers are free because they come from two unrelated models, so nothing forces the discount rate to account for the risk in the cash flows. The repair is a single model in which both numbers are outputs of the same measurable process, which is aggregate consumption.
 
-Before building the model, we establish what it has to explain. [Chapter 2](02-value-premium-in-the-data.qmd) constructs the facts for 1930 to 2003: the six-point value premium, the valuation ranking, and the CAPM's failure in the data rather than in the model.
+Before building the model, we establish what it has to explain. [Chapter 2](02-value-premium-in-the-data.qmd) constructs the facts for 1930 to 2003: the six-point value premium, the valuation ranking, and the CAPM's failure in the data.
 
 ## Takeaways
 
 - A DCF prices with two free numbers: a forecast $g$ from one model and a rate $r$ from another. Nothing connects the rate to the risk in the cash flows.
-- On the model's own cash flows, one common rate prices the value-growth premium at exactly zero and ranks value richer than growth, so both facts come out wrong.
-- A rate fitted to the CAPM gets the sign wrong. Value's beta (0.50) is below growth's (0.89), so the fitted spread is negative while the true premium is positive.
-- Raising a claim's cash-flow risk with the rate held fixed changes the forecast but not the implied expected return. In equilibrium the same change moves the valuation elasticity (88.9 to 108.2) and the risk compensation (0.80 to 0.97 percent) together.
+- At any common rate the implied value-growth premium is exactly zero, and the high-$g$ claim is priced richer than the low-$g$ claim. In the data value is cheaper and earns about six points more.
+- Picking the second number from a market-beta regression can get the sign wrong, because the beta in monthly returns is not the cash-flow risk that needs to be priced.
+- If you change the cash-flow story and leave the rate alone, you have updated a forecast. In a consistent valuation the required return moves with the forecast. The gap is the premium.
 
 ::: {.callout-note collapse="true" title="Recall"}
 
@@ -220,11 +190,12 @@ Answer from memory before opening.
 
 1. A DCF gets its growth forecast and its discount rate from two
    unrelated models. What question does that arrangement assume away?
-2. Inside the model economy, what does discounting both claims at one
-   common rate force the value premium to be, and what does it do to the
-   value-versus-growth valuation ranking?
+2. Discount both claims at one common rate. What does that force the
+   value premium to be, and what does it do to the value-versus-growth
+   valuation ranking?
 3. News arrives that value's cash flows are riskier than we thought.
-   Name what moves in a DCF and what additionally moves in equilibrium.
+   Name what moves in a DCF and what additionally moves in a consistent
+   valuation.
 
 **Answers.**
 
@@ -233,16 +204,22 @@ Answer from memory before opening.
 2. Exactly zero, whatever rate you pick, and it ranks value richer than
    growth, the opposite of the data.
 3. In a DCF only the forecast moves; the price rises and the implied
-   expected return is unchanged. In equilibrium the valuation elasticity
-   to long-run news and the risk compensation move together with it.
+   expected return is unchanged. In a consistent valuation the required
+   return moves with the forecast.
 
 :::
 
 ## Exercises
 
-1. Panel A priced the premium at zero for any common rate. Verify the ranking claim numerically: using `g_effective`, compute $1/(r - g)$ for value and growth at $r = 8\%$ and at $r = 10\%$ annual, and confirm value's price-dividend ratio is higher at both rates.
-2. Equalize the loadings by setting `params.dividends["value"].phi = 2.6` and re-solving with `lrr.solve_analytical`. What happens to the long-run spread printed by `lrr.print_long_short_premium`? What does the result say about the source of the model's cross-sectional differences?
-3. Sweep `phi` for the value claim from 2.6 to 7.4 in steps of 0.4, re-solving each time, and plot `sol.A1["value"]` against `sol.premium_lr["value"]`. Panel C is two points on the resulting line, and the exercise traces the whole line. Valuation elasticity and risk compensation move together everywhere.
+1. The common-rate table used $r = 8\\%$. Recompute $P/D$ for both claims
+   at $r = 9\\%$, with the same growth rates 3 percent and 6 percent.
+   Confirm that the premium is still zero and that value is still richer.
+2. Pick any common rate above 6 percent. Show that the implied premium
+   is still zero and that the ranking is still backwards. The claim is
+   about the common rate, not about 8 percent.
+3. Give value a CAPM beta of 1.4 and growth a beta of 0.9. Take a market
+   premium of 6 percent. Compute the CAPM-implied value-growth spread.
+   State whether that repair used cash-flow risk or return comovement.
 
 ::: {.callout-note collapse="true" title="Check your answer"}
 
@@ -251,42 +228,47 @@ on this page.
 
 ```{python}
 #| code-fold: true
-import copy
+# Exercise 1: Gordon at 9 percent
+r9 = 0.09
+pd9 = {k: 1.0 / (r9 - gk) for k, gk in g.items()}
+print(f"r = 9%:  P/D value = {pd9['value']:.1f}   "
+      f"P/D growth = {pd9['growth']:.1f}   "
+      f"premium = {r9 - r9:+.2f}")
 
-# Exercise 1: the ranking at two common rates
-for r in (0.08, 0.10):
-    print(f"r = {r:.0%}:  P/D value = {1/(r - g['value']):.1f}"
-          f"   P/D growth = {1/(r - g['growth']):.1f}")
+# Exercise 2: any common rate above 6 percent
+for rate in (0.07, 0.12):
+    ratios = {k: 1.0 / (rate - gk) for k, gk in g.items()}
+    print(f"r = {rate:.0%}:  P/D value = {ratios['value']:.1f}   "
+          f"P/D growth = {ratios['growth']:.1f}")
 
-# Exercise 2: equal loadings collapse the spread
-params_eq = copy.deepcopy(params)
-params_eq.dividends["value"].phi = 2.6
-lrr.print_long_short_premium(lrr.solve_analytical(params_eq))
-
-# Exercise 3: sweep phi and watch elasticity and compensation move together
-for phi_v in np.arange(2.6, 7.41, 0.4):
-    p = copy.deepcopy(params)
-    p.dividends["value"].phi = float(phi_v)
-    s = lrr.solve_analytical(p)
-    print(f"phi = {phi_v:.1f}:  A1 = {s.A1['value']:6.1f}   "
-          f"premium_lr = {100 * s.premium_lr['value']:.2f} %/yr")
+# Exercise 3: CAPM napkin
+beta_g, beta_v, mkt_prem = 0.9, 1.4, 0.06
+capm_spread = (beta_v - beta_g) * mkt_prem
+print(f"CAPM-implied spread: {100 * capm_spread:.1f} pp/yr  "
+      "(return comovement, not cash-flow risk)")
 ```
 
-Exercise 1 confirms value carries the higher price-dividend ratio at both
-rates. Exercise 2 shows the spread collapses to zero once the loadings are
-equal, with the printed spread at -0.12 percent, because the loading
-is the only cross-sectional input.
-Exercise 3 traces the line that panel C sits on: the elasticity and the
-compensation rise together at every loading.
+Exercise 1 prints 33.3 against 16.7 at a 9 percent rate, with a zero
+premium. Exercise 2 repeats the same ranking at 7 percent and at 12
+percent. Exercise 3 prints a 3-point CAPM spread from the beta gap, which
+is return comovement rather than a reading of the cash-flow process.
 
 :::
 
 ::: {.firewall}
-**Where each number comes from.** Every number above is computed by this page's cells on the Table II economy (`lrr.get_table_ii_params`, `lrr.solve_analytical`, and `lrr.Dynamics`), and the same numbers are reproduced by `examples/dcf_counterfactual.py` in the repository. The data facts (13.88 vs 7.81, log P/D 3.25 vs 3.61) and the Table VII market premium are from the paper's printed tables. The chapter can be downloaded as a notebook from the link at the top of the page.
+**Where each number comes from.** The Gordon table, the 20-against-50
+ranking, the zero premium, and the 8-versus-10 percent check are printed
+by this page's cells from $g \\in \\{0.03, 0.06\\}$ and the stated $r$. The
+Table I vintage figures (13.88 against 7.81, log P/D 3.25 against 3.61)
+are the paper's printed numbers; [Chapter 2](02-value-premium-in-the-data.qmd)
+rebuilds the underlying series. The model-side DCF, once the cash flows
+exist, is `examples/dcf_counterfactual.py`. The chapter can be downloaded
+as a notebook from the link at the top of the page.
 :::
 
 ::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Kiku (2006), the calibration and counterfactual sections
+The canonical treatment of this chapter's topic is Kiku (2006), the
+motivation and the CAPM discussion
 ([references](../reference/references.qmd)). Stuck, or spot an
 error? Open an issue at the
 [repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
