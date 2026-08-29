@@ -3,7 +3,7 @@ title: "2. The value premium in the data"
 aliases: [/financial-data.html]
 ---
 
-[Chapter 1](01-two-free-numbers.qmd) argued that a DCF's two free numbers cannot price cash-flow risk. Before building the model that can, we need the facts the model must match. The chapter establishes them from the 1930 to 2003 sample the paper uses. Value stocks out-earned growth stocks by about six percentage points a year while trading at persistently lower valuations, so the higher return and the lower price go together. The obvious repair fails in the data as it failed in the model, because value's market beta is nowhere near large enough to explain six points.
+[Chapter 1](01-two-free-numbers.qmd) argued that a DCF's two free numbers cannot price cash-flow risk. Before building the model that can, we need the facts the model must match. The chapter establishes them from the 1930 to 2003 sample the paper uses. Value stocks out-earned growth stocks by about six percentage points a year while trading at persistently lower valuations, so the higher return and the lower price go together. The obvious repair fails in the data, because value's market beta is nowhere near large enough to explain six points.
 
 One rule governs the construction. The series we construct (returns, dividends, price-dividend ratios, and consumption) are targets for the model rather than inputs to it. Average returns enter none of the model's inputs, and they appear only in the tables the model has to match. A model whose target facts leaked into its inputs would prove nothing.
 
@@ -184,7 +184,7 @@ Returns correlate at 0.72, while dividend growth correlates at only 0.29 (the pa
 
 ### The CAPM fails in the data too
 
-[Chapter 1](01-two-free-numbers.qmd) showed the CAPM misprices the model's claims. The next cell runs the same regression on the data, regressing each portfolio's annual return on the market's:
+[Chapter 1](01-two-free-numbers.qmd) argued that a CAPM rate need not reflect cash-flow risk. The next cell runs the regression on the data, regressing each portfolio's annual return on the market's:
 
 ```{python}
 rm_d = wide_ret["Market"] - wide_ret["Market"].mean()
