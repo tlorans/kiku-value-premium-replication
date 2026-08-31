@@ -1,4 +1,4 @@
-"""Table II calibration, printed from the package (Issue 7).
+"""Table II calibration, printed from the package.
 
 Every value below is read from lrr.ModelParams() at run time —
 nothing is transcribed. The "target / source" column states what each

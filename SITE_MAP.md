@@ -1,28 +1,68 @@
-# SITE_MAP.md — file → URL → nav (updated by Issue 2; baseline of record in docs/_baseline)
+# SITE_MAP.md — page, sidebar position, and legacy URL
 
-Sidebar order below matches `tests/test_docs.py::test_argument_nav_order` (the hard contract).
+The site is a Quarto website under `site/`, published to `site/_site`. The
+sidebar order below is set by `site/_quarto.yml` and checked by
+`tests/test_site.py`, which is the contract. Update this file in the same pull
+request as any structural change.
 
-| # | File | URL | Title | nav_order | parent | Status |
-|---|---|---|---|---|---|---|
-| 1 | `docs/index.md` | `/` | Home | 1 | — | rewritten (Issue 1) |
-| 2 | `docs/getting-started.md` | `/getting-started.html` | The result | 2 | — | keep |
-| 3 | `docs/long-run-risks-model.md` | `/long-run-risks-model.html` | The long-run risks model | 3 | — | keep |
-| 4 | `docs/measuring-leverage.md` | `/measuring-leverage.html` | Measuring leverage | 4 | — | keep + firewall (Issue 3) |
-| 5 | `docs/time-series.md` | `/time-series.html` | Does the market still fit? | 5 | — | keep + framing sentence (Issue 2) |
-| 6 | `docs/two-free-numbers.md` | `/two-free-numbers.html` | Two free numbers | 6 | — | **new stub** (Issue 4) |
-| 7 | `docs/cross-section.md` | `/cross-section.html` | Value versus growth | 7 | — | keep |
-| 8 | `docs/price-your-own-claim.md` | `/price-your-own-claim.html` | Price your own claim | 8 | — | **new stub** (Issue 5) |
-| 9 | `docs/package.md` | `/package.html` | Package | 9 (has_children) | — | keep |
-| 9.1 | `docs/installation.md` | `/installation.html` | Installation | 1 | Package | fill (Issue 6) |
-| 9.2 | `docs/api.md` | `/api.html` | API | 2 | Package | fill (Issue 6) |
-| 9.3 | `docs/financial-data.md` | `/financial-data.html` | Financial data | 3 | Package | fill (Issue 6) |
-| 10 | `docs/objections.md` | `/objections.html` | Objections | 10 | — | **new stub** (Issue 8) |
-| 11 | `docs/background.md` | `/background.html` | Background & glossary | 11 | — | **new stub** (Issue 9) |
-| 12 | `docs/references.md` | `/references.html` | References | 12 | — | **new stub** (Issue 10) |
+An earlier version of the site was built with Jekyll under a `docs/` directory,
+and the pages there had `.html` URLs. That directory is gone. Every one of its
+URLs still has to resolve, so each page carries the old URL in the `aliases`
+field of its front matter, and `test_legacy_urls_covered_by_aliases` fails if
+one goes missing.
 
-## Conventions (from Issue 0, still binding)
+| # | File | Title | Sidebar section | Legacy URL |
+|---|---|---|---|---|
+| 1 | `site/index.qmd` | Valuing Asset Claims in General Equilibrium | top level | `/`, `/getting-started.html` |
+| 2 | `site/how-to-read.qmd` | How to read this course | top level | — |
+| 3 | `site/chapters/01-two-free-numbers.qmd` | 1. Two free numbers | Part I, The Puzzle | `/two-free-numbers.html` |
+| 4 | `site/chapters/02-value-premium-in-the-data.qmd` | 2. The value premium in the data | Part I, The Puzzle | `/financial-data.html` |
+| 5 | `site/chapters/03-pricing-by-euler-equation.qmd` | 3. Pricing by Euler equation | Part II, The Toolkit | — |
+| 6 | `site/chapters/04-epstein-zin-preferences.qmd` | 4. Epstein-Zin preferences | Part II, The Toolkit | — |
+| 7 | `site/chapters/05-long-run-risks.qmd` | 5. Long-run risks: the endowment | Part II, The Toolkit | `/long-run-risks-model.html` |
+| 8 | `site/chapters/06-log-linear-solution.qmd` | 6. The log-linear solution | Part III, Solving the Model | — |
+| 9 | `site/chapters/07-quadrature-solution.qmd` | 7. The quadrature solution | Part III, Solving the Model | — |
+| 10 | `site/chapters/08-calibrating-cash-flows.qmd` | 8. Calibrating cash flows from data | Part IV, Confronting the Data | `/measuring-leverage.html` |
+| 11 | `site/chapters/09-the-market-test.qmd` | 9. The market test | Part IV, Confronting the Data | `/time-series.html` |
+| 12 | `site/chapters/10-value-premium-resolved.qmd` | 10. The value premium, resolved | Part IV, Confronting the Data | `/cross-section.html` |
+| 13 | `site/chapters/11-price-your-own-claim.qmd` | 11. Price your own claim | Part V, Your Turn | `/price-your-own-claim.html` |
+| 14 | `site/chapters/12-objections-and-limits.qmd` | 12. Objections and limits | Part V, Your Turn | `/objections.html` |
+| 15 | `site/reference/installation.qmd` | Installation | Reference | `/installation.html`, `/package.html` |
+| 16 | `site/reference/api.qmd` | API | Reference | `/api.html` |
+| 17 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 18 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
-- URLs are `.html`-style; no `permalink` except Home (`/`). Internal links: `{{ '/page.html' | relative_url }}`. Directory-style URLs 404.
-- `tests/test_docs.py` pins this map (`test_argument_nav_order`, `BOOK_PAGES`, `DELETED`, `TUTORIAL_FIGURES`); update in the same PR as any structure change.
-- Jekyll excludes `docs/_baseline/` and `docs/superpowers/` from the published site.
-- Theme: Just the Docs v0.10.1 (`remote_theme`); callouts `paper` / `package` / `caution` defined but unused; MathJax via `docs/_includes/`; search + back-to-top on.
+## Conventions
+
+Every page must appear in the sidebar, and every sidebar entry must exist on
+disk. Both directions are checked, so a new page that is not listed in
+`site/_quarto.yml` fails the suite.
+
+Each chapter carries a fixed set of parts. First comes a collapsed callout
+titled "Recall", which must appear before the exercises. Second come the
+exercises, and any chapter with an `## Exercises` heading must also ship a
+collapsed callout titled "Check your answer". Third comes a link to
+`reference/references.qmd`. All three are enforced by `tests/test_site.py`.
+
+Pages run their Python at build time, so a render is what checks the code.
+Quarto is configured with `freeze: auto`, and the cached output lives in
+`site/_freeze`. Continuous integration renders from the committed freeze, so
+after you change a page you run `make site` and commit the regenerated freeze
+along with it. A page that runs Python without a freeze entry fails
+`test_freeze_covers_every_executed_page`. Note that the freeze keys its figure
+files by cell number, so moving or removing a cell can leave an orphaned file
+behind, and you should delete it.
+
+No number appears on a page unless one of the page's own cells prints it, or
+the page attributes it to the paper. See `NUMBERS.md` for the rule and for the
+figures that are quoted from the paper rather than computed.
+
+Names removed from the public API must not survive anywhere a reader can see
+them, prose included. The list is `REMOVED_API_NAMES` in `tests/test_site.py`,
+and it covers the site, `README.md`, and the scripts in `examples/`.
+
+## Build commands
+
+Run `make site` to render, `make preview` to serve the site locally with live
+reload, and `make freeze` to delete `site/_freeze` and render everything from
+scratch. Run `uv run pytest tests/test_site.py` for the structural checks alone.

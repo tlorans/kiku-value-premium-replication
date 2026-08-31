@@ -1,6 +1,6 @@
 """Two synthetic firms: identical except the loading of dividends on x_t.
 
-Issue 5 of REWRITE_PLAN.md. Two dividend processes that differ only in
+Two dividend processes that differ only in
 phi (1.5 vs 0.5). Nothing is estimated; nothing is re-tuned. The model
 returns, for each firm, the PD elasticity to x_t, the annualized
 compensation for x_t-news, expected dividend growth, and the Gordon-style

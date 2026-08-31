@@ -1,6 +1,6 @@
 """One-at-a-time robustness of the model premium to its key parameters.
 
-Issue 12 of REWRITE_PLAN.md. Varies, one at a time: persistence of x_t
+Varies, one at a time: persistence of x_t
 (rho), EIS (psi), risk aversion (gamma), and the cash-flow loadings
 (the annual MA window only changes the estimated annual ranking, not the
 monthly phi the solver uses; we vary phi within its measured range
@@ -9,7 +9,8 @@ we record the market's long-run compensation and the value-growth
 long-run spread.
 
 Honesty rule: this prints what the runs show. The long-run (x_t-news)
-pieces are the analytical objects; Table VII Euler levels remain F1-open.
+pieces are the analytical objects. Kiku's printed Table VII levels do not
+reproduce exactly, for the grid-resolution reason recorded in NUMBERS.md.
 
 Run: uv run python examples/robustness.py
 """
@@ -63,4 +64,4 @@ print("\nWhat the runs show: the x_t-news spread is positive and orders the")
 print("claims the same way (value above growth above the market in")
 print("compensation-per-unit-loading terms) at every grid point; its size")
 print("scales with persistence, risk aversion, and the loading gap. These")
-print("are the long-run pieces only; Table VII Euler levels are F1-open.")
+print("are the long-run pieces only, not the full Euler return levels.")
