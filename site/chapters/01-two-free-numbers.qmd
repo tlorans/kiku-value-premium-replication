@@ -5,7 +5,7 @@ aliases: [/two-free-numbers.html]
 
 You already know how to price a stock. You forecast the cash flows and discount them at a rate you choose. Every valuation built this way runs on those two numbers, and the discounted cash flow framework never asks where either one came from. The forecast comes from one source, such as analyst estimates or a terminal value convention. The rate comes from another, such as a CAPM regression or a round number that seems reasonable. The two numbers are free, and they come from two unrelated models.
 
-Choosing the two numbers separately is the problem. A firm whose cash flows collapse in bad times should carry a high discount rate, because the rate is compensation for the risk in the cash flows. Choosing the numerator and the denominator separately assumes away the question the course answers: why risky cash flows earn high expected returns. The rest of this chapter measures what that costs, on one claim and Gordon's formula.
+Choosing the two numbers separately is the problem. A firm whose cash flows collapse in bad times should carry a high discount rate, because the rate is compensation for the risk in the cash flows. Choosing the numerator and the denominator separately assumes away the question the course answers: why risky cash flows earn high expected returns, and how high. The rest of this chapter measures what that costs, on one claim and Gordon's formula.
 
 ## The economics
 
@@ -63,8 +63,8 @@ table = pd.DataFrame({
 
 Two things fall out of the table.
 
-1. The price is mostly the rate. Moving from 8 percent to 7 percent raises the ratio from 20 to 25, a fifth of the firm on one point nobody measured. The price rises by three quarters across the four rows.
-2. The last column is a copy of the first. The dividend yield in `implied_er` is $r - g$ by construction, so adding $g$ back returns $r$: nothing was computed, so the valuation cannot tell you what a claim should earn, because you told it.
+1. The price is mostly the rate. Moving from 8 percent to 7 percent raises the ratio from 20 to 25, so one percentage point on a number nobody measured is worth a fifth of the firm. Across the four rows the price rises by three quarters.
+2. The last column is a copy of the first. The dividend yield in `implied_er` is $r - g$ by construction, so adding $g$ back returns $r$ on every row. Nothing was computed. The number was retyped, so a valuation built this way cannot tell you what a claim should earn, because you told it.
 
 ```{python}
 #| fig-cap: "Price-dividend ratio of a claim growing at 3 percent, as a function of the discount rate. The point marks the 8 percent row of the table. The curve is steep across the whole range of plausible rates, so most of what the valuation reports is the rate the committee chose rather than anything measured about the firm."
@@ -105,7 +105,7 @@ for g_i, label in ((0.06, "grows at 6 percent"),
 
 The prices differ by a factor of four, and every implied expected return is 8.00 percent. A claim that never grows is expected to earn what a claim growing at 6 percent earns. The ranking is whatever the forecasts said, and the implied premium between any two claims is exactly zero.
 
-That is the shape of the problem. The data hold two facts at once: value trades at a lower multiple than growth, and value out-earns it. In the paper's Table I vintage the mean log price-dividend ratios are 3.25 against 3.61 and the mean returns are 13.88 against 7.81 percent, a spread of about six points a year. A common rate can match the ranking, since the forecasts set it, but not the premium, which @eq-identity forces to zero whatever forecasts you write, and a DCF has no rule that gives the claims different rates.
+That is the shape of the problem. The data hold two facts at once: value trades at a lower multiple than growth, and value out-earns it. In the paper's Table I vintage the mean log price-dividend ratios are 3.25 against 3.61 and the mean returns are 13.88 against 7.81 percent, a spread of about six points a year. A common rate can match the ranking, since the forecasts set it, but not the premium, which @eq-identity forces to zero whatever forecasts you write. Getting a premium requires giving the claims different rates, and a DCF has no rule that produces one.
 
 Nor is the ranking safe. Later chapters measure growth from the cash-flow process instead of assuming it, and value's measured growth is the higher number, because its dividends load more on the persistent piece of consumption. A DCF fed those measured rates at one common $r$ prices value richer than growth, which is the opposite of the data.
 
@@ -117,19 +117,19 @@ $$
 r_i = r_f + \beta_i\,(\mathbb{E}[R_m] - r_f).
 $$
 
-The repair works only if the beta in monthly returns is the cash-flow risk that needs pricing. It is not: high-frequency returns are dominated by transitory price moves, while the extra risk in value sits in the low-frequency behavior of its cash flows. Chapter 2 measures the data version of this failure: value's market beta is not large enough to explain six points, and on the paper's vintage the two betas sit near one. Chapter 10 shows the same wrong sign inside the model, once the cash flows exist.
+The repair works only if the beta in monthly returns is the cash-flow risk that needs pricing. It is not: high-frequency returns are dominated by transitory price moves, while the extra risk in value sits in the low-frequency behavior of its cash flows. In the data, value's market beta is not large enough to explain six points, and on the paper's vintage the two betas sit near one. Chapter 10 shows the same wrong sign inside the model, once the cash flows exist.
 
 The failure is structural: nothing in the DCF lets the riskiness of the cash flows enter the rate.
 
 ### A forecast is not a valuation
 
-News arrives that value's cash flows are more tied to bad times than thought. A DCF and a consistent valuation react differently.
+News arrives that value's cash flows are more tied to bad times than the committee thought. A DCF and a consistent valuation react to the news differently.
 
 In a DCF the rate is an input, so it does not move. Treating the news as a growth revision changes $g$ and the Gordon price, but the implied expected return stays at $r$: the committee has only updated a forecast.
 
 In a consistent valuation the same news is risk, so the required return moves with the forecast and the price response includes a new rate as well as a new numerator. The gap between those two answers is the premium.
 
-The course will derive both numbers from one consumption process. Value and growth will differ by one loading on the persistent part of consumption, and that difference will move the forecast and the rate together. That calculation is in [Chapter 10](10-value-premium-resolved.qmd). The script that prints it on the Table II economy is `examples/dcf_counterfactual.py`.
+The course will derive both numbers from one consumption process. Value and growth will differ by one loading on the persistent part of consumption, and that difference will move the forecast and the rate together. That calculation is what `examples/dcf_counterfactual.py` prints on the Table II economy.
 
 The diagnosis is now in view, and the repair is a single model in which both numbers are outputs of the same measurable process, which is aggregate consumption. Before building it, we establish what it has to explain. [Chapter 2](02-value-premium-in-the-data.qmd) constructs the facts for 1930 to 2003: the six-point value premium, the valuation ranking, and the CAPM's failure in the data.
 
@@ -137,10 +137,12 @@ The diagnosis is now in view, and the repair is a single model in which both num
 
 - A DCF prices with two free numbers, a forecast from one model and a rate
   from another, and nothing connects the rate to the risk in the cash flows.
+- The price is mostly the rate. One percentage point on $r$ moves the
+  price-dividend ratio by about a fifth.
 - Under Gordon the implied expected return is the rate you typed, so the
-  valuation cannot tell you what a claim should earn.
-- At one common rate the implied premium across any cross-section is exactly
-  zero, whatever forecasts you write.
+  valuation cannot tell you what a claim should earn; at one common rate
+  the implied premium across any cross-section is exactly zero, whatever
+  forecasts you write.
 - Taking the rate from a market-beta regression prices return comovement
   rather than cash-flow risk, and can get the sign wrong.
 
@@ -166,11 +168,11 @@ Answer from memory, then open the answers.
    price-dividend ratio.
 3. Three points, from the beta gap alone:
 
-```{python}
-#| code-fold: true
-beta_g, beta_v, mkt_prem = 0.9, 1.4, 0.06
-print(f"CAPM-implied spread: {100 * (beta_v - beta_g) * mkt_prem:.1f} pp/yr")
-```
+   ```{python}
+   #| code-fold: true
+   beta_g, beta_v, mkt_prem = 0.9, 1.4, 0.06
+   print(f"CAPM-implied spread: {100 * (beta_v - beta_g) * mkt_prem:.1f} pp/yr")
+   ```
 
    That is return comovement, not a reading of the cash-flow process.
 

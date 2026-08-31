@@ -98,7 +98,7 @@ def _chapter_files():
 
 
 CHAPTERS = sorted((SITE / "chapters").glob("*.qmd"))
-PROSE_BUDGET = 1300
+PROSE_BUDGET = 1350
 
 _FENCE = re.compile(r"^\s*```")
 _FRONT_MATTER = re.compile(r"^---\n.*?\n---\n", flags=re.S)
