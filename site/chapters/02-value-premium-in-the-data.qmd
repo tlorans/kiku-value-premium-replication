@@ -7,11 +7,11 @@ aliases: [/financial-data.html]
 
 One rule governs the construction: the series we build (returns, dividends, price-dividend ratios, and consumption) are targets for the model, not inputs to it. Average returns enter none of the model's inputs, and appear only in the tables the model has to match. A model whose target facts leaked into its inputs would prove nothing.
 
-We sort stocks into portfolios by book-to-market equity, book value from the accounting statements divided by market value from prices, following Fama and French (1993). The sort forms June quintiles of ordinary shares with NYSE breakpoints. Growth is the bottom fifth, expensive relative to book value; value is the top fifth, cheap relative to book value; and the market is the value-weighted whole. The sort hands the model two claims whose dividends behave differently, so any difference in prices and premia must come from cash-flow risk rather than from an assumption.
+We sort stocks into portfolios by book-to-market equity, which is book value from the accounting statements divided by market value from prices, following Fama and French (1993). The sort forms June quintiles of ordinary shares with NYSE breakpoints. Growth is the bottom fifth, which is expensive relative to book value. Value is the top fifth, which is cheap relative to book value, and the market is the value-weighted whole. The sort hands the model two claims whose dividends behave differently, so any difference in prices and premia must come from cash-flow risk rather than from an assumption.
 
 ## The economics: recovering cash flows from returns
 
-CRSP, the standard file of U.S. stock returns, stores returns rather than dividends. It records two versions of each month's return: $r_t$, which includes the dividend, and $r_t^x$, the capital gain alone. Campbell and Shiller (1988) noticed that the gap between them is the dividend, recovered by scaling with a cumulated price index $V$:
+CRSP, the standard file of U.S. stock returns, stores returns rather than dividends. It records two versions of each month's return: $r_t$, which includes the dividend, and $r_t^x$, the capital gain alone. Campbell and Shiller (1988) noticed that the gap between them is the dividend, and recovered it by scaling with a cumulated price index $V$:
 
 $$
 D_t = \left(r_t - r_t^{x}\right) V_{t-1},
@@ -31,7 +31,7 @@ $$
 where $V_t$ is this month's ex-dividend value. Subtracting the second from the first gives $r_t - r_t^{x} = D_t / V_{t-1}$, which is @eq-cs. Cumulating $V$ with the capital-gain return alone keeps it self-consistent, since dividends are paid out rather than reinvested. Summing monthly $D_t$ within a year gives the annual dividend; year-end $V$ over that sum is the price-dividend ratio.
 :::
 
-Dividends and prices from @eq-cs are nominal, so we deflate them by the PCE price deflator and take log differences of real annual dividends to get dividend growth $\Delta d$. Two more series complete the dataset: consumption, real per-capita nondurables plus services, since durables behave like investment; and the risk-free rate, the real three-month Treasury bill return less a twelve-month moving average of inflation, since one month of inflation is too noisy to be anyone's forecast.
+Dividends and prices from @eq-cs are nominal, so we deflate them by the PCE price deflator and take log differences of real annual dividends to get dividend growth $\Delta d$. Two more series complete the dataset. Consumption is real per-capita nondurables plus services, because durables behave like investment rather than consumption. The risk-free rate is the real return on the three-month Treasury bill, computed as the nominal bill return less a twelve-month moving average of inflation, since one month of inflation is too noisy to be anyone's forecast.
 
 The full pipeline, which pulls CRSP through WRDS, Compustat book equity, and the Davis-Fama-French book values for the years before 1960, is documented in [Installation](../reference/installation.qmd). The repository ships the three files it writes, and every number below is computed live from them.
 
@@ -147,7 +147,7 @@ p = (
 p.show()
 ```
 
-The valuation half of the fact is also visible year by year:
+The valuation half is visible year by year:
 
 ```{python}
 #| fig-cap: "Log price-dividend ratio of the growth and value portfolios, 1930 to 2003. Value trades at a lower multiple of its dividends in most years of the sample, so the market persistently prices its cash flows as riskier."
@@ -204,7 +204,7 @@ On our reconstruction, value's beta is 1.28 against growth's 0.95: above one, bu
 
 ### The consumption series that must explain the premium
 
-In the model, the household's consumption is what prices the claims. We record it now, because it makes the premium a puzzle:
+In the model, the household's consumption prices the claims. We record it now, because it makes the premium a puzzle:
 
 ```{python}
 print(f"{len(dc)} years of consumption growth: mean "
@@ -224,10 +224,13 @@ Consumption growth has a volatility of 2.37 percent a year. The rest of the cour
   0.42, so the premium survives risk adjustment by volatility.
 - Returns correlate across the two portfolios (0.72) far more than
   dividend growth does (0.29), so the risks that distinguish the claims
-  appear in cash flows at low frequency rather than in return comovement.
+  sit in cash flows at low frequency, not in return comovement.
 - The CAPM cannot explain the spread: betas of 0.95 and 1.28 imply under
-  half the observed premium here, and both betas are near 1.03 on the
-  paper's vintage.
+  half the observed premium, and both betas are near 1.03 on the paper's
+  vintage.
+- Consumption growth has a volatility of just 2.37 percent a year, so the
+  rest of the course must explain how a series this quiet supports six
+  extra points on value.
 
 ::: {.callout-note collapse="true" title="Check yourself"}
 
@@ -235,7 +238,7 @@ Answer from memory, then open the answers.
 
 1. Value earned about six points more than growth over 1930 to 2003.
    Which valuation fact travels with that return fact, and does it
-   survive on the post-war sample alone?
+   survive postwar?
 2. Rank the claim by Sharpe ratio: is value's above or below growth's?
 3. Returns on the two portfolios correlate at 0.72 while their dividend
    growth correlates at 0.29. What does that gap say about where the
@@ -244,8 +247,8 @@ Answer from memory, then open the answers.
 **Answers.**
 
 1. Value traded at a persistently lower price-dividend ratio. The higher
-   return and the cheaper valuation are one joint fact, and the ranking
-   survives on the post-war sample:
+   return and the cheaper valuation are one fact, and the ranking
+   survives postwar:
 
    ```{python}
    #| code-fold: true
