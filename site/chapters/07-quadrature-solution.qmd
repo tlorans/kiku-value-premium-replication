@@ -88,21 +88,23 @@ solver should raise an error on divergence, and it should never clamp.
 
 ## Hands-on: solve the paper grid
 
-`ModelSolver` builds the chain and runs the fixed points. The paper's
-grid is 30 nodes for $x$ and 4 for $\sigma^2$:
+The grid method of `model.solve()` builds the chain and runs the fixed
+points. It returns a `GridResults` object, which carries the solved
+valuation functions and the chain behind them next to the moments they
+imply. The paper's grid is 30 nodes for $x$ and 4 for $\sigma^2$:
 
 ```{python}
 import numpy as np
 import lrrcs as lrr
 
-params = lrr.get_table_ii_params()
-solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
+model = lrr.LongRunRisksModel()
+res = model.solve(n_x=30, n_s=4)
 
-zc = solver.z_c
+zc = res.z_c
 print(f"consumption claim: mean z_c = {zc.mean():.2f} "
       f"(monthly W/C ratio about {np.exp(zc.mean()):.0f})")
-for name, z in solver.z.items():
-    zbar = float(np.dot(solver.stationary, z))
+for name, z in res.z.items():
+    zbar = float(np.dot(res.stationary, z))
     print(f"{name:8s}: stationary mean log P/D (monthly) = {zbar:.2f}")
 ```
 
@@ -115,7 +117,10 @@ The exact solution should agree with the approximation of
 [Chapter 6](06-log-linear-solution.qmd) on a fine grid, because the
 two methods solve the same economy. We compare the
 numerical slope $\partial z/\partial x$ at the center of the grid with
-the log-linear $A_1$ evaluated at each claim's own valuation level:
+the log-linear $A_1$ evaluated at each claim's own valuation level. We
+call `solve()` again on the same model with a finer grid. Each grid
+size is solved once and kept, so asking for the same grid later in the
+chapter costs nothing:
 
 ```{python}
 #| code-fold: true
@@ -127,17 +132,17 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-solver60 = lrr.ModelSolver(params, n_x=60, n_s=4).solve(tol=1e-8)
-g = solver60.grid
+res60 = model.solve(n_x=60, n_s=4, tol=1e-8)
+params = model.params
 c = params.cons
-is_mid = int(np.argmin(np.abs(g.s2_nodes - c.sigma**2)))
-mid = g.n_x // 2
+is_mid = int(np.argmin(np.abs(res60.s2_nodes - c.sigma**2)))
+mid = res60.n_x // 2
 rows = []
 for name, d in params.dividends.items():
-    z2d = solver60.z[name].reshape(g.n_x, g.n_s)
+    z2d = res60.z[name].reshape(res60.n_x, res60.n_s)
     slope = ((z2d[mid + 1, is_mid] - z2d[mid - 1, is_mid])
-             / (g.x_nodes[mid + 1] - g.x_nodes[mid - 1]))
-    zbar = float(np.dot(solver60.stationary, solver60.z[name]))
+             / (res60.x_nodes[mid + 1] - res60.x_nodes[mid - 1]))
+    zbar = float(np.dot(res60.stationary, res60.z[name]))
     kappa1 = np.exp(zbar) / (1 + np.exp(zbar))
     a1 = (d.phi - 1 / params.prefs.psi) / (1 - kappa1 * c.rho)
     rows.append({"claim": name, "slope": slope, "a1": a1})
@@ -159,14 +164,17 @@ The two methods agree within ten percent, claim by claim.
 The chain's stationary distribution should reproduce the unconditional
 dispersion of $x$. If it does not, the discretized economy carries a
 different quantity of long-run risk than the one you calibrated. Few
-replications print the check below:
+replications print the check below. The `states()` method of the
+results gives one row per grid state, with the expected-growth node
+and its stationary weight, which is all the check needs:
 
 ```{python}
 sd_true = c.phi_x * c.sigma / np.sqrt(1 - c.rho**2)
 for n_x in (30, 60):
-    s = lrr.ModelSolver(params, n_x=n_x, n_s=4).solve(tol=1e-8)
-    var_x = float(np.dot(s.stationary, s.grid.x_grid**2)
-                  - np.dot(s.stationary, s.grid.x_grid)**2)
+    states = model.solve(n_x=n_x, n_s=4, tol=1e-8).states()
+    pi = states["stationary"].to_numpy()
+    x = states["x"].to_numpy()
+    var_x = float(pi @ x**2 - (pi @ x)**2)
     print(f"n_x = {n_x}: chain sd(x) = {np.sqrt(var_x):.3e}   "
           f"(true {sd_true:.3e})")
 ```
@@ -179,14 +187,12 @@ the continuous model. Refining the grid shows the size of the effect:
 ```{python}
 #| code-fold: true
 sizes = (20, 30, 40, 60, 100)
-vps, rfs = [], []
+grid_rows = []
 for n_x in sizes:
-    s = lrr.ModelSolver(params, n_x=n_x, n_s=4).solve(tol=1e-8)
-    m = lrr.compute_asset_pricing_moments(s)
-    vps.append(m["value_premium"])
-    rfs.append(m["mean_rf"])
+    r = model.solve(n_x=n_x, n_s=4, tol=1e-8)
+    grid_rows.append({"n_x": n_x, "vp": r.value_premium, "rf": r.risk_free})
 
-conv = pd.DataFrame({"n_x": sizes, "vp": vps, "rf": rfs})
+conv = pd.DataFrame(grid_rows)
 (
     GT(conv)
     .tab_header(title="Grid convergence of the population moments")
@@ -241,29 +247,28 @@ than 1.0. When you replicate a quadrature-solved model, the grid
 specification is as much a part of the result as the preference
 parameters. [Chapter 10](10-value-premium-resolved.qmd) runs the full
 comparison with Table VII, including simulated samples, standard
-errors, and CAPM betas, using `simulate_table_vii`.
+errors, and CAPM betas, using `model.simulate()`.
 
 One more behavior is useful to know. On a very coarse grid the
 over-dispersion is so large that the value claim's dividend growth
 exceeds its discount rate. The price is then infinite, and the
-solver raises an error rather than returning a made-up number:
+solve raises an error rather than returning a made-up number:
 
 ```{python}
-from lrrcs.model.solver import SolverDivergenceError
-
 try:
-    lrr.ModelSolver(params, n_x=5, n_s=2).solve()
-except SolverDivergenceError as err:
+    model.solve(n_x=5, n_s=2)
+except lrr.SolverDivergenceError as err:
     print(f"SolverDivergenceError: {err}")
 ```
 
 ::: {.firewall}
 **Where each number comes from.** Every figure in this chapter is
-printed by the cells above at build time: `ModelSolver` (the
-Tauchen-Hussey chain and Euler fixed points),
-`compute_asset_pricing_moments` (population moments under the
-stationary distribution), all on `get_table_ii_params()`. Download the
-chapter as a notebook (top of the page) to rerun everything.
+printed by the cells above at build time. They all come from one
+`LongRunRisksModel()` on the Table II calibration, solved with
+`model.solve()`: the grid method builds the Tauchen-Hussey chain,
+runs the Euler fixed points, and averages the moments under the
+stationary distribution. Download the chapter as a notebook (top of
+the page) to rerun everything.
 :::
 
 ## Takeaways
@@ -323,23 +328,25 @@ Answer from memory before opening.
 
 ```{python}
 #| code-fold: true
-# Exercise 1: more volatility states
-s8 = lrr.ModelSolver(params, n_x=30, n_s=8).solve()
-m4 = lrr.compute_asset_pricing_moments(solver)
-m8 = lrr.compute_asset_pricing_moments(s8)
-print(f"value premium, n_s = 4: {m4['value_premium']:.2f}")
-print(f"value premium, n_s = 8: {m8['value_premium']:.2f}")
+from lrrcs.model import StateGrid
 
-# Exercise 2: implied one-month persistence one sd out
-for label, s in (("n_x = 30", solver), ("n_x = 60", solver60)):
-    g = s.grid
+# Exercise 1: more volatility states
+res8 = model.solve(n_x=30, n_s=8)
+print(f"value premium, n_s = 4: {res.value_premium:.2f}")
+print(f"value premium, n_s = 8: {res8.value_premium:.2f}")
+
+# Exercise 2: implied one-month persistence one sd out.
+# This is a property of the chain alone, so we build the grid without
+# solving on it.
+for label, n_x in (("n_x = 30", 30), ("n_x = 60", 60)):
+    g = StateGrid(params, n_x=n_x, n_s=4)
     ix = int(np.argmin(np.abs(g.x_nodes - sd_true)))
     i = ix * g.n_s + is_mid
     pers = float(g.Pi[i] @ g.x_grid) / g.x_nodes[ix]
     print(f"{label}:  E[x'|x]/x one sd out = {pers:.4f}  (rho = {c.rho})")
 
 # Exercise 3: iterations implied by the contraction modulus
-zb = float(np.dot(solver60.stationary, solver60.z["market"]))
+zb = float(np.dot(res60.stationary, res60.z["market"]))
 k1 = np.exp(zb) / (1 + np.exp(zb))
 print(f"kappa1 = {k1:.6f}  =>  iterations for 1e-10: "
       f"{np.log(1e-10) / np.log(k1):,.0f}")

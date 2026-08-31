@@ -85,7 +85,7 @@ half-life of a shock to expected growth:
 import numpy as np
 import lrrcs as lrr
 
-cons = lrr.get_table_ii_params().cons
+cons = lrr.ModelParams().cons
 half_life = np.log(0.5) / np.log(cons.rho)
 print(f"rho = {cons.rho} (monthly)  =>  "
       f"half-life of x_t = {half_life:.1f} months")
@@ -141,7 +141,7 @@ and the simulation at the end of the chapter reproduces it.
 
 ## The calibration in one table
 
-Every number below is read from `lrr.get_table_ii_params()` at run
+Every number below is read from `lrr.ModelParams()` at run
 time, which is the same object every solver in the course consumes.
 Units are monthly.
 
@@ -155,7 +155,7 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-p = lrr.get_table_ii_params()
+p = lrr.ModelParams()
 prefs, c = p.prefs, p.cons
 
 calib_df = pd.DataFrame({
@@ -180,7 +180,7 @@ calib_df = pd.DataFrame({
     GT(calib_df, rowname_col="parameter", groupname_col="block")
     .tab_header(title="Table II calibration, monthly units")
     .cols_label(value="value", meaning="meaning")
-    .tab_source_note("Read from lrr.get_table_ii_params() at build time.")
+    .tab_source_note("Read from lrr.ModelParams() at build time.")
     .tab_options(**KIKU_GT)
 )
 ```
@@ -200,7 +200,7 @@ cash_df = pd.DataFrame(
     .fmt_number(columns=["mu"], decimals=4)
     .fmt_number(columns=["phi", "phi_sigma"], decimals=1)
     .fmt_number(columns=["alpha"], decimals=2)
-    .tab_source_note("Read from lrr.get_table_ii_params() at build time.")
+    .tab_source_note("Read from lrr.ModelParams() at build time.")
     .tab_options(**KIKU_GT)
 )
 ```
@@ -228,7 +228,7 @@ from plotnine import (ggplot, aes, geom_line, geom_hline, labs,
                       scale_color_manual, theme_minimal, theme,
                       element_blank, element_line, element_text)
 
-sim = lrr.Dynamics(lrr.get_table_ii_params(), seed=3).simulate_cashflows(480)
+sim = lrr.LongRunRisksModel().simulate_paths(480, seed=3)
 path_df = pd.DataFrame({
     "years": np.arange(480) / 12,
     "realized": 100 * sim["dc"],
@@ -273,8 +273,7 @@ the chapter uses:
 
 ```{python}
 #| code-fold: true
-dyn = lrr.Dynamics(lrr.get_table_ii_params(), seed=0)
-dc_m = dyn.simulate_cashflows(12 * 20000)["dc"]
+dc_m = lrr.LongRunRisksModel().simulate_paths(12 * 20000, seed=0)["dc"].to_numpy()
 
 # NIPA convention: annual level = sum of 12 monthly levels, then log growth
 level = np.exp(np.cumsum(dc_m))
@@ -355,7 +354,7 @@ Answer from memory before opening.
    With no persistent component at all, what AC1 does each aggregation
    convention print, and what does the gap between them tell you about
    the level convention on its own?
-3. Simulate two economies with `lrr.Dynamics(..., seed=7)`, identical
+3. Simulate two economies with `model.simulate_paths(..., seed=7)`, identical
    except $\rho = 0.98$ versus $\rho = 0.90$, and plot
    $\mu_c + x_t$ for both. How does the figure change, and at which
    frequency would you now look for the state in the data?
@@ -364,17 +363,14 @@ Answer from memory before opening.
 
 ```{python}
 #| code-fold: true
-import copy
-
 # Exercise 1: half-lives at lower persistence
 for rho in (0.95, 0.90):
     print(f"rho = {rho}:  half-life = "
           f"{np.log(0.5) / np.log(rho):.1f} months")
 
 # Exercise 2: no persistent component at all
-p0 = copy.deepcopy(lrr.get_table_ii_params())
-p0.cons.phi_x = 0.0
-dc0 = lrr.Dynamics(p0, seed=0).simulate_cashflows(12 * 20000)["dc"]
+dc0 = (lrr.LongRunRisksModel(phi_x=0.0)
+       .simulate_paths(12 * 20000, seed=0)["dc"].to_numpy())
 level0 = np.exp(np.cumsum(dc0))
 ann0 = level0.reshape(-1, 12).sum(axis=1)
 g_lvl = np.diff(np.log(ann0))
@@ -390,10 +386,9 @@ from plotnine import ggplot, aes, geom_line, labs, scale_color_manual, \
     theme_minimal, theme, element_blank, element_line, element_text
 
 T = 480
-x98 = lrr.Dynamics(lrr.get_table_ii_params(), seed=7).simulate_cashflows(T)["x"]
-p90 = copy.deepcopy(lrr.get_table_ii_params())
-p90.cons.rho = 0.90
-x90 = lrr.Dynamics(p90, seed=7).simulate_cashflows(T)["x"]
+x98 = lrr.LongRunRisksModel().simulate_paths(T, seed=7)["x"].to_numpy()
+x90 = (lrr.LongRunRisksModel(rho=0.90)
+       .simulate_paths(T, seed=7)["x"].to_numpy())
 paths = pd.DataFrame({
     "years": np.arange(T) / 12,
     "rho = 0.98": 100 * (cons.mu + x98),
@@ -430,7 +425,7 @@ look for it in shorter moving averages.
 ::: {.firewall}
 **Where each number comes from.** The half-life, the calibration tables,
 the simulated figure, and both AC1 prints come from
-`lrr.get_table_ii_params()` and `lrr.Dynamics(...).simulate_cashflows`
+`lrr.ModelParams()` and `LongRunRisksModel.simulate_paths`
 in the cells above. The data AC1 of 0.41 is computed from
 `data/consumption_annual.csv`. Download the chapter as a notebook (top
 of the page) to rerun everything.

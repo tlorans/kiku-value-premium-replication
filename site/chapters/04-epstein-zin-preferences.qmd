@@ -163,7 +163,7 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-prefs = lrr.get_table_ii_params().prefs
+prefs = lrr.ModelParams().prefs
 pref_df = pd.DataFrame({
     "parameter": ["delta", "gamma", "psi", "theta"],
     "value": [f"{prefs.delta}", f"{prefs.gamma:g}", f"{prefs.psi}",
@@ -176,7 +176,7 @@ pref_df = pd.DataFrame({
     GT(pref_df)
     .tab_header(title="The Table II preference parameters")
     .cols_label(parameter="parameter", value="value", meaning="meaning")
-    .tab_source_note("Read from lrr.get_table_ii_params().prefs at build time.")
+    .tab_source_note("Read from lrr.ModelParams().prefs at build time.")
     .tab_options(**KIKU_GT)
 )
 ```
@@ -302,7 +302,7 @@ collapses to a sum of expected power utilities.
 ::: {.firewall}
 **Where each number comes from.** The values $\delta = 0.999$,
 $\gamma = 10$, $\psi = 1.5$, and $\theta = -27$ come from the tables
-above, read from `lrr.get_table_ii_params().prefs`, and the
+above, read from `lrr.ModelParams().prefs`, and the
 power-utility check uses `lrr.PreferencesParams(gamma=10.0, psi=0.1)`.
 No number on this page is typed by hand. Download the chapter as a
 notebook (top of the page) to rerun everything.

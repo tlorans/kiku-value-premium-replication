@@ -44,15 +44,15 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-solver = lrr.ModelSolver(lrr.get_table_ii_params(), n_x=30, n_s=4).solve()
-tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
+model = lrr.LongRunRisksModel()
+sim = model.simulate(n_samples=300, years=74, seed=0)
 
 data_er = {"growth": 7.81, "value": 13.88, "market": 8.56}   # Kiku, Table I
 names = ("growth", "value", "market")
 df = pd.DataFrame({
     "claim": names,
     "data": [data_er[k] for k in names],
-    "model": [tab["mean_return"][k] for k in names],
+    "model": [sim.expected_returns[k] for k in names],
 })
 (
     GT(df)
@@ -60,9 +60,9 @@ df = pd.DataFrame({
     .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
     .fmt_number(columns=["data", "model"], decimals=2)
     .tab_source_note(f"The value premium is about 6 points in the data and "
-                     f"{tab['value_premium']:.1f} points in the model.")
+                     f"{sim.value_premium:.1f} points in the model.")
     .tab_source_note(f"The CAPM beta ratio of value to growth is "
-                     f"{tab['beta_ratio']:.2f}, so value has the lower beta "
+                     f"{sim.beta_ratio:.2f}, so value has the lower beta "
                      f"and the higher return.")
     .tab_options(**KIKU_GT)
 )

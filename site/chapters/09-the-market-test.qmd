@@ -47,9 +47,9 @@ so it has exactly the length of the 1930 to 2003 sample. The
 construction affects the grading, because a 74-year sample average is
 a noisy draw. The model is asked whether the data look like a typical
 sample from it, and the cross-sample standard deviation says how far a
-typical sample strays. `lrr.simulate_table_vii` reproduces the same
-object. The page runs 300 samples rather than 1,000 to keep the build
-fast, and the reported means barely move.
+typical sample strays. The model's `simulate` method reproduces the
+same object. The page runs 300 samples rather than 1,000 to keep the
+build fast, and the reported means barely move.
 
 ## Hands-on: the data targets
 
@@ -153,20 +153,22 @@ p.show()
 
 ## First check: do the simulated cash flows look like the sample?
 
-`lrr.simulate_cashflow_moments` runs the calibrated endowment forward,
-using twenty artificial 74-year samples here, and reports average
-annual moments:
+Build the model on the Table II calibration, then ask it for cash
+flows alone. The `simulate_cashflows` method runs the calibrated
+endowment forward, using twenty artificial 74-year samples here, and
+returns a table of average annual moments, one row per series:
 
 ```{python}
-mom = lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)
-cons = mom["consumption"]
-mdiv = mom["dividends"]["market"]
+model = lrr.LongRunRisksModel()
+cf = model.simulate_cashflows(n_sims=20, years=74, seed=1).set_index("series")
+
 simulated = pd.DataFrame({
     "series": ["consumption growth (%)", "market dividend growth (%)"],
-    "mean": [cons["E[dc]"], mdiv["E[dd]"]],
-    "sd": [cons["sigma(dc)"], mdiv["sigma(dd)"]],
-    "ac1": [cons["AC1"], np.nan],
-    "corr_dc": [np.nan, mdiv["corr(dc,dd)"]],
+    "mean": [cf.loc["consumption", "mean"], cf.loc["market", "mean"]],
+    "sd": [cf.loc["consumption", "volatility"],
+           cf.loc["market", "volatility"]],
+    "ac1": [cf.loc["consumption", "ac1"], np.nan],
+    "corr_dc": [np.nan, cf.loc["market", "corr_with_consumption"]],
 })
 (
     GT(simulated)
@@ -215,35 +217,34 @@ convention rather than from the calibration. Prices come next.
 
 ## Second check: solve, simulate, and grade both targets
 
-Solve the model on the paper's grid of 30 points for $x$ and 4 for
-$\sigma^2$, which [Chapter 7](07-quadrature-solution.qmd) built. Then
-generate 300 samples of 74 years and average the sample statistics,
-exactly as the data column was constructed:
+Ask the same model for prices. The `simulate` method solves on the
+paper's grid of 30 points for $x$ and 4 for $\sigma^2$, which
+[Chapter 7](07-quadrature-solution.qmd) built, then generates 300
+samples of 74 years and averages the sample statistics, exactly as the
+data column was constructed:
 
 ```{python}
-params = lrr.get_table_ii_params()
-solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
-tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
+sim = model.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)
 ```
 
 ```{python}
-model = pd.DataFrame({
+market_stats = pd.DataFrame({
     "statistic": ["risk-free rate (%)", "market return (%)",
                   "equity premium (%)", "return volatility (%)",
                   "mean log P/D"],
-    "value": [tab["mean_rf"], tab["mean_return"]["market"],
-              tab["mean_return"]["market"] - tab["mean_rf"],
-              tab["volatility"]["market"], tab["mean_log_pd"]["market"]],
-    "se": [tab["mean_rf_se"], tab["mean_return_se"]["market"],
+    "value": [sim.risk_free, sim.expected_returns["market"],
+              sim.expected_returns["market"] - sim.risk_free,
+              sim.volatility["market"], sim.mean_log_pd["market"]],
+    "se": [sim.risk_free_se, sim.expected_returns_se["market"],
            np.nan, np.nan, np.nan],
 })
 (
-    GT(model)
+    GT(market_stats)
     .tab_header(title="Model statistics for the market claim")
     .cols_label(statistic="", value="Value", se="SE")
     .fmt_number(columns=["value", "se"], decimals=2)
     .sub_missing(columns="se", missing_text="")
-    .tab_source_note("Sample statistics from simulate_table_vii, 300 samples "
+    .tab_source_note("Sample statistics from model.simulate, 300 samples "
                      "of 74 years, seed 0. SE is the cross-sample standard "
                      "deviation.")
     .tab_options(**KIKU_GT)
@@ -321,15 +322,15 @@ Answer from memory before opening.
 
 ## Exercises
 
-1. Rerun `simulate_table_vii` with `seed=1` and `seed=2`. How much do
+1. Call `model.simulate` again with `seed=1` and `seed=2`. How much do
    the market return and the safe rate move? Compare the movement to
    the printed SE columns.
 2. Set `n_samples=1000` (a few seconds more) and check how the printed
    means change relative to the 300-sample run.
-3. Call `lrr.simulate_cashflow_moments(n_sims=20, years=74, seed=1)`
-   and read off the value and growth dividend moments it also returns.
-   Which claim's dividends are more volatile, and does volatility alone
-   rank the premia? (Keep your answer; Chapter 10 tests it.)
+3. The cash-flow table also has a row for value and one for growth.
+   Read the mean and the volatility off those rows. Which claim's
+   dividends are more volatile, and does volatility alone rank the
+   premia? (Keep your answer; Chapter 10 tests it.)
 
 ::: {.callout-note collapse="true" title="Check your answer"}
 
@@ -337,23 +338,22 @@ Answer from memory before opening.
 #| code-fold: true
 # Exercise 1: seed-to-seed movement against the SE columns
 for sd in (1, 2):
-    t = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=sd)
-    print(f"seed {sd}: market E[R] = {t['mean_return']['market']:.2f} "
-          f"(SE {t['mean_return_se']['market']:.2f}), "
-          f"rf = {t['mean_rf']:.2f}")
+    s = model.simulate(n_samples=300, years=74, seed=sd)
+    print(f"seed {sd}: market E[R] = {s.expected_returns['market']:.2f} "
+          f"(SE {s.expected_returns_se['market']:.2f}), "
+          f"rf = {s.risk_free:.2f}")
 
 # Exercise 2: more samples
-t1000 = lrr.simulate_table_vii(solver, n_samples=1000, years=74, seed=0)
-print(f"n=300:  market E[R] = {tab['mean_return']['market']:.2f}, "
-      f"premium = {tab['value_premium']:.2f}")
-print(f"n=1000: market E[R] = {t1000['mean_return']['market']:.2f}, "
-      f"premium = {t1000['value_premium']:.2f}")
+s1000 = model.simulate(n_samples=1000, years=74, seed=0)
+print(f"n=300:  market E[R] = {sim.expected_returns['market']:.2f}, "
+      f"premium = {sim.value_premium:.2f}")
+print(f"n=1000: market E[R] = {s1000.expected_returns['market']:.2f}, "
+      f"premium = {s1000.value_premium:.2f}")
 
-# Exercise 3: dividend moments from the chapter's own simulation
+# Exercise 3: dividend moments from the chapter's own cash-flow table
 for name in ("growth", "value"):
-    m = mom["dividends"][name]
-    print(f"{name:6s}: E[dd] = {m['E[dd]']:.2f}%, "
-          f"vol = {m['sigma(dd)']:.2f}%")
+    print(f"{name:6s}: E[dd] = {cf.loc[name, 'mean']:.2f}%, "
+          f"vol = {cf.loc[name, 'volatility']:.2f}%")
 ```
 
 Seed-to-seed movement is on the order of the printed standard errors, which
@@ -370,9 +370,10 @@ exactly that fact.
 **Where each number comes from.** Data numbers are printed by the cells
 above from `data/consumption_annual.csv`, `data/annual_panel.csv`, and
 `data/rf_annual.csv`. Model numbers are printed by
-`simulate_cashflow_moments` and by `ModelSolver(params, n_x=30, n_s=4)`
-plus `simulate_table_vii(..., n_samples=300, seed=0)` on the Table II
-calibration. The remaining columns are the paper's Table VII prints.
+`model.simulate_cashflows(n_sims=20, years=74, seed=1)` and by
+`model.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)` on
+`lrr.LongRunRisksModel()`, which is the Table II calibration. The
+remaining columns are the paper's Table VII prints.
 Download the chapter as a notebook (top of the page) to rerun
 everything.
 :::

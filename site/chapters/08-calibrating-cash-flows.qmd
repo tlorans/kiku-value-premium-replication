@@ -252,15 +252,17 @@ is not reliable.
 
 The package wraps the same arithmetic.
 `lrr.estimate_long_run_leverage` is the one-claim slope, and
-`lrr.calibrate_from_data` turns consumption and dividend-growth series
-into a full set of cash-flow parameters. Look at the signatures. There
+`lrr.calibration.calibrate_from_data` turns consumption and
+dividend-growth series into a full set of cash-flow parameters, and
+`lrr.LongRunRisksModel.from_cashflows` goes straight from those series
+to a model you can solve. Look at the signatures. There
 is no argument that accepts a return, so the functions cannot take
 one. The API itself keeps returns out of the calibration.
 
 ```{python}
 print(round(lrr.estimate_long_run_leverage(y, dgrowth("Market"), window=2), 3))
-div = lrr.calibrate_from_data(y, market=dgrowth("Market"),
-                              frequency="annual", window=2)
+div = lrr.calibration.calibrate_from_data(y, market=dgrowth("Market"),
+                                          frequency="annual", window=2)
 cal = pd.DataFrame({
     "portfolio": list(div),
     "mu": [d.mu for d in div.values()],
@@ -291,7 +293,7 @@ Finally, we map the annual estimates to the solver's monthly frequency.
 Table II's monthly loadings are the inputs to everything downstream:
 
 ```{python}
-params = lrr.get_table_ii_params()
+params = lrr.ModelParams()
 mphi = pd.DataFrame({
     "claim": list(params.dividends),
     "phi": [d.phi for d in params.dividends.values()],
@@ -361,7 +363,7 @@ Answer from memory before opening.
 2. Drop the years 1930 to 1945 from the sample and re-estimate. Does
    value still carry the larger $\tilde\phi$? What happens to the
    growth slope's sign?
-3. Call `lrr.calibrate_from_data(y, market=dgrowth("Market"))` and then
+3. Call `lrr.calibration.calibrate_from_data(y, market=dgrowth("Market"))` and then
    try to pass the market's returns to it in any argument. Confirm
    from the error that there is no place for them.
 
@@ -390,7 +392,7 @@ for claim in ("Growth", "Value", "Market"):
 
 # Exercise 3: no place for a return
 try:
-    lrr.calibrate_from_data(y, returns=dgrowth("Market"))
+    lrr.calibration.calibrate_from_data(y, returns=dgrowth("Market"))
 except TypeError as err:
     print(f"TypeError: {err}")
 ```
@@ -412,7 +414,7 @@ keyword outright.
 cells on this page: the slopes by the eq.-19 OLS and
 `estimate_long_run_leverage` / `calibrate_from_data` on
 `data/consumption_annual.csv` and `data/annual_panel.csv`, the monthly
-loadings by `get_table_ii_params`; Table VI's $-0.38$ / $2.16$ / $0.66$
+loadings by `lrr.ModelParams()`; Table VI's $-0.38$ / $2.16$ / $0.66$
 are the paper's prints. Download the chapter as a notebook (top of the
 page) to rerun everything.
 :::

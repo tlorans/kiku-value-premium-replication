@@ -4,101 +4,148 @@ aliases:
   - /api.html
 ---
 
-All public names are at the package root. Submodules (`lrrcs.model`,
-`lrrcs.empirical`, `lrrcs.calibration`, `lrrcs.implications`) exist for
-organization but are not the documented path. The functions split the
-same way the model does. `calibrate_from_data` measures cash-flow
-exposures on the cash-flow side. `solve_analytical` and
-`compute_asset_pricing_moments` let the household price them on the
-discount-rate side, and the outputs are prices and risk premia
-together.
-
-<!-- API page cross-checked against `lrr.__all__` (43 names)
-     via `python -c "import lrrcs as lrr; print(*lrr.__all__)"`. Sections below
-     cover all 43. New public names must be added here in the same PR. -->
+The package has one main object. You build a `LongRunRisksModel`, you
+solve it, and you read the results. Everything else on this page is
+either a way to build the model from data or a way to get the raw data
+in the first place.
 
 ```python
 import numpy as np
 import polars as pl
 import tidyfinance as tf
 import lrrcs as lrr
+
+model = lrr.LongRunRisksModel()      # the Table II calibration
+res = model.solve()                  # solve on the state grid
+print(res.summary())                 # returns, betas, log P/D
+res.value_premium                    # 5.18
 ```
 
+<!-- API page cross-checked against `lrr.__all__` (20 names)
+     via `python -c "import lrrcs as lrr; print(*lrr.__all__)"`. Sections below
+     cover all of them. New public names must be added here in the same PR. -->
+
 `market` is the time-series claim. `long` and `short` are the two legs
-of a sort. `value` / `growth` remain aliases. `print_long_short_premium`
-prints the spread.
+of a sort. `value` and `growth` remain aliases, so the paper's names
+keep working without any extra arguments.
 
-## Solve and price
+## The model
 
-| Function | Signature | Returns | Example |
-|:---|:---|:---|:---|
-| `get_table_ii_params` | `() -> ModelParams` | Table II calibration | `p = lrr.get_table_ii_params()` |
-| `get_default_params` | `() -> ModelParams` | same as Table II | `p = lrr.get_default_params()` |
-| `get_table_ii_dividends` | `() -> dict` | Table II dividend legs | `lrr.get_table_ii_dividends()["value"]` |
-| `solve_analytical` | `(params=None, mean_zc=3.5) -> AnalyticalSolution` | `A1`, `A2`, `premium_lr`, `mean_log_pd`, prices of risk | `sol = lrr.solve_analytical(p)` |
-| `price_from_loadings` | `(loading, params=None, *, mu=0.0015, phi_sigma=7.5, alpha=0.5) -> dict` | `A1`, `A2`, `premium_lr`, `g_eff`, `gordon_return` for one claim ([Chapter 11](../chapters/11-price-your-own-claim.qmd)) | `out = lrr.price_from_loadings(1.5)` |
-| `print_long_short_premium` | `(sol, long=None, short=None) -> None` | prints premia, spread, `A1`, $\Lambda_\epsilon$ | `lrr.print_long_short_premium(sol)` |
-| `ModelSolver` | `(params=None, n_x=30, n_s=4, n_quad=7)` | numerical solver; `.solve()`, then `compute_asset_pricing_moments` | `s = lrr.ModelSolver(p, n_x=15); s.solve()` |
-| `compute_asset_pricing_moments` | `(solver, long=None, short=None, market=None) -> dict` | `mean_return`, `mean_rf`, `volatility`, `capm_beta`, `mean_log_pd` | `lrr.compute_asset_pricing_moments(s)` |
-| `print_asset_pricing_moments` | `(moments) -> None` | prints the Table VII-style block | `lrr.print_asset_pricing_moments(m)` |
-| `simulate_table_vii` | `(solver=None, n_samples=1000, years=74, seed=0, ...) -> dict` | Table VII sample statistics: annual `mean_return` (+`_se`), `volatility`, `sharpe`, `capm_beta`, `beta_ratio`, `mean_rf`, `mean_pd_level`, `mean_log_pd` | `tab = lrr.simulate_table_vii(s)` |
-| `print_table_vii` | `(tab) -> None` | prints the simulated Table VII block | `lrr.print_table_vii(tab)` |
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `LongRunRisksModel` | `(params=None, *, delta=None, gamma=None, psi=None, mu=None, rho=None, phi_x=None, sigma=None, nu=None, sigma_w=None, claims=None, long=None, short=None, market=None, residual_corr=None)` | The model specification. Defaults to Table II. |
+| `.solve` | `(method="grid", *, n_x=30, n_s=4, max_iter=200_000, tol=1e-10, pd_anchor=None, pd_anchor_c=None)` | `GridResults` or `AnalyticalResults` |
+| `.simulate` | `(n_samples=1000, years=74, *, seed=0, burn_in_years=5, n_x=30, n_s=4)` | `SimulationResults`: the paper's Table VII |
+| `.simulate_cashflows` | `(n_sims=200, years=74, seed=42)` | cash-flow moments only, no prices (Tables III to V) |
+| `.simulate_paths` | `(months, *, seed=None)` | one simulated path of $x_t$, $\sigma_t^2$, and growth rates |
+| `.replace` | `(**kwargs)` | a new model with some arguments changed |
+| `.from_loading` | `(phi, *, mu=0.0015, phi_sigma=7.5, alpha=0.5, name="claim", params=None)` | one synthetic claim from its cash-flow loading ([Chapter 11](../chapters/11-price-your-own-claim.qmd)) |
+| `.from_cashflows` | `(dc, claims=None, *, long=None, short=None, market=None, frequency="annual", window=2, default_phi_sigma=7.5, params=None)` | calibrate the claims from growth series ([Chapter 8](../chapters/08-calibrating-cash-flows.qmd)) |
 
-`solve_analytical` is the fast entry point, and it returns the whole
-equilibrium in one call. `ModelSolver` is the grid solver behind Table
-VII, and
-`simulate_table_vii` turns a solved model into the paper's sample
-statistics (1000 samples of 74 years, aggregated to annual data).
+The two methods answer different questions. `method="grid"` solves the
+Euler equations on the Tauchen-Hussey state space and is where the
+paper's numbers come from. `method="analytical"` is the log-linear
+approximation of Section 3.4. It is instant, and it is the right tool
+for reading loadings and prices of risk.
 
-## Measure loadings
+Solving never changes the model, so a counterfactual is a new model
+rather than an edited one:
 
-| Function | Signature | Returns | Example |
-|:---|:---|:---|:---|
-| `expected_growth_proxy` | `(dc, window=2) -> ndarray` | moving average of lagged consumption growth (the $x_t$ proxy) | `ma = lrr.expected_growth_proxy(dc, 2)` |
-| `filter_expected_growth` | `(dc) -> dict` | Kalman/MLE $\hat x_t$; `mu, rho, q, r, loglik, x` | `f = lrr.filter_expected_growth(dc)` |
-| `estimate_long_run_leverage` | `(dc, dd, window=2) -> float` | $\tilde\phi$: slope of dividend growth on the MA | `lrr.estimate_long_run_leverage(dc, dd)` |
-| `calibrate_from_data` | `(dc, dd_dict=None, frequency="annual", window=2, default_phi_sigma=7.5, *, long=None, short=None, market=None) -> dict[str, DividendParams]` | monthly dividend parameters from annual data; no argument accepts a return | `div = lrr.calibrate_from_data(dc, market=dd)` |
-| `print_calibration_summary` | `(div) -> None` | prints $\mu, \phi, \phi_\sigma, \alpha$ per leg | `lrr.print_calibration_summary(div)` |
-| `simulate_cashflow_moments` | `(n_sims=200, years=74, seed=42, params=None) -> dict` | simulated consumption/dividend moments | `lrr.simulate_cashflow_moments(n_sims=20)` |
-| `print_moments` | `(moments) -> None` | prints them | `lrr.print_moments(m)` |
+```python
+lrr.LongRunRisksModel(gamma=7.5).solve().value_premium
+model.replace(claims={"value": {"phi": 2.6}}).solve().value_premium
+```
+
+A claim given only some of its four fields keeps the rest of the
+calibration. Naming a claim the default does not have replaces the
+whole cross-section instead, and then all four fields are required.
+
+## Results
+
+Every solve and simulation returns an object of this shape. Quantities
+that vary by claim are `pandas.Series` indexed by claim name.
+Quantities that describe the whole model are floats. Returns, premia,
+and rates are annualized and in percent.
+
+| Attribute | On | Meaning |
+|:---|:---|:---|
+| `expected_returns`, `volatility`, `sharpe_ratios`, `capm_betas` | grid, simulation | annual return moments by claim |
+| `mean_log_pd`, `price_dividend` / `pd_levels` | all three | valuation ratios by claim |
+| `risk_free`, `value_premium` | all three | the rate and the long-short spread |
+| `log_pd_spread` | grid | long leg minus short leg log P/D |
+| `converged`, `n_x`, `n_s` | grid | how the solve went |
+| `z_c`, `z`, `stationary`, `x_nodes`, `s2_nodes`, `states()` | grid | the solved valuation functions and the grid under them |
+| `A1`, `A2`, `long_run_premium`, `expected_growth`, `gordon_return` | analytical | loadings and the long-run piece of compensation |
+| `risk_prices`, `Lambda_eta`, `Lambda_eps`, `Lambda_w` | analytical | prices of the three shocks |
+| `expected_returns_se`, `volatility_se`, `mean_log_pd_se`, `beta_ratio` | simulation | cross-sample dispersion and the beta ratio |
+| `summary()` | all three | a formatted table you can print |
+| `to_frame()` | all three | a tidy frame, one row per claim |
+
+`long_short_premium` is an alias of `value_premium` for cross-sections
+that are not value and growth. `to_frame()` and `states()` follow the
+`tidyfinance` backend, so they return polars frames when you set it.
+
+## Measure loadings from cash flows
+
+These stay separate because they are the step that must not see
+returns. Nothing here has an argument that could accept one.
+
+| Function | Signature | Returns |
+|:---|:---|:---|
+| `expected_growth_proxy` | `(dc, window=2) -> ndarray` | moving average of lagged consumption growth (the $x_t$ proxy) |
+| `filter_expected_growth` | `(dc) -> dict` | Kalman/MLE $\hat x_t$; `mu, rho, q, r, loglik, x` |
+| `estimate_long_run_leverage` | `(dc, dd, window=2) -> float` | $\tilde\phi$: slope of dividend growth on the MA |
+| `lrr.calibration.calibrate_from_data` | `(dc, dd_dict=None, frequency="annual", window=2, default_phi_sigma=7.5, *, long=None, short=None, market=None) -> dict[str, DividendParams]` | monthly dividend parameters from annual data |
+
+`LongRunRisksModel.from_cashflows` wraps the last one and hands back a
+model you can solve directly.
 
 ## Data construction
 
-| Function | Signature | Returns | Example |
-|:---|:---|:---|:---|
-| `load_consumption` | `() -> pd.Series` | real per-capita ND+S growth, 1930 to 2003 | `dc = lrr.load_consumption()` |
-| `load_deflator` | `() -> pd.Series` | PCE deflator | `lrr.load_deflator()` |
-| `real_rf_from_monthly` | `(t90, cpi) -> pd.Series` | annual real T-bill from monthly | `lrr.real_rf_from_monthly(t90, cpi)` |
-| `campbell_shiller_annual` | `(ret, retx, defl) -> pd.DataFrame` | real dividends/price index from CRSP returns | `lrr.campbell_shiller_annual(ret, retx, defl)` |
-| `consumption_growth_from_levels` | `(nd, sv, pop) -> pd.Series` | log-diff of per-capita consumption | `lrr.consumption_growth_from_levels(nd, sv, pop)` |
-| `build_annual_panel` | `(refresh=False) -> pl.DataFrame` | growth/value/market panel, 1930 to 2003 | `panel = lrr.build_annual_panel()` |
-| `table_i` | `(bm, start=1930, end=2003) -> pd.DataFrame` | Table I statistics | `lrr.table_i(panel)` |
-| `table_vi_data` | `(bm, dc, start=1930, end=2003) -> pd.DataFrame` | Table VI loadings | `lrr.table_vi_data(panel, dc)` |
-| `EmpiricalDataError` | exception | raised when WRDS credentials are missing | `try: ... except lrr.EmpiricalDataError:` |
+| Function | Signature | Returns |
+|:---|:---|:---|
+| `load_consumption` | `() -> pd.Series` | real per-capita ND+S growth, 1930 to 2003 |
+| `load_deflator` | `() -> pd.Series` | PCE deflator |
+| `real_rf_from_monthly` | `(t90, cpi) -> pd.Series` | annual real T-bill from monthly |
+| `campbell_shiller_annual` | `(ret, retx, defl) -> pd.DataFrame` | real dividends and price index from CRSP returns |
+| `build_annual_panel` | `(refresh=False, start=1930, end=2003) -> pl.DataFrame` | growth/value/market panel |
+| `table_i` | `(bm, start=1930, end=2003) -> pd.DataFrame` | Table I statistics |
+| `table_vi_data` | `(bm, dc, start=1930, end=2003) -> pd.DataFrame` | Table VI loadings |
+| `EmpiricalDataError` | exception | raised when WRDS credentials are missing |
+
+`lrr.empirical.consumption_growth_from_levels(nd, sv, pop)` builds the
+consumption series from its NIPA components.
 
 ## Figures
 
-| Function | Signature | Returns | Example |
-|:---|:---|:---|:---|
-| `figure1` | `(path)` | paper Figure 1 | `lrr.figure1("f1.pdf")` |
-| `figure2` | `(path)` | paper Figure 2 | `lrr.figure2("f2.pdf")` |
-| `figure3` | `(path)` | paper Figure 3 | `lrr.figure3("f3.pdf")` |
-| `figure4` | `(path)` | paper Figure 4 | `lrr.figure4("f4.pdf")` |
-| `figure5` | `(path)` | paper Figure 5 | `lrr.figure5("f5.pdf")` |
-| `figure_lr_premium` | `(path)` | premium-vs-leverage line | `lrr.figure_lr_premium("lr.pdf")` |
-| `figure_mean_pd` | `(solver, path)` | mean P/D by claim | `lrr.figure_mean_pd(s, "pd.pdf")` |
+The paper's figures live in the subpackages, since the chapters build
+their own plots with plotnine.
 
-## Classes
+| Function | Signature |
+|:---|:---|
+| `lrr.empirical.figure1` … `figure4` | `(data, path)` |
+| `lrrcs.implications.figures.figure5` | `(path, years=1000, seed=1)` |
+| `lrrcs.implications.figures.figure_lr_premium` | `(path)` |
+| `lrrcs.implications.figures.figure_mean_pd` | `(results, path)` |
 
-`ModelParams`, `PreferencesParams`, `ConsumptionParams`,
-`DividendParams`, `AnalyticalSolution`, `EpsteinZinPreferences`,
-`Dynamics`, `StateGrid`, `ModelSolver`, and `resolve_legs` form the
-object layer under the functions above. The flat functions are the
-documented path.
+## Parameters and errors
 
-A new sort uses the same loop as
-[Chapter 8](../chapters/08-calibrating-cash-flows.qmd). Consumption and
-two dividend legs go in, and no returns enter.
+`ModelParams`, `PreferencesParams`, `ConsumptionParams`, and
+`DividendParams` are the parameter dataclasses. `ModelParams()` is the
+Table II calibration, so you rarely need to build one by hand.
+`SolverDivergenceError` is raised when a fixed point leaves the
+plausible range, which usually means the grid is too coarse for the
+calibration. `EmpiricalDataError` is raised when WRDS credentials are
+missing, with a message telling you to call `tf.set_wrds_credentials()`.
+
+The subpackages `lrrcs.model`, `lrrcs.implications`,
+`lrrcs.calibration`, and `lrrcs.empirical` hold the machinery under all
+of this. They are importable, and the two calibration and data entries
+above are the only places the documented path reaches into them.
+
+## A new sort, end to end
+
+Consumption and two dividend legs go in. No returns enter.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()
@@ -111,24 +158,16 @@ def dd(claim):
         .to_numpy()
     )
 
-div = lrr.calibrate_from_data(
+model = lrr.LongRunRisksModel.from_cashflows(
     dc,
-    frequency="annual",
-    window=2,
     long=dd("Value"),
     short=dd("Growth"),
     market=dd("Market"),
+    frequency="annual",
+    window=2,
 )
-lrr.print_calibration_summary(div)
+print(model.solve().summary())
 ```
 
-`lrr.calibrate_from_data(..., long=..., short=..., market=...)` takes
-consumption growth and the two legs. There is no argument for returns,
-by design, so the Euler equation stays a test.
-
-```python
-lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
-```
-
-Missing WRDS credentials raise `EmpiricalDataError` with a message to
-call `tf.set_wrds_credentials()`.
+The premium that comes out was never targeted, which is what makes the
+comparison with the data a test rather than a fit.

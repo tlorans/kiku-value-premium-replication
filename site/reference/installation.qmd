@@ -36,20 +36,29 @@ The core install already solves the Table II general equilibrium
 downloads:
 
 ```{python}
-params = lrr.get_table_ii_params()
-lrr.print_long_short_premium(lrr.solve_analytical(params))
+model = lrr.LongRunRisksModel()
+print(model.solve(method="analytical").summary())
+```
+
+Solving the model numerically is the same three lines with the default
+method. It takes a few seconds:
+
+```{python}
+res = model.solve()
+print(res.summary())
 ```
 
 ## Verified from a clean environment
 
-We checked the install on 2026-08-28 on Windows, in a fresh `uv` venv
-(Python 3.12.12) with no cached packages. The editable install took 5
-seconds, and the quickstart plus the
-[Price your own claim](../chapters/11-price-your-own-claim.qmd) snippet
-took 4.3 seconds, so install to first valuation took about 10 seconds.
-`tidyfinance` imports with the core install, but the WRDS rebuild below
-is the only step that uses it. You can re-verify any time with
-`bash docs/_baseline/clean_venv_check.sh`.
+We check the install from a fresh `uv` virtual environment with no
+cached packages. The editable install and the quickstart above together
+take a few seconds, so you go from clone to a first valuation almost
+immediately. The analytical solution is instant and the numerical one
+takes a few seconds. `tidyfinance` imports with the core install, but
+the WRDS rebuild below is the only step that uses it. The weekly
+`freshness.yml` workflow re-runs the whole site from an empty
+environment, so the claim on this page is checked continuously rather
+than on one date.
 
 ## Extras
 

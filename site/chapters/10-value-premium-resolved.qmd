@@ -130,25 +130,24 @@ grid are the same as in the market test, and the value and growth rows
 simply come along:
 
 ```{python}
-params = lrr.get_table_ii_params()
-solver = lrr.ModelSolver(params, n_x=30, n_s=4).solve()
-tab = lrr.simulate_table_vii(solver, n_samples=300, years=74, seed=0)
+model = lrr.LongRunRisksModel()
+sim = model.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)
 
-print(f"risk-free rate : {tab['mean_rf']:.2f}%  (SE {tab['mean_rf_se']:.2f})")
-print(f"value premium  : {tab['value_premium']:.2f}%")
-print(f"CAPM beta ratio (value/growth): {tab['beta_ratio']:.2f}")
+print(f"risk-free rate : {sim.risk_free:.2f}%  (SE {sim.risk_free_se:.2f})")
+print(f"value premium  : {sim.value_premium:.2f}%")
+print(f"CAPM beta ratio (value/growth): {sim.beta_ratio:.2f}")
 
-rows = [tab["short"], tab["long"], tab["market"]]
+order = [sim.legs.short, sim.legs.long, sim.legs.market]
 (
     GT(pd.DataFrame({
-        "portfolio": rows,
-        "er": [tab["mean_return"][n] for n in rows],
-        "se": [tab["mean_return_se"][n] for n in rows],
-        "vol": [tab["volatility"][n] for n in rows],
-        "sharpe": [tab["sharpe"][n] for n in rows],
-        "beta": [tab["capm_beta"][n] for n in rows],
-        "pd_level": [tab["mean_pd_level"][n] for n in rows],
-        "log_pd": [tab["mean_log_pd"][n] for n in rows],
+        "portfolio": order,
+        "er": [sim.expected_returns[n] for n in order],
+        "se": [sim.expected_returns_se[n] for n in order],
+        "vol": [sim.volatility[n] for n in order],
+        "sharpe": [sim.sharpe_ratios[n] for n in order],
+        "beta": [sim.capm_betas[n] for n in order],
+        "pd_level": [sim.pd_levels[n] for n in order],
+        "log_pd": [sim.mean_log_pd[n] for n in order],
     }))
     .tab_header(title="Table VII by simulation")
     .cols_label(portfolio="", er="E[R] %", se="SE", vol="Vol %",
@@ -221,26 +220,26 @@ gains the most when the rate falls.
 If the explanation is right, the premium depends on one input. Set
 value's long-run loading equal to growth's 2.6; leave everything else
 alone, including value's volatility loading $\varphi_\sigma$ and its
-short-run correlation $\alpha$; then re-solve. First, compute the
+short-run correlation $\alpha$; then re-solve. The counterfactual is
+one line. `model.replace` returns a new model with the named claim
+parameter overridden and every other parameter carried over unchanged,
+and the model it was called on is left alone. First, compute the
 analytical long-run compensation of
 [Chapter 6](06-log-linear-solution.qmd):
 
 ```{python}
-import copy
+phi_growth = model.params.dividends["growth"].phi  # 2.6
+model_eq = model.replace(claims={"value": {"phi": phi_growth}})
+res_eq = model_eq.solve(method="analytical")
 
-params_eq = copy.deepcopy(params)
-params_eq.dividends["value"].phi = params.dividends["growth"].phi  # 2.6
-sol_eq = lrr.solve_analytical(params_eq)
+print(f"value-growth spread from long-run risks: {res_eq.value_premium:.2f}%")
 
-spread_eq = sol_eq.premium_lr["value"] - sol_eq.premium_lr["growth"]
-print(f"value-growth spread from long-run risks: {spread_eq:.2%}")
-
-claims = list(sol_eq.premium_lr)
+claims = list(res_eq.claims)
 (
     GT(pd.DataFrame({
         "claim": claims,
-        "prem": [sol_eq.premium_lr[n] * 100 for n in claims],
-        "a1": [sol_eq.A1[n] for n in claims],
+        "prem": [res_eq.long_run_premium[n] for n in claims],
+        "a1": [res_eq.A1[n] for n in claims],
     }))
     .tab_header(title="Analytical long-run premia with equal loadings")
     .cols_label(claim="", prem="long-run premium %", a1="A1")
@@ -264,10 +263,9 @@ Euler-equation simulation has no linearization anchor, so ask it the
 same question:
 
 ```{python}
-solver_eq = lrr.ModelSolver(params_eq, n_x=30, n_s=4).solve()
-tab_eq = lrr.simulate_table_vii(solver_eq, n_samples=300, years=74, seed=0)
-print(f"simulated value premium, equal phi : {tab_eq['value_premium']:5.2f}%")
-print(f"simulated value premium, Table II  : {tab['value_premium']:5.2f}%")
+sim_eq = model_eq.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)
+print(f"simulated value premium, equal phi : {sim_eq.value_premium:5.2f}%")
+print(f"simulated value premium, Table II  : {sim.value_premium:5.2f}%")
 ```
 
 The premium falls from 5.38 to 0.03 percent, and the household never
@@ -286,11 +284,6 @@ news about $x_t$, because the mechanism works through those parts:
 
 ```{python}
 #| code-fold: true
-def lr_spread(p):
-    sol = lrr.solve_analytical(p)
-    return (sol.premium_lr["market"] * 100,
-            (sol.premium_lr["value"] - sol.premium_lr["growth"]) * 100)
-
 grids = {
     "rho": ("persistence of x_t", [0.95, 0.98, 0.99]),
     "psi": ("EIS", [1.2, 1.5, 2.0]),
@@ -301,18 +294,15 @@ grids = {
 rows = []
 for attr, (label, values) in grids.items():
     for v in values:
-        p = copy.deepcopy(params)
-        if attr == "rho":
-            p.cons.rho = v
-        elif attr == "psi":
-            p.prefs.psi = v
-        elif attr == "gamma":
-            p.prefs.gamma = v
+        if attr in ("rho", "psi", "gamma"):
+            variant = model.replace(**{attr: v})
         else:
-            p.dividends[attr.removeprefix("phi_")].phi = v
-        market, spread = lr_spread(p)
+            claim = attr.removeprefix("phi_")
+            variant = model.replace(claims={claim: {"phi": v}})
+        res = variant.solve(method="analytical")
         rows.append({"parameter": label, "value": v,
-                     "market": market, "spread": spread})
+                     "market": res.long_run_premium["market"],
+                     "spread": res.value_premium})
 
 (
     GT(pd.DataFrame(rows), rowname_col="value", groupname_col="parameter")
@@ -343,10 +333,9 @@ calibration and the same seed:
 #| code-fold: true
 grid_rows = []
 for n_x in (30, 60, 100):
-    s = lrr.ModelSolver(params, n_x=n_x, n_s=4).solve()
-    t = lrr.simulate_table_vii(s, n_samples=300, years=74, seed=0)
-    grid_rows.append({"n_x": n_x, "vp": t["value_premium"],
-                      "rf": t["mean_rf"], "ratio": t["beta_ratio"]})
+    t = model.simulate(n_samples=300, years=74, seed=0, n_x=n_x, n_s=4)
+    grid_rows.append({"n_x": n_x, "vp": t.value_premium,
+                      "rf": t.risk_free, "ratio": t.beta_ratio})
 
 (
     GT(pd.DataFrame(grid_rows))
@@ -455,24 +444,19 @@ Answer from memory before opening.
 ```{python}
 #| code-fold: true
 # Exercise 1: raise growth's loading instead
-p_hi = copy.deepcopy(params)
-p_hi.dividends["growth"].phi = 6.2
-t_hi = lrr.simulate_table_vii(
-    lrr.ModelSolver(p_hi, n_x=30, n_s=4).solve(),
-    n_samples=300, years=74, seed=0)
-print(f"premium with both phi = 6.2: {t_hi['value_premium']:.2f}")
-print(f"market E[R]: {t_hi['mean_return']['market']:.2f} "
-      f"(Table VII chapter: {tab['mean_return']['market']:.2f})")
+t_hi = model.replace(claims={"growth": {"phi": 6.2}}).simulate(
+    n_samples=300, years=74, seed=0, n_x=30, n_s=4)
+print(f"premium with both phi = 6.2: {t_hi.value_premium:.2f}")
+print(f"market E[R]: {t_hi.expected_returns['market']:.2f} "
+      f"(Table VII chapter: {sim.expected_returns['market']:.2f})")
 
 # Exercise 2: the largest spread in the one-at-a-time grid
 print(pd.DataFrame(rows).sort_values("spread", ascending=False).head(3))
 
 # Exercise 3: refining the volatility dimension at n_x = 60
-t6 = lrr.simulate_table_vii(
-    lrr.ModelSolver(params, n_x=60, n_s=6).solve(),
-    n_samples=300, years=74, seed=0)
+t6 = model.simulate(n_samples=300, years=74, seed=0, n_x=60, n_s=6)
 print(f"vp, n_x=60 n_s=4: {grid_rows[1]['vp']:.2f}")
-print(f"vp, n_x=60 n_s=6: {t6['value_premium']:.2f}")
+print(f"vp, n_x=60 n_s=6: {t6.value_premium:.2f}")
 ```
 
 Equalizing from above kills the value premium just as equalizing from
@@ -490,8 +474,9 @@ refining the x grid, so x is the state that is hard to discretize.
 ::: {.firewall}
 **Where each number comes from.** Data numbers are printed by the first
 cell from `data/annual_panel.csv`. Every model number is printed by
-`ModelSolver` + `simulate_table_vii` (300 samples, seed 0) or
-`solve_analytical` on `get_table_ii_params`, including the equal-$\phi$
+`model.simulate(n_samples=300, seed=0)` or by
+`model.solve(method="analytical")` on `lrr.LongRunRisksModel()`, which
+is the Table II calibration, including the equal-$\phi$
 counterfactual, the robustness grid, and the grid refinement cell. The
 5.3, the 0.92, the decomposition in footnote 10, and the 3.10/3.24/3.65
 valuations are the paper's prints. Download the chapter as a notebook

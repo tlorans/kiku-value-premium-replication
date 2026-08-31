@@ -102,9 +102,9 @@ order, the spread in long-run loadings times $\Lambda_\epsilon$
 
 ## Hands-on: solving the equilibrium
 
-`solve_analytical` computes every object above from the Table II
-calibration. No returns enter anywhere. The inputs are preferences and
-cash-flow dynamics only.
+`model.solve(method="analytical")` computes every object above from the
+Table II calibration. No returns enter anywhere. The inputs are
+preferences and cash-flow dynamics only.
 
 ```{python}
 import pandas as pd
@@ -116,18 +116,17 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-params = lrr.get_table_ii_params()
-sol = lrr.solve_analytical(params)
+model = lrr.LongRunRisksModel()
+res = model.solve(method="analytical")
 
-spread = sol.premium_lr["value"] - sol.premium_lr["growth"]
-print(f"value-growth spread from long-run risks: {spread:.2%}")
-print(f"price of long-run risk Lambda_eps = {sol.Lambda_eps:.2f}")
+print(f"value-growth spread from long-run risks: {res.value_premium:.2f} %")
+print(f"price of long-run risk Lambda_eps = {res.Lambda_eps:.2f}")
 
-claims = list(sol.premium_lr)
+claims = list(res.claims)
 premia = pd.DataFrame({
     "claim": claims,
-    "A1": [sol.A1[k] for k in claims],
-    "premium": [100 * sol.premium_lr[k] for k in claims],
+    "A1": [res.A1[k] for k in claims],
+    "premium": [res.long_run_premium[k] for k in claims],
 })
 (
     GT(premia)
@@ -135,7 +134,8 @@ premia = pd.DataFrame({
     .cols_label(claim="", A1="A1", premium="long-run premium (% per year)")
     .fmt_number(columns="A1", decimals=1)
     .fmt_number(columns="premium", decimals=2)
-    .tab_source_note("Computed by solve_analytical on the Table II calibration.")
+    .tab_source_note('Computed by model.solve(method="analytical") on the '
+                     "Table II calibration.")
     .tab_options(**KIKU_GT)
 )
 ```
@@ -173,17 +173,21 @@ from plotnine import (ggplot, aes, geom_line, geom_point, geom_text, labs,
                       theme_minimal, theme, element_blank, element_line,
                       element_text)
 
+def long_run_premium(phi):
+    """Solve the log-linear model for one synthetic claim of leverage phi."""
+    one = lrr.LongRunRisksModel.from_loading(float(phi))
+    return one.solve(method="analytical").long_run_premium["claim"]
+
 phis = np.linspace(0.5, 7.5, 40)
 line_df = pd.DataFrame({
     "phi": phis,
-    "premium": [lrr.price_from_loadings(float(p))["premium_lr"] * 100
-                for p in phis],
+    "premium": [long_run_premium(p) for p in phis],
 })
 
 marks = []
 for name, phi, dy in (("growth", 2.6, -0.45), ("market", 2.8, 0.45),
                       ("value", 6.2, -0.45)):
-    y = lrr.price_from_loadings(phi)["premium_lr"] * 100
+    y = long_run_premium(phi)
     marks.append({"name": name, "phi": phi, "premium": y,
                   "label_x": phi + 0.1, "label_y": y + dy})
 pts = pd.DataFrame(marks)
@@ -208,9 +212,10 @@ p.show()
 ::: {.firewall}
 **Where each number comes from.** Every table and figure in this
 chapter is computed by the code cells above, which run when the site
-is built: `solve_analytical` and `price_from_loadings` on the Table II
-calibration (`get_table_ii_params`). Download the chapter as a notebook
-(top of the page) to rerun everything.
+is built: `LongRunRisksModel().solve(method="analytical")` on the
+Table II calibration, and the same solve on one synthetic claim per
+point of the figure. Download the chapter as a notebook (top of the
+page) to rerun everything.
 :::
 
 ## Takeaways
@@ -252,32 +257,29 @@ Answer from memory before opening.
 2. Set $\psi = 0.9$ and recompute the market's $A_1$. What happens to
    the sign, and what does the sign change mean economically for how
    prices react to good news about growth?
-3. Use `price_from_loadings` to find the leverage $\phi$ at which a
-   claim's long-run premium equals zero. Why is it $1/\psi$ and not 0?
+3. Use `lrr.LongRunRisksModel.from_loading` to find the leverage $\phi$
+   at which a claim's long-run premium equals zero. Why is it $1/\psi$
+   and not 0?
 
 ::: {.callout-note collapse="true" title="Check your answer"}
 
 ```{python}
 #| code-fold: true
-import copy
-
 # Exercise 1: value elasticity at rho = 0.95
-p95 = copy.deepcopy(params)
-p95.cons.rho = 0.95
-print(f"A1 value, rho = 0.98: {sol.A1['value']:.1f}")
-print(f"A1 value, rho = 0.95: {lrr.solve_analytical(p95).A1['value']:.1f}")
+res95 = model.replace(rho=0.95).solve(method="analytical")
+print(f"A1 value, rho = 0.98: {res.A1['value']:.1f}")
+print(f"A1 value, rho = 0.95: {res95.A1['value']:.1f}")
 
 # Exercise 2: market elasticity at psi = 0.9
-p09 = copy.deepcopy(params)
-p09.prefs.psi = 0.9
-print(f"A1 market, psi = 1.5: {sol.A1['market']:.1f}")
-print(f"A1 market, psi = 0.9: {lrr.solve_analytical(p09).A1['market']:.1f}")
+res09 = model.replace(psi=0.9).solve(method="analytical")
+print(f"A1 market, psi = 1.5: {res.A1['market']:.1f}")
+print(f"A1 market, psi = 0.9: {res09.A1['market']:.1f}")
 
 # Exercise 3: the zero-premium loading
 for phi_v in (0.5, 1/1.5, 0.8):
-    out = lrr.price_from_loadings(phi_v)
-    print(f"phi = {phi_v:.3f}:  A1 = {out['A1']:7.2f}   "
-          f"premium_lr = {100 * out['premium_lr']:+.3f} %/yr")
+    one = lrr.LongRunRisksModel.from_loading(phi_v).solve(method="analytical")
+    print(f"phi = {phi_v:.3f}:  A1 = {one.A1['claim']:7.2f}   "
+          f"long-run premium = {one.long_run_premium['claim']:+.3f} %/yr")
 ```
 
 About two thirds of the elasticity survives the drop in persistence, and the
