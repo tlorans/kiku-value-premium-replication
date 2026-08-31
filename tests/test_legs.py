@@ -1,15 +1,8 @@
 import numpy as np
 
+import lrrcs as lrr
 from lrrcs.calibration import calibrate_from_data
-from lrrcs.model import (
-    ModelParams,
-    get_table_ii_params,
-    resolve_legs,
-    solve_analytical,
-    print_long_short_premium,
-    ModelSolver,
-)
-from lrrcs.implications import compute_asset_pricing_moments
+from lrrcs.model import resolve_legs
 
 
 def test_resolve_legs_paper_aliases():
@@ -46,28 +39,50 @@ def test_calibrate_from_data_long_short_kwargs():
     assert out["long"].mu > out["short"].mu
 
 
-def test_analytical_and_moments_accept_long_short():
-    paper = get_table_ii_params()
-    params = ModelParams(
-        prefs=paper.prefs,
-        cons=paper.cons,
-        dividends={
+def _long_short_model(**kwargs):
+    """The paper calibration under long/short/market names."""
+    paper = lrr.ModelParams()
+    return lrr.LongRunRisksModel(
+        claims={
             "short": paper.dividends["growth"],
             "long": paper.dividends["value"],
             "market": paper.dividends["market"],
         },
+        **kwargs,
     )
-    sol = solve_analytical(params)
-    assert sol.premium_lr["long"] > sol.premium_lr["short"]
-    print_long_short_premium(sol)
-    solver = ModelSolver(params, n_x=15, n_s=4)
-    solver.solve()
-    mom = compute_asset_pricing_moments(solver)
-    assert mom["long"] == "long" and mom["short"] == "short"
-    assert mom["mean_return"]["long"] > mom["mean_return"]["short"]
-    assert "value_premium" in mom and "long_short_premium" in mom
+
+
+def test_model_resolves_long_short_names():
+    model = _long_short_model()
+    assert model.legs == ("long", "short", "market")
+
+    res = model.solve(method="analytical")
+    assert res.long_run_premium["long"] > res.long_run_premium["short"]
+    assert "Long-short premium" in res.summary().as_text()
+
+    grid = model.solve(n_x=15, n_s=4)
+    assert grid.expected_returns["long"] > grid.expected_returns["short"]
+    assert grid.value_premium == grid.long_short_premium
+
+
+def test_model_accepts_explicit_leg_names():
+    paper = lrr.ModelParams()
+    model = lrr.LongRunRisksModel(
+        claims={
+            "weak": paper.dividends["growth"],
+            "robust": paper.dividends["value"],
+            "mkt": paper.dividends["market"],
+        },
+        long="robust",
+        short="weak",
+        market="mkt",
+    )
+    assert model.legs == ("robust", "weak", "mkt")
+    res = model.solve(method="analytical")
+    assert res.value_premium > 0
 
 
 def test_paper_keys_still_work():
-    sol = solve_analytical(get_table_ii_params())
-    assert sol.premium_lr["value"] > sol.premium_lr["growth"]
+    res = lrr.LongRunRisksModel().solve(method="analytical")
+    assert res.long_run_premium["value"] > res.long_run_premium["growth"]
+    assert "Value premium" in res.summary().as_text()

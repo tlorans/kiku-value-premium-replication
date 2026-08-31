@@ -4,59 +4,90 @@ Companion to tidyfinance. Documented import::
 
     import tidyfinance as tf
     import lrrcs as lrr
+
+Solve the Kiku (2006) model and read its numbers::
+
+    model = lrr.LongRunRisksModel()
+    res = model.solve()
+    print(res.summary())
+    res.value_premium
+
+    sim = model.simulate(n_samples=1000, years=74, seed=0)
+    print(sim.summary())
+
+The subpackages ``lrrcs.model``, ``lrrcs.implications``,
+``lrrcs.calibration``, and ``lrrcs.empirical`` hold the machinery; the
+names below are the documented surface.
 """
 
 from __future__ import annotations
 
-import importlib
-import pkgutil
-import types
+__version__ = "0.6.0"
 
-__version__ = "0.5.0"
-
-_EXCLUDE = {"annotations"}
-__all__: list[str] = []
-_seen: set[str] = set()
-
-if "__path__" in globals():
-    for _finder, _module_name, _ispkg in pkgutil.iter_modules(__path__):
-        if _module_name.startswith("_"):
-            continue
-        _module = importlib.import_module(f".{_module_name}", package=__name__)
-        for _name in dir(_module):
-            if _name.startswith("__") and _name.endswith("__"):
-                continue
-            if _name.startswith("_"):
-                continue
-            if _name in _EXCLUDE or _name in _seen:
-                continue
-            _obj = getattr(_module, _name)
-            if not isinstance(_obj, (types.FunctionType, type)):
-                continue
-            if not getattr(_obj, "__module__", "").startswith(__name__):
-                continue
-            globals()[_name] = _obj
-            __all__.append(_name)
-            _seen.add(_name)
+from . import calibration, empirical
+from .api import LongRunRisksModel
+from .calibration import (
+    estimate_long_run_leverage,
+    expected_growth_proxy,
+    filter_expected_growth,
+)
+from .empirical import (
+    EmpiricalDataError,
+    build_annual_panel,
+    campbell_shiller_annual,
+    load_consumption,
+    load_deflator,
+    real_rf_from_monthly,
+    table_i,
+    table_vi_data,
+)
+from .model.legs import Legs
+from .model.params import (
+    ConsumptionParams,
+    DividendParams,
+    ModelParams,
+    PreferencesParams,
+)
+from .model.solver import SolverDivergenceError
+from .results import AnalyticalResults, GridResults, SimulationResults, Summary
 
 from ._backend import use_backend as _use_backend
 
-_BACKEND_WRAPPED = ("build_annual_panel", "table_i", "table_vi_data")
-for _name in _BACKEND_WRAPPED:
-    if _name not in globals():
-        raise RuntimeError(f"{_name!r} missing from public API")
+# Frames cross the public boundary in whichever backend tidyfinance is set to.
+for _name in ("build_annual_panel", "table_i", "table_vi_data"):
     globals()[_name] = _use_backend(globals()[_name])
+del _name, _use_backend
 
-del importlib, pkgutil, types
-del _seen
-del _use_backend
-for _leaked in (
-    "_finder",
-    "_ispkg",
-    "_module_name",
-    "_module",
-    "_name",
-    "_obj",
-    "_leaked",
-):
-    globals().pop(_leaked, None)
+__all__ = [
+    # the model
+    "LongRunRisksModel",
+    # parameters
+    "ModelParams",
+    "PreferencesParams",
+    "ConsumptionParams",
+    "DividendParams",
+    "Legs",
+    # results
+    "GridResults",
+    "AnalyticalResults",
+    "SimulationResults",
+    "Summary",
+    # errors
+    "SolverDivergenceError",
+    "EmpiricalDataError",
+    # measuring loadings from cash flows
+    "estimate_long_run_leverage",
+    "expected_growth_proxy",
+    "filter_expected_growth",
+    # data construction
+    "build_annual_panel",
+    "table_i",
+    "table_vi_data",
+    "load_consumption",
+    "load_deflator",
+    "real_rf_from_monthly",
+    "campbell_shiller_annual",
+    # subpackages
+    "calibration",
+    "empirical",
+]

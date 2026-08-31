@@ -6,13 +6,24 @@ of renaming a profitability or size leg ``value``.
 """
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, NamedTuple
 
 ROLE_ALIASES = {
     "long": ("long", "value"),
     "short": ("short", "growth"),
     "market": ("market",),
 }
+
+
+class Legs(NamedTuple):
+    """The claim names playing the long, short, and market roles.
+
+    ``market`` is ``None`` when the model prices no market claim.
+    """
+
+    long: str
+    short: str
+    market: str | None
 
 
 def resolve_legs(

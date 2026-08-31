@@ -1,4 +1,9 @@
-from .legs import ROLE_ALIASES, resolve_legs
+"""Model internals: parameters, dynamics, and the two solution engines.
+
+The documented way in is :class:`lrrcs.LongRunRisksModel`; the names here
+are the machinery behind it.
+"""
+from .legs import ROLE_ALIASES, Legs, resolve_legs
 from .params import (
     ConsumptionParams,
     DividendParams,
@@ -10,16 +15,17 @@ from .params import (
 from .preferences import EpsteinZinPreferences
 from .dynamics import Dynamics
 from .discretization import StateGrid
-from .solver import ModelSolver
+from .solver import ModelSolver, SolverDivergenceError
 from .analytical import (
+    DEFAULT_PD_ANCHOR,
+    PAPER_PD_ANCHORS,
     AnalyticalSolution,
-    print_long_short_premium,
-    price_from_loadings,
     solve_analytical,
 )
 
 __all__ = [
     "ROLE_ALIASES",
+    "Legs",
     "resolve_legs",
     "ModelParams",
     "PreferencesParams",
@@ -31,8 +37,9 @@ __all__ = [
     "Dynamics",
     "StateGrid",
     "ModelSolver",
+    "SolverDivergenceError",
     "AnalyticalSolution",
     "solve_analytical",
-    "price_from_loadings",
-    "print_long_short_premium",
+    "PAPER_PD_ANCHORS",
+    "DEFAULT_PD_ANCHOR",
 ]

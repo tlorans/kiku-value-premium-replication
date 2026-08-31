@@ -95,6 +95,10 @@ class ModelParams:
     residual_corr_gv: float = 0.20
     residual_corr_gm: float = 0.80
     residual_corr_vm: float = 0.45
+    # Residual correlations for claims outside the paper's three portfolios,
+    # keyed by the pair of claim names: {("high", "low"): 0.2}. Pairs listed
+    # here win over the residual_corr_* attributes above.
+    residual_corr: Dict[frozenset, float] | None = None
 
     def __post_init__(self):
         if not self.dividends:
@@ -103,6 +107,11 @@ class ModelParams:
                 "growth": DividendParams(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
                 "value":  DividendParams(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
                 "market": DividendParams(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
+            }
+        if self.residual_corr:
+            self.residual_corr = {
+                frozenset(pair): float(rho)
+                for pair, rho in self.residual_corr.items()
             }
 
 

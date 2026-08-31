@@ -25,6 +25,9 @@ After calling `solver.solve()` the valuation functions live in:
     solver.z["growth"]  (growth equity claim)
     …
 and the stationary distribution of the Markov chain is in `solver.stationary`.
+
+This is the engine behind ``LongRunRisksModel.solve()``, which builds the
+solver, runs it, and presents the same objects on a results object.
 """
 from __future__ import annotations
 import numpy as np

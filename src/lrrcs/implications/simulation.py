@@ -65,14 +65,10 @@ def simulate_table_vii(
     ratio ``beta_ratio``; and ``*_se`` entries holding cross-sample
     standard deviations of the return means.
 
-    Examples
-    --------
-    ```python
-    import lrrcs as lrr
-    solver = lrr.ModelSolver(lrr.get_table_ii_params(), n_x=30, n_s=4).solve()
-    tab = lrr.simulate_table_vii(solver, n_samples=1000, years=74, seed=0)
-    lrr.print_table_vii(tab)
-    ```
+    Notes
+    -----
+    Internal engine behind ``LongRunRisksModel.simulate()``; the results
+    object presents these numbers as attributes.
     """
     if solver is None:
         solver = ModelSolver().solve()
@@ -228,31 +224,3 @@ def simulate_table_vii(
     out["long_short_premium"] = out["value_premium"]
     return out
 
-
-def print_table_vii(tab: dict) -> None:
-    """Pretty-print the simulated Table VII statistics."""
-    long_key, short_key, market_key = tab["long"], tab["short"], tab["market"]
-    print("=" * 68)
-    print(f"Table VII by simulation "
-          f"({tab['n_samples']} samples x {tab['years']} years, annual data)")
-    print("=" * 68)
-    print(f"Risk-free rate : {tab['mean_rf']:6.2f} %  "
-          f"(SE {tab['mean_rf_se']:.2f})")
-    prem_label = (
-        "Value premium"
-        if {long_key, short_key} <= {"value", "growth"}
-        else "Long-short premium"
-    )
-    print(f"{prem_label:15s}: {tab['value_premium']:6.2f} %")
-    print(f"CAPM beta ratio ({long_key}/{short_key}): {tab['beta_ratio']:.2f}")
-    print()
-    header = (f"{'Portfolio':10s} {'E[R] %':>8s} {'(SE)':>6s} {'Vol %':>7s} "
-              f"{'Sharpe':>7s} {'beta':>6s} {'P/D':>7s} {'log P/D':>8s}")
-    print(header)
-    print("-" * len(header))
-    for nm in (short_key, long_key, market_key):
-        print(f"{nm:10s} {tab['mean_return'][nm]:8.2f} "
-              f"{tab['mean_return_se'][nm]:6.2f} "
-              f"{tab['volatility'][nm]:7.2f} {tab['sharpe'][nm]:7.2f} "
-              f"{tab['capm_beta'][nm]:6.2f} {tab['mean_pd_level'][nm]:7.1f} "
-              f"{tab['mean_log_pd'][nm]:8.2f}")

@@ -2,8 +2,8 @@ from pathlib import Path
 import lrrcs as lrr
 
 
-def test_version_is_0_5_0():
-    assert lrr.__version__ == "0.5.0"
+def test_version_is_0_6_0():
+    assert lrr.__version__ == "0.6.0"
 
 
 def test_tidyfinance_is_a_runtime_dependency():
@@ -21,7 +21,7 @@ def test_pyproject_companion_metadata():
     extras = project["optional-dependencies"]
     extra_blob = "\n".join(x for group in extras.values() for x in group)
     assert project["name"] == "lrrcs"
-    assert project["version"] == "0.5.0"
+    assert project["version"] == "0.6.0"
     assert project["requires-python"] == ">=3.11"
     assert "tidyfinance>=0.5.0" in deps
     assert "numpy>=1.26" in deps
@@ -38,13 +38,23 @@ def test_pyproject_companion_metadata():
 
 def test_root_api_has_companion_names():
     for name in (
-        "solve_analytical",
-        "get_table_ii_params",
-        "print_long_short_premium",
-        "price_from_loadings",
-        "ModelSolver",
-        "calibrate_from_data",
-        "compute_asset_pricing_moments",
+        # the model and its results
+        "LongRunRisksModel",
+        "GridResults",
+        "AnalyticalResults",
+        "SimulationResults",
+        "Summary",
+        # parameters and errors
+        "ModelParams",
+        "PreferencesParams",
+        "ConsumptionParams",
+        "DividendParams",
+        "SolverDivergenceError",
+        "EmpiricalDataError",
+        # measuring loadings and building data
+        "estimate_long_run_leverage",
+        "expected_growth_proxy",
+        "filter_expected_growth",
         "build_annual_panel",
         "load_consumption",
         "load_deflator",
@@ -52,17 +62,19 @@ def test_root_api_has_companion_names():
         "real_rf_from_monthly",
         "table_i",
         "table_vi_data",
-        "figure1",
-        "EmpiricalDataError",
-        "expected_growth_proxy",
-        "filter_expected_growth",
     ):
         assert hasattr(lrr, name), name
-        assert name in lrr.__all__
+        assert name in lrr.__all__, name
+
+
+def test_root_api_is_small():
+    """The documented surface stays curated rather than hoisting everything."""
+    assert len(lrr.__all__) <= 25
 
 
 def test_root_api_dropped_names():
     for name in (
+        # never public
         "connect_wrds",
         "print_value_premium",
         "START",
@@ -71,9 +83,47 @@ def test_root_api_dropped_names():
         "ROLE_ALIASES",
         "download_data",
         "set_wrds_credentials",
+        # replaced by the model facade in 0.6.0
+        "solve_analytical",
+        "ModelSolver",
+        "compute_asset_pricing_moments",
+        "simulate_table_vii",
+        "get_table_ii_params",
+        "get_default_params",
+        "price_from_loadings",
+        "print_long_short_premium",
+        "print_asset_pricing_moments",
+        "print_table_vii",
+        "print_calibration_summary",
+        "print_moments",
+        # reachable through lrrcs.calibration, not at the root
+        "calibrate_from_data",
+        "get_table_ii_dividends",
+        "simulate_cashflow_moments",
+        # reachable through lrrcs.empirical, not at the root
+        "figure1",
     ):
-        assert name not in lrr.__all__
-        assert name not in dir(lrr)
+        assert name not in lrr.__all__, name
+        assert not hasattr(lrr, name), name
+
+
+def test_engines_stay_importable_by_module_path():
+    """The clean break is at the root namespace, not in the subpackages."""
+    from lrrcs.calibration import calibrate_from_data, simulate_cashflow_moments
+    from lrrcs.empirical import figure1
+    from lrrcs.implications import compute_asset_pricing_moments, simulate_table_vii
+    from lrrcs.model import ModelSolver, solve_analytical
+
+    for obj in (
+        calibrate_from_data,
+        simulate_cashflow_moments,
+        figure1,
+        compute_asset_pricing_moments,
+        simulate_table_vii,
+        ModelSolver,
+        solve_analytical,
+    ):
+        assert callable(obj)
 
 
 def test_table_helpers_default_to_1930_2003():
@@ -129,6 +179,20 @@ def test_table_i_returns_polars_when_backend_is_polars():
         assert isinstance(out, pl.DataFrame)
         out2 = lrr.table_i(pl.from_pandas(bm))
         assert isinstance(out2, pl.DataFrame)
+    finally:
+        tf.set_backend("pandas")
+
+
+def test_results_frames_follow_the_backend():
+    import pandas as pd
+    import polars as pl
+    import tidyfinance as tf
+    res = lrr.LongRunRisksModel().solve(n_x=15, n_s=4)
+    tf.set_backend("pandas")
+    assert isinstance(res.to_frame(), pd.DataFrame)
+    tf.set_backend("polars")
+    try:
+        assert isinstance(res.to_frame(), pl.DataFrame)
     finally:
         tf.set_backend("pandas")
 

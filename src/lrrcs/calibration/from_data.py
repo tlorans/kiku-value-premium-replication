@@ -123,10 +123,3 @@ def calibrate_dividend_params_from_targets(
         )
     return out
 
-
-def print_calibration_summary(dividends: Dict[str, DividendParams]) -> None:
-    """Pretty-print the calibrated long-run leverages and other parameters."""
-    print("Portfolio          μ (m)     φ (long-run)   φ_σ      α")
-    print("-" * 55)
-    for name, d in dividends.items():
-        print(f"{name:18s} {d.mu:8.5f}  {d.phi:8.3f}     {d.phi_sigma:6.2f}  {d.alpha:6.2f}")

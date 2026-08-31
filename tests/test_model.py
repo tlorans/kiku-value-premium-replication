@@ -1,15 +1,9 @@
-from lrrcs.model import (
-    Dynamics,
-    EpsteinZinPreferences,
-    ModelParams,
-    ModelSolver,
-    get_table_ii_params,
-    solve_analytical,
-)
+import lrrcs as lrr
+from lrrcs.model import Dynamics, EpsteinZinPreferences, ModelParams
 
 
 def test_table_ii_phi():
-    p = get_table_ii_params()
+    p = lrr.ModelParams()
     assert p.prefs.delta == 0.999
     assert p.prefs.gamma == 10.0
     assert p.prefs.psi == 1.5
@@ -20,13 +14,12 @@ def test_table_ii_phi():
 
 
 def test_analytical_value_has_higher_lr_premium():
-    sol = solve_analytical(get_table_ii_params())
-    assert sol.premium_lr["value"] > sol.premium_lr["growth"]
+    res = lrr.LongRunRisksModel().solve(method="analytical")
+    assert res.long_run_premium["value"] > res.long_run_premium["growth"]
 
 
 def test_small_solver_runs():
     # 15 x 4 is the smallest grid on which every claim has a finite price
-    solver = ModelSolver(get_table_ii_params(), n_x=15, n_s=4)
-    solver.solve()
-    assert solver.converged
-    assert "value" in solver.z
+    res = lrr.LongRunRisksModel().solve(n_x=15, n_s=4)
+    assert res.converged
+    assert "value" in res.z

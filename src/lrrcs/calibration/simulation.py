@@ -29,11 +29,12 @@ def simulate_cashflow_moments(
         params = get_default_params()
     dyn = Dynamics(params, seed=seed)
 
+    names = list(params.dividends)
     cons_means, cons_vols, cons_ac1 = [], [], []
-    div_means = {k: [] for k in ["growth", "value", "market"]}
-    div_vols = {k: [] for k in ["growth", "value", "market"]}
-    div_ac1 = {k: [] for k in ["growth", "value", "market"]}
-    corr_c_d = {k: [] for k in ["growth", "value", "market"]}
+    div_means = {k: [] for k in names}
+    div_vols = {k: [] for k in names}
+    div_ac1 = {k: [] for k in names}
+    corr_c_d = {k: [] for k in names}
 
     T = years * 12
     for s in range(n_sims):
@@ -44,7 +45,7 @@ def simulate_cashflow_moments(
         if len(dc_a) > 1:
             cons_ac1.append(np.corrcoef(dc_a[:-1], dc_a[1:])[0, 1])
 
-        for name in ["growth", "value", "market"]:
+        for name in names:
             dd_a = annualize(path[f"dd_{name}"])
             div_means[name].append(dd_a.mean() * 100)
             div_vols[name].append(dd_a.std() * 100)
@@ -69,15 +70,6 @@ def simulate_cashflow_moments(
                 "AC1": avg(div_ac1[name]),
                 "corr(dc,dd)": avg(corr_c_d[name]),
             }
-            for name in ["growth", "value", "market"]
+            for name in names
         },
     }
-
-
-def print_moments(moments: dict) -> None:
-    print("Model-implied annual moments (compare to Tables III–IV):")
-    c = moments["consumption"]
-    print(f"  Consumption: E={c['E[dc]']:.2f}%, vol={c['sigma(dc)']:.2f}%, AC1={c['AC1']:.2f}")
-    for name, m in moments["dividends"].items():
-        print(f"  {name:8s}: E={m['E[dd]']:.2f}%, vol={m['sigma(dd)']:.2f}%, "
-              f"AC1={m['AC1']:.2f}, corr(c,d)={m['corr(dc,dd)']:.2f}")

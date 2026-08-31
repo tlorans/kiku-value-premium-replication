@@ -32,10 +32,19 @@ _PAPER_RESIDUAL_PAIRS = {
 
 
 def residual_correlation(params, name_a: str, name_b: str) -> float:
-    """Correlation of the orthogonalised dividend residuals v_a, v_b."""
+    """Correlation of the orthogonalised dividend residuals v_a, v_b.
+
+    Pairs listed in ``params.residual_corr`` win; otherwise the paper's
+    three portfolios use their ``residual_corr_*`` attributes and any
+    other pair is uncorrelated.
+    """
     if name_a == name_b:
         return 1.0
-    attr = _PAPER_RESIDUAL_PAIRS.get(frozenset((name_a, name_b)))
+    pair = frozenset((name_a, name_b))
+    custom = getattr(params, "residual_corr", None)
+    if custom and pair in custom:
+        return float(custom[pair])
+    attr = _PAPER_RESIDUAL_PAIRS.get(pair)
     return float(getattr(params, attr)) if attr else 0.0
 
 
@@ -74,13 +83,36 @@ def _second_moment_by_state(solver: ModelSolver, name_a: str,
     return np.exp(drift) * payoff / np.exp(za + zb)
 
 
+def claim_stats(solver: ModelSolver, name: str, pi: np.ndarray) -> dict:
+    """Annualized mean return, volatility, and mean log P/D for one claim.
+
+    ``gross`` and ``second`` are the underlying monthly gross-return
+    moments; the annualized figures are in percent.
+    """
+    R = float(np.dot(pi, _mean_return_by_state(solver, name)))
+    R2 = float(np.dot(pi, _second_moment_by_state(solver, name, name)))
+    return {
+        "gross": R,
+        "second": R2,
+        "mean_return": (R ** 12 - 1) * 100,
+        "volatility": np.sqrt(max(R2 - R**2, 0)) * np.sqrt(12) * 100,
+        "mean_log_pd": float(np.dot(pi, solver.z[name])),
+    }
+
+
 def compute_asset_pricing_moments(
     solver: ModelSolver,
     long: str | None = None,
     short: str | None = None,
     market: str | None = None,
 ):
-    """Moments for the long, short, and market claims of a solved model."""
+    """Moments for the long, short, and market claims of a solved model.
+
+    Notes
+    -----
+    Internal engine behind ``LongRunRisksModel.solve()``; the results
+    object presents these numbers as attributes.
+    """
     if not solver.converged or solver.z_c is None:
         raise RuntimeError("Call solver.solve() before computing moments.")
 
@@ -99,23 +131,22 @@ def compute_asset_pricing_moments(
     e_rf_inv = float(np.dot(pi, 1.0 / Rf_states))
     Rf = 1.0 / e_rf_inv
 
-    E_R = {name: _mean_return_by_state(solver, name)
-           for name in (short_key, long_key, market_key)}
-    Rg = float(np.dot(pi, E_R[short_key]))
-    Rv = float(np.dot(pi, E_R[long_key]))
-    Rm = float(np.dot(pi, E_R[market_key]))
+    stats = {name: claim_stats(solver, name, pi)
+             for name in (short_key, long_key, market_key)}
+    Rg = stats[short_key]["gross"]
+    Rv = stats[long_key]["gross"]
+    Rm = stats[market_key]["gross"]
 
-    mean_Rg = (Rg ** 12 - 1) * 100
-    mean_Rv = (Rv ** 12 - 1) * 100
-    mean_Rm = (Rm ** 12 - 1) * 100
+    mean_Rg = stats[short_key]["mean_return"]
+    mean_Rv = stats[long_key]["mean_return"]
+    mean_Rm = stats[market_key]["mean_return"]
     mean_Rf = (Rf ** 12 - 1) * 100
     value_premium = mean_Rv - mean_Rg
 
-    E_R2 = {name: float(np.dot(pi, _second_moment_by_state(solver, name, name)))
-            for name in (short_key, long_key, market_key)}
-    vol_g = np.sqrt(max(E_R2[short_key] - Rg**2, 0)) * np.sqrt(12) * 100
-    vol_v = np.sqrt(max(E_R2[long_key] - Rv**2, 0)) * np.sqrt(12) * 100
-    vol_m = np.sqrt(max(E_R2[market_key] - Rm**2, 0)) * np.sqrt(12) * 100
+    E_R2 = {name: stat["second"] for name, stat in stats.items()}
+    vol_g = stats[short_key]["volatility"]
+    vol_v = stats[long_key]["volatility"]
+    vol_m = stats[market_key]["volatility"]
 
     cov_gm = float(np.dot(pi, _second_moment_by_state(solver, short_key, market_key))) - Rg * Rm
     cov_vm = float(np.dot(pi, _second_moment_by_state(solver, long_key, market_key))) - Rv * Rm
@@ -123,11 +154,7 @@ def compute_asset_pricing_moments(
     beta_g = cov_gm / var_m
     beta_v = cov_vm / var_m
 
-    mean_pd = {
-        short_key: float(np.dot(pi, solver.z[short_key])),
-        long_key: float(np.dot(pi, solver.z[long_key])),
-        market_key: float(np.dot(pi, solver.z[market_key])),
-    }
+    mean_pd = {name: stat["mean_log_pd"] for name, stat in stats.items()}
 
     return {
         "mean_return": {short_key: mean_Rg, long_key: mean_Rv, market_key: mean_Rm},
@@ -149,31 +176,3 @@ def compute_asset_pricing_moments(
         "log_pd_long_minus_short": mean_pd[long_key] - mean_pd[short_key],
     }
 
-
-def print_asset_pricing_moments(moments: dict) -> None:
-    """Pretty-print the asset-pricing moments in the style of Tables VII–X."""
-    long_key = moments.get("long", "value")
-    short_key = moments.get("short", "growth")
-    market_key = moments.get("market", "market")
-    print("=" * 60)
-    print("Asset-pricing moments (annualised)")
-    print("=" * 60)
-    print(f"Risk-free rate          : {moments['mean_rf']:6.2f} %")
-    prem_label = (
-        "Value premium"
-        if {long_key, short_key} <= {"value", "growth"}
-        else "Long-short premium"
-    )
-    print(f"{prem_label:23s}: {moments['value_premium']:6.2f} %")
-    print()
-    print(f"{'Portfolio':12s} {'E[R] %':>8s} {'Vol %':>8s} {'Sharpe':>8s} {'CAPM β':>8s} {'log(P/D)':>9s}")
-    print("-" * 60)
-    for name in (short_key, long_key, market_key):
-        er = moments["mean_return"][name]
-        vol = moments["volatility"][name]
-        sh = moments["sharpe"][name]
-        beta = moments["capm_beta"].get(name, float("nan"))
-        pd = moments["mean_log_pd"][name]
-        print(f"{name:12s} {er:8.2f} {vol:8.2f} {sh:8.2f} {beta:8.2f} {pd:9.2f}")
-    print()
-    print(f"log(P/D) {long_key} − {short_key} : {moments['log_pd_value_minus_growth']:6.2f}")

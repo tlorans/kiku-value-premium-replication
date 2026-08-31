@@ -55,15 +55,19 @@ def figure_lr_premium(path) -> None:
     plt.close(fig)
 
 
-def figure_mean_pd(solver, path) -> None:
-    """Bar chart of mean log price–dividend ratios from a solved model."""
+def figure_mean_pd(results, path) -> None:
+    """Bar chart of mean log price–dividend ratios from a grid solution.
+
+    Takes the :class:`~lrrcs.GridResults` returned by
+    ``LongRunRisksModel.solve()``.
+    """
     plt = _pyplot()
-    if hasattr(solver, "mean_pd") and callable(getattr(solver, "mean_pd")):
-        pd_vals = solver.mean_pd()
+    if hasattr(results, "mean_pd") and callable(getattr(results, "mean_pd")):
+        pd_vals = results.mean_pd()
     else:
         pd_vals = {
-            name: float(np.dot(solver.stationary, solver.z[name]))
-            for name in solver.z
+            name: float(np.dot(results.stationary, results.z[name]))
+            for name in results.z
         }
     names = list(pd_vals.keys())
     fig, ax = plt.subplots()

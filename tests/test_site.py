@@ -137,3 +137,48 @@ def test_freeze_covers_every_executed_page():
             f"executed page has no freeze entry (CI would fail or skip): "
             f"{rel.as_posix()}"
         )
+
+
+# Names removed from the public API in 0.6.0. They must not survive
+# anywhere the reader can see them, prose included: a chapter that
+# still names them teaches an API that no longer exists.
+REMOVED_API_NAMES = (
+    "ModelSolver",
+    "solve_analytical",
+    "simulate_table_vii",
+    "compute_asset_pricing_moments",
+    "get_table_ii_params",
+    "get_default_params",
+    "price_from_loadings",
+    "print_long_short_premium",
+    "print_asset_pricing_moments",
+    "print_table_vii",
+    "print_calibration_summary",
+    "print_moments",
+)
+
+
+def test_no_removed_api_names_in_site():
+    pattern = re.compile("|".join(REMOVED_API_NAMES))
+    offenders = {}
+    for page in sorted(SITE.rglob("*.qmd")):
+        if "_freeze" in page.parts:
+            continue
+        hits = sorted(set(pattern.findall(page.read_text(encoding="utf-8"))))
+        if hits:
+            offenders[page.relative_to(SITE).as_posix()] = hits
+    assert not offenders, f"Removed API names still on the site: {offenders}"
+
+
+def test_no_removed_api_names_in_examples_or_readme():
+    root = SITE.parent
+    pattern = re.compile("|".join(REMOVED_API_NAMES))
+    targets = [root / "README.md", *sorted((root / "examples").glob("*.py"))]
+    offenders = {}
+    for path in targets:
+        if not path.exists():
+            continue
+        hits = sorted(set(pattern.findall(path.read_text(encoding="utf-8"))))
+        if hits:
+            offenders[path.name] = hits
+    assert not offenders, f"Removed API names still in shipped code: {offenders}"
