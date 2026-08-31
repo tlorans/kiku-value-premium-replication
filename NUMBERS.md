@@ -1,21 +1,37 @@
 # NUMBERS.md — index of every figure on the site
 
+**Status note (0.6.0 API migration).** This ledger was written against the
+Jekyll site in `docs/` and the flat 0.5.0 API, and both are gone. The
+`docs/` page paths and the `docs/_baseline/*` scripts named below no
+longer exist; the site now lives in `site/*.qmd` and its numbers are
+re-executed from scratch every week by `.github/workflows/freshness.yml`,
+which is the live verification this file used to provide. The
+"Reproduces via" entries have been re-keyed to the 0.6.0 calls so they
+still say where each number comes from. The findings F1 to F4 below are
+kept verbatim as history, including their original 0.5.0 call names in
+the narrative.
+
+The seeded numbers themselves did not move in the 0.6.0 migration: the
+solver, moments, and simulation engines were reused unchanged behind the
+new `LongRunRisksModel` facade, and every value in this file was checked
+against the 0.5.0 output before the old API was removed.
+
 Baseline captured 2026-08-28 at `lrrcs` 0.5.0, commit `cf344ac`, Python 3.12 (uv env).
-Live site: https://tlorans.github.io/kiku-value-premium-replication/ (GitHub Pages legacy build of `main /docs`).
+Live site: https://tlorans.github.io/kiku-value-premium-replication/
 
 **Final-audit stamp (Issue 15, 2026-08-28, post-`b7fc4dc`):** `docs/_baseline/audit_numbers.py` re-run on merged main — output byte-identical to baseline. All 15 pages live (0 × 404); rendered-site vocabulary scan clean; internal page links, front matter (nav_order 1–12 unique/sequential, no orphans), wink audit, and scoping-line presence all pass (`.issue0/final_lint.py` logic reproduced in `docs/_baseline/final_lint.py`). F1–F4 remain the only open findings, by design (see Findings).
 
 **Rule (REWRITE_PLAN.md):** no number appears on any page unless a committed script prints it.
 This file is the index. Every entry carries a status:
 
-- **TRACED** — reproduced 2026-08-28 by the listed package call (bundled in `docs/_baseline/audit_numbers.py`, output in `docs/_baseline/audit_output.txt`).
+- **TRACED** — reproduced by the listed package call, re-executed on every site render.
 - **GOLDEN** — Kiku's printed value, pinned as a test constant in `src/lrrcs/empirical/goldens.py` and gated by `tests/test_empirical_goldens.py` (reconstruction must land within her printed Newey-West SEs).
 - **CHUNK** — self-contained arithmetic in the page's own code block (no data dependency); runs as printed.
 - **UNTRACED** — no committed script reproduces it. See Findings.
 - **STALE** — the page's printed output no longer matches what current code prints. See Findings.
 
-Reproduce everything offline: `uv run python docs/_baseline/audit_numbers.py`.
-Gate: `uv run pytest` (85 passed at baseline).
+Reproduce everything offline: `uv run quarto render site` after `rm -rf site/_freeze`.
+Gate: `uv run pytest`.
 
 ---
 
@@ -35,12 +51,12 @@ Gate: `uv run pytest` (85 passed at baseline).
 |---|---|---|
 | Data E[R] 7.81 (1.98) / 13.88 (1.74) / 8.56 (1.79) | GOLDEN | `goldens.TABLE_I` |
 | Data log P/D 3.61 (0.18) / 3.25 (0.12) / 3.34 (0.13) | GOLDEN | `goldens.TABLE_I` |
-| Model log P/D 3.65 (0.06) / 3.10 (0.15) / 3.24 (0.07) | TRACED (levels; SEs are Kiku's) | `solve_analytical(...).mean_log_pd` |
+| Model log P/D 3.65 (0.06) / 3.10 (0.15) / 3.24 (0.07) | TRACED (levels; SEs are Kiku's) | `.solve(method="analytical").mean_log_pd` |
 | Model E[R] 6.07 (2.91) / 11.36 (4.30) / 7.53 (2.69) | **UNTRACED (F1)** | — |
 | "about six extra points a year over 1930 to 2003" | GOLDEN | 13.88 − 7.81 |
 | "5.3" model gap / "about 6 in the data" | UNTRACED (model side, F1) / GOLDEN (data side) | 11.36 − 6.07 |
 | CAPM beta ratio 0.92 | **UNTRACED (F1)** | grid solver gave 0.84, not 0.92 |
-| "about 0.4 percent on the value-growth spread" | TRACED | `print_long_short_premium` → 0.40% |
+| "about 0.4 percent on the value-growth spread" | TRACED | `LongRunRisksModel().solve(method="analytical").summary()` → 0.40% |
 | Sample period 1930–2003 | GOLDEN | `goldens.START/END` |
 
 ## Two free numbers (`docs/two-free-numbers.md`) — added by Issue 4
@@ -57,19 +73,19 @@ All numbers below are printed by `examples/dcf_counterfactual.py` (TRACED, run 2
 | CAPM betas (affine innovations) growth 0.89, value 0.50; ratio 0.56 | TRACED | panel (B), 200×74y simulation, seed 7 |
 | CAPM spread −2.4 pp ("with the Table VII premium level") | UNTRACED — derived from the site's F1-blocked 0.92/5.3 numbers, not script output | — |
 | φ 6.2 → 7.4: g_eff 6.04 → 7.07 %/yr (DCF world) | TRACED | panel (C) |
-| A1 value 88.9 → 108.2; premium_lr 0.80% → 0.97% (equilibrium) | TRACED | panel (C), `solve_analytical` |
+| A1 value 88.9 → 108.2; premium_lr 0.80% → 0.97% (equilibrium) | TRACED | panel (C), `.solve(method="analytical")` |
 
 **Gate note (open):** panel (B)'s page line "the CAPM-fitted spread is negative: the wrong sign" is script-backed; the parenthetical "prices near −2.4" leans on the site's Table VII numbers, which F1 blocks. Also open: the site elsewhere claims ratio 0.92 (model betas) while the level-free affine count gives 0.56. Both belong to the F1 resolution.
 
 ## Price your own claim (`docs/price-your-own-claim.md`) — added by Issue 5
 
-All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loadings` (TRACED, run 2026-08-28).
+All numbers below are printed by `examples/two_firms.py` via `LongRunRisksModel.from_loading` (TRACED, run 2026-08-28).
 
 | Number | Status | Reproduces via |
 |---|---|---|
-| Firm A (φ=0.5): A1 −3.0, premium_lr −0.03%, g_eff 3.20%, gordon 6.89% | TRACED | `price_from_loadings(0.5)` |
-| Firm B (φ=1.5): A1 15.2, premium_lr 0.14%, g_eff 3.32%, gordon 7.01% | TRACED | `price_from_loadings(1.5)` |
-| Anchor mean log P/D 3.30 (linearization point, not a fitted level) | TRACED | `solve_analytical` default for custom claims |
+| Firm A (φ=0.5): A1 −3.0, premium_lr −0.03%, g_eff 3.20%, gordon 6.89% | TRACED | `LongRunRisksModel.from_loading(0.5).solve(method="analytical")` |
+| Firm B (φ=1.5): A1 15.2, premium_lr 0.14%, g_eff 3.32%, gordon 7.01% | TRACED | `LongRunRisksModel.from_loading(1.5).solve(method="analytical")` |
+| Anchor mean log P/D 3.30 (linearization point, not a fitted level) | TRACED | `.solve(method="analytical")` default for custom claims |
 | "Gordon column puts the two firms 0.12 points apart" | CHUNK | 7.01 − 6.89 |
 
 ## The result (`docs/getting-started.md`)
@@ -77,9 +93,9 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | Number | Status | Reproduces via |
 |---|---|---|
 | θ = −27; δ, γ, ψ = 0.999, 10.0, 1.5; 1/ψ = 0.667 | TRACED | params dump + chunk arithmetic |
-| μ_c, ρ, φ_x, σ = 0.0015, 0.98, 0.032, 0.0064 | TRACED | `get_table_ii_params().cons` |
-| φ dict {growth 2.6, value 6.2, market 2.8} | TRACED | `get_table_ii_params().dividends` |
-| Quickstart block (0.39 / 0.80 / 0.34; spread 0.40; A1 43.1 / 88.9; Λ_ε 5.95) | TRACED | `print_long_short_premium(solve_analytical(...))` |
+| μ_c, ρ, φ_x, σ = 0.0015, 0.98, 0.032, 0.0064 | TRACED | `ModelParams().cons` |
+| φ dict {growth 2.6, value 6.2, market 2.8} | TRACED | `ModelParams().dividends` |
+| Quickstart block (0.39 / 0.80 / 0.34; spread 0.40; A1 43.1 / 88.9; Λ_ε 5.95) | TRACED | `LongRunRisksModel().solve(method="analytical").summary()` |
 | Results table (same as Home) + Risk-free 0.91 (0.39) / 1.58 (0.01) | 0.91 GOLDEN (Kiku Table I print, not in goldens.py); 1.58 **UNTRACED (F1)** | — |
 | "mean price-dividend levels … 24.7 on value versus 39.8 on growth" | **UNTRACED (F1)** — Kiku Table VII levels; analytical exp(3.10/3.65) = 22.2 / 38.5 | — |
 | "safe rate, about seventy basis points too high" | UNTRACED (rests on 1.58, F1) | 1.58 − 0.91 |
@@ -95,10 +111,10 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | First autocorrelation of Δc "about 0.41" | TRACED | corr on `data/consumption_annual.csv` |
 | ρ = 0.98, "half-life of about three years" | TRACED / CHUNK | ln 0.5 ÷ ln 0.98 ≈ 34 months |
 | (γ, 1/ψ, θ) = (10.0, 0.667, −27.0); δ = 0.999 | TRACED | params dump + chunk |
-| A1 growth 43.1, market 37.5, value 88.9; Λ_ε 5.95 | TRACED | `solve_analytical` |
+| A1 growth 43.1, market 37.5, value 88.9; Λ_ε 5.95 | TRACED | `.solve(method="analytical")` |
 | κ₁ ≈ 0.96 | TRACED | 0.962 at z̄ = 3.24 |
-| Sim chunk inputs (μ 0.0015, σ 0.0064, φ_x 0.032, ρ 0.98) | TRACED | `get_table_ii_params().cons` |
-| φ_G = 2.6, φ_m = 2.8, φ_V = 6.2 | TRACED | `get_table_ii_params().dividends` |
+| Sim chunk inputs (μ 0.0015, σ 0.0064, φ_x 0.032, ρ 0.98) | TRACED | `ModelParams().cons` |
+| φ_G = 2.6, φ_m = 2.8, φ_V = 6.2 | TRACED | `ModelParams().dividends` |
 
 ## Measuring leverage (`docs/measuring-leverage.md`)
 
@@ -108,8 +124,8 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | φ̂ = {Growth −0.267, Value 12.129, Market 0.722} | TRACED | page OLS chunk ≡ `estimate_long_run_leverage` |
 | "Kiku's Table VI prints −0.38 / 2.16 / 0.66" | GOLDEN | `goldens.TABLE_VI_PHI` |
 | "Seventy-two annual observations" | TRACED | 74 years − 2 MA warmup |
-| Calibration summary market row (0.00076 / 0.722 / 5.33 / 0.57) | TRACED | `print_calibration_summary(calibrate_from_data(...))` |
-| Table II monthly φ locks (2.6 / 2.8 / 6.2) | TRACED | `get_table_ii_params()` |
+| Calibration summary market row (0.00076 / 0.722 / 5.33 / 0.57) | TRACED | `lrr.calibration.calibrate_from_data(...)` |
+| Table II monthly φ locks (2.6 / 2.8 / 6.2) | TRACED | `ModelParams()` |
 
 ## Does the market still fit? (`docs/time-series.md`)
 
@@ -143,7 +159,7 @@ All numbers below are printed by `examples/two_firms.py` via `lrr.price_from_loa
 | φ̂ dict; Table VI prints (−0.38 / 2.16 / 0.66) | TRACED / GOLDEN | as Measuring leverage |
 | (6.2, 2.6) | TRACED | params |
 | A1 by hand: growth 43.1, value 88.9 | TRACED | chunk ≡ solver |
-| Quickstart block; A1 ratio 2.06 | TRACED | `solve_analytical` |
+| Quickstart block; A1 ratio 2.06 | TRACED | `.solve(method="analytical")` |
 | Table VII table incl. risk-free row | data GOLDEN; model **UNTRACED (F1)** | — |
 | "5.3" / "about 6" / 0.92 / "five points higher" | as Home | — |
 | Equal-φ block (spread 0.00) | **STALE (F2)** | code now prints −0.12 |
@@ -154,7 +170,7 @@ All grid values are printed by `examples/robustness.py` (TRACED, run 2026-08-28)
 
 | Number | Status | Reproduces via |
 |---|---|---|
-| Baseline market premium_lr 0.34%, spread 0.40% | TRACED | `solve_analytical(Table II)` |
+| Baseline market premium_lr 0.34%, spread 0.40% | TRACED | `LongRunRisksModel().solve(method="analytical")` |
 | ρ ∈ {0.95, 0.98, 0.99}: market 0.14/0.34/0.51%, spread 0.19/0.40/0.55% | TRACED | grid, `cons.rho` |
 | ψ ∈ {1.2, 1.5, 2.0}: market 0.31/0.34/0.37%, spread 0.41/0.40/0.40% | TRACED | grid, `prefs.psi` |
 | γ ∈ {5, 10, 15}: market 0.16/0.34/0.52%, spread 0.19/0.40/0.62% | TRACED | grid, `prefs.gamma` |
