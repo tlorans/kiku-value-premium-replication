@@ -103,6 +103,38 @@ The call writes a `.env` file that the downloader reads.
 If credentials are missing, the call raises `EmpiricalDataError` with a
 message telling you to call `tf.set_wrds_credentials()`.
 
+### The construction, step by step
+
+No chapter needs this section. The shipped CSVs under `data/` are what
+the chapters read. The full pipeline lives in `lrrcs.empirical` and
+needs WRDS credentials for the CRSP and Compustat pulls; the code
+blocks below are for orientation and are not executed on this page.
+
+Consumption and the deflator come from FRED, which is public and needs
+no credentials:
+
+```python
+import lrrcs as lrr
+
+dc = lrr.load_consumption()      # real per-capita ND+S growth, from NIPA
+defl = lrr.load_deflator()       # PCE implicit price deflator
+```
+
+The stock panel needs CRSP monthly returns with `retx`, Compustat book
+equity merged through the CCM links, and the Davis-Fama-French
+historical book-equity file for the years before Compustat's coverage
+begins. `lrr.build_annual_panel` above runs the whole construction: the
+quintile sort, the value weighting, the Campbell-Shiller recovery of
+the return identity, deflation, and the real bill rate.
+
+The Campbell-Shiller step and the real rate transformation are also
+exposed directly, so you can apply them to any return pair:
+
+```python
+annual = lrr.campbell_shiller_annual(ret, retx, defl)  # the identity, plus deflation
+rf = lrr.real_rf_from_monthly(t90ret, cpi)             # real 90-day bill
+```
+
 ## Key takeaways
 
 - Editable install with `uv` is enough to price Table II.
