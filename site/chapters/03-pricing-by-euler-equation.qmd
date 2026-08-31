@@ -42,11 +42,9 @@ $$ {#eq-euler}
 
 $M_{t+1}$ is the **pricing kernel** (also called the stochastic
 discount factor, or the intertemporal marginal rate of substitution).
-It is the rate at which the investor is willing to exchange consumption
-at $t$ for consumption in each state at $t+1$. The kernel is high in
-states where marginal utility is high, which are states where
-consumption is scarce, and low in states where consumption is
-plentiful. Equation @eq-euler says that once
+The kernel is high in states where marginal utility is high, which are
+states where consumption is scarce, and low in states where
+consumption is plentiful. Equation @eq-euler says that once
 payoffs are weighted by the state-by-state exchange rate, every asset
 earns exactly its price.
 
@@ -216,9 +214,10 @@ print(f"gamma needed to match the market premium: "
 
 **The equity premium puzzle.** The market earned 8.45 percent over
 bills, while the power-utility kernel with $\gamma = 10$ delivers 0.54
-percent. Closing the gap takes $\gamma \approx 155$, which is an
-implausible level of risk aversion. Mehra and Prescott (1985)
-documented the same failure on an earlier sample.
+percent. Closing the gap takes $\gamma \approx 155$, which describes
+an investor who would decline gambles that no one declines. Mehra and
+Prescott (1985) documented the same failure on an earlier sample, and
+the cell above reproduces it here.
 
 **The risk-free rate puzzle.** The Hansen-Jagannathan bound asks only
 that the kernel be volatile enough to match the market's Sharpe ratio.
@@ -249,8 +248,9 @@ highest-earning claim a premium of zero at any risk aversion. Scaling
 $\gamma$ up scales all three predictions together and can never
 produce the six-point spread.
 
-The rest of Part II builds a kernel that measures a different risk,
-one that is still a covariance under @eq-premium but responds to
+The rest of Part II builds a kernel that measures a different risk.
+The premium must still be a covariance with the kernel, because
+@eq-premium holds for any preferences, so the kernel must respond to
 something other than consumption in the current year.
 [Chapter 4](04-epstein-zin-preferences.qmd) builds
 preferences under which news about future consumption enters marginal
@@ -288,7 +288,7 @@ Answer from memory, then open the answers.
 
 **Answers.**
 
-1. A gamma of 13, above the 10 the chapter used.
+1. The bound demands a gamma of 13, above the 10 the chapter used.
 2. The ratio never moves, because gamma multiplies both covariances
    equally.
 3. No. The cell below finds the reconciling delta:
