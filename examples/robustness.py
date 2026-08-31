@@ -1,8 +1,8 @@
 """One-at-a-time robustness of the model premium to its key parameters.
 
 Issue 12 of REWRITE_PLAN.md. Varies, one at a time: persistence of x_t
-(rho), EIS (psi), risk aversion (gamma), and the consumption-MA window
-(the annual window only changes the estimated annual ranking, not the
+(rho), EIS (psi), risk aversion (gamma), and the cash-flow loadings
+(the annual MA window only changes the estimated annual ranking, not the
 monthly phi the solver uses; we vary phi within its measured range
 instead). For each grid point the analytical solution is re-solved and
 we record the market's long-run compensation and the value-growth
@@ -15,55 +15,48 @@ Run: uv run python examples/robustness.py
 """
 from __future__ import annotations
 
-import copy
-
 import lrrcs as lrr
 
-BASE = lrr.get_table_ii_params()
+BASE = lrr.LongRunRisksModel()
 
 
-def spread_and_market(params) -> tuple[float, float]:
-    sol = lrr.solve_analytical(params)
-    market = sol.premium_lr["market"] * 100
-    spread = (sol.premium_lr["value"] - sol.premium_lr["growth"]) * 100
-    return market, spread
+def spread_and_market(model) -> tuple[float, float]:
+    res = model.solve(method="analytical")
+    return res.long_run_premium["market"], res.value_premium
 
 
-GRIDS: dict[str, tuple[str, list[float]]] = {
-    "rho": ("persistence of x_t", [0.95, 0.98, 0.99]),
-    "psi": ("EIS", [1.2, 1.5, 2.0]),
-    "gamma": ("risk aversion", [5.0, 10.0, 15.0]),
-    "phi_value": ("value loading, Kiku range", [5.0, 6.2, 7.4]),
-    "phi_growth": ("growth loading, Kiku range", [2.0, 2.6, 3.2]),
+# Each entry maps a label to the keyword that builds the varied model.
+GRIDS = {
+    "persistence of x_t": ("rho", [0.95, 0.98, 0.99]),
+    "EIS": ("psi", [1.2, 1.5, 2.0]),
+    "risk aversion": ("gamma", [5.0, 10.0, 15.0]),
+    "value loading, Kiku range": ("claims:value:phi", [5.0, 6.2, 7.4]),
+    "growth loading, Kiku range": ("claims:growth:phi", [2.0, 2.6, 3.2]),
 }
 
 
-def vary(attr: str, values: list[float], label: str) -> None:
+def varied(key: str, value: float) -> lrr.LongRunRisksModel:
+    """A new model with one parameter moved off the Table II calibration."""
+    if key.startswith("claims:"):
+        _, claim, field = key.split(":")
+        return BASE.replace(claims={claim: {field: value}})
+    return BASE.replace(**{key: value})
+
+
+def vary(label: str, key: str, values: list[float]) -> None:
     print(f"\n{label}")
     for v in values:
-        p = copy.deepcopy(BASE)
-        if attr == "rho":
-            p.cons.rho = v
-        elif attr == "psi":
-            p.prefs.psi = v
-        elif attr == "gamma":
-            p.prefs.gamma = v
-        elif attr == "phi_value":
-            p.dividends["value"].phi = v
-        elif attr == "phi_growth":
-            p.dividends["growth"].phi = v
-        else:
-            raise ValueError(attr)
-        market, spread = spread_and_market(p)
-        print(f"  {label}={v:<6} market premium_lr {market:6.2f}%   value-growth spread {spread:6.2f}%")
+        market, spread = spread_and_market(varied(key, v))
+        print(f"  {label}={v:<6} market premium_lr {market:6.2f}%   "
+              f"value-growth spread {spread:6.2f}%")
 
 
 base_market, base_spread = spread_and_market(BASE)
 print("Baseline (Table II): market premium_lr "
       f"{base_market:.2f}%, value-growth spread {base_spread:.2f}%")
 
-for attr, (label, values) in GRIDS.items():
-    vary(attr, values, label)
+for label, (key, values) in GRIDS.items():
+    vary(label, key, values)
 
 print("\nWhat the runs show: the x_t-news spread is positive and orders the")
 print("claims the same way (value above growth above the market in")

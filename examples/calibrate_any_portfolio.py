@@ -1,110 +1,90 @@
 #!/usr/bin/env python
-"""
-Full example: calibrate DividendParams for arbitrary portfolios and price them.
+"""Calibrate any cross-section from cash flows, then price it.
 
-This script shows the complete workflow a user would follow for any set of
-portfolios (industry, size, book-to-market, quality, …):
+The complete workflow for any set of portfolios (industry, size,
+book-to-market, quality, and so on):
 
-  1. Obtain annual (or monthly) series of consumption growth (dc) and
-     dividend growth for each portfolio (dd).
-  2. Call calibrate_from_data → gets μ, φ, φ_σ, α for every portfolio.
-  3. Insert the resulting DividendParams into ModelParams.
-  4. Run the analytical (or numerical) solution to see the risk premia.
+  1. Obtain annual series of consumption growth (dc) and dividend growth
+     for each portfolio (dd).
+  2. Build the model straight from those series with
+     LongRunRisksModel.from_cashflows.
+  3. Solve it and read the premia.
 
-Here we use synthetic series so the example is fully self-contained.
-Replace the synthetic generation with your own data to analyse real portfolios.
+Returns never enter step 2. That is the paper's identification
+discipline: the cross-section is disciplined by cash flows alone, so the
+premium the model produces is a prediction rather than a fit.
+
+Here the series are synthetic so the script is self-contained. Replace
+generate_synthetic_annual_series with your own data to analyse a real
+cross-section.
+
+Run: uv run python examples/calibrate_any_portfolio.py
 """
 from __future__ import annotations
-import lrrcs as lrr
+
 import numpy as np
+
+import lrrcs as lrr
 
 
 def generate_synthetic_annual_series(n_years: int = 74, seed: int = 42):
-    """
-    Create synthetic annual consumption and dividend growth series that mimic
-    the paper’s ranking:
-      - value has high loading on the persistent component of Δc
-      - growth has low loading
-      - market sits in between
+    """Synthetic annual series that mimic the paper's ranking.
+
+    Value loads heavily on the persistent component of consumption
+    growth, growth barely loads on it, and the market sits in between.
     """
     rng = np.random.default_rng(seed)
 
-    # Simple persistent component for expected growth (annual)
     x = np.zeros(n_years)
     for t in range(1, n_years):
         x[t] = 0.6 * x[t - 1] + 0.01 * rng.standard_normal()
 
-    # Consumption growth
     dc = 0.02 + x + 0.015 * rng.standard_normal(n_years)
-
-    # Portfolio dividend growth = mean + φ * x + short-run shock
-    # Higher φ → stronger long-run risk exposure.
-    # Keys must be growth/value/market or long/short/market:
-    # solve_analytical, print_long_short_premium, and
-    # compute_asset_pricing_moments look those names up.
-    dd_value = 0.025 + 3.5 * x + 0.12 * rng.standard_normal(n_years)   # high φ
-    dd_growth = 0.015 + 0.4 * x + 0.18 * rng.standard_normal(n_years)  # low φ
+    dd_value = 0.025 + 3.5 * x + 0.12 * rng.standard_normal(n_years)   # high phi
+    dd_growth = 0.015 + 0.4 * x + 0.18 * rng.standard_normal(n_years)  # low phi
     dd_market = 0.020 + 1.5 * x + 0.10 * rng.standard_normal(n_years)  # medium
-
     return dc, dd_value, dd_growth, dd_market
 
 
 def main():
     print("=" * 70)
-    print("Calibrate DividendParams for arbitrary portfolios – full example")
+    print("Calibrate any cross-section from cash flows, then price it")
     print("=" * 70)
 
-    # ------------------------------------------------------------------
-    # 1. Data (replace this block with your own annual series)
-    # ------------------------------------------------------------------
-    dc, dd_value, dd_growth, dd_market = generate_synthetic_annual_series(n_years=74)
+    # 1. Data. Replace this block with your own annual series.
+    dc, dd_value, dd_growth, dd_market = generate_synthetic_annual_series()
     print("\nSynthetic annual series generated (74 years).")
-    print("Replace generate_synthetic_annual_series() with your real data.")
 
-    # ------------------------------------------------------------------
-    # 2. Calibrate from data (paper’s procedure applied to any portfolios)
-    # ------------------------------------------------------------------
-    print("\n2. Running calibrate_from_data …")
-    div_params = lrr.calibrate_from_data(
-        dc, long=dd_value, short=dd_growth, market=dd_market,
-        frequency="annual",
-        window=2,                 # paper uses a 2-year MA
-        default_phi_sigma=7.5,
-    )
-
-    print("\nEstimated DividendParams:")
-    lrr.print_calibration_summary(div_params)
-
-    # Also show the pure regression for one portfolio
+    # 2. Measure the long-run leverage of each leg (equation 19).
     phi_value = lrr.estimate_long_run_leverage(dc, dd_value, window=2)
     phi_growth = lrr.estimate_long_run_leverage(dc, dd_growth, window=2)
-    print(f"\nDirect eq.-19 estimates:  value φ̃ = {phi_value:.2f},  "
-          f"growth φ̃ = {phi_growth:.2f}")
+    print(f"\nDirect eq.-19 estimates: value phi = {phi_value:.2f}, "
+          f"growth phi = {phi_growth:.2f}")
 
-    # ------------------------------------------------------------------
-    # 3. Plug into the model
-    # ------------------------------------------------------------------
-    print("\n3. Building ModelParams with the calibrated dividends …")
-    params = lrr.ModelParams(
-        prefs=lrr.PreferencesParams(),      # paper defaults (δ,γ,ψ)
-        cons=lrr.ConsumptionParams(),       # paper defaults
-        dividends=div_params,
+    # 3. Build the model from those same cash flows.
+    model = lrr.LongRunRisksModel.from_cashflows(
+        dc,
+        long=dd_value,
+        short=dd_growth,
+        market=dd_market,
+        frequency="annual",
+        window=2,          # paper uses a 2-year moving average
     )
 
-    # ------------------------------------------------------------------
-    # 4. Price the claims – analytical long-run risk premia
-    # ------------------------------------------------------------------
-    print("\n4. Analytical long-run risk premia for the calibrated portfolios")
-    print("-" * 60)
-    sol = lrr.solve_analytical(params)
-    lrr.print_long_short_premium(sol)
+    print("\nCalibrated cash-flow parameters:")
+    print(f"  {'claim':8s} {'mu':>9s} {'phi':>8s} {'phi_sigma':>10s} {'alpha':>7s}")
+    for name, d in model.params.dividends.items():
+        print(f"  {name:8s} {d.mu:9.5f} {d.phi:8.3f} {d.phi_sigma:10.2f} {d.alpha:7.2f}")
 
-    print("\nInterpretation:")
-    print("  The portfolio with the highest estimated φ (value) receives")
-    print("  the largest long-run risk premium.  That is exactly the mechanism")
-    print("  that generates the value premium in Kiku (2006).")
-    print("\nDone.  Swap the synthetic series for real portfolio data to analyse")
-    print("any cross-section you care about.")
+    # 4. Price the claims.
+    print()
+    print(model.solve(method="analytical").summary())
+
+    print("\nThe leg with the highest estimated phi receives the largest")
+    print("long-run risk premium. That is the mechanism behind the value")
+    print("premium in Kiku (2006), and it transfers to any cross-section")
+    print("whose cash flows differ in their exposure to persistent")
+    print("consumption growth.")
 
 
 if __name__ == "__main__":

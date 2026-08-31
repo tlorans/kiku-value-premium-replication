@@ -27,7 +27,23 @@ uv pip install -e .
 ```python
 import lrrcs as lrr
 
-lrr.print_long_short_premium(lrr.solve_analytical(lrr.get_table_ii_params()))
+model = lrr.LongRunRisksModel()      # the Table II calibration
+res = model.solve()                  # solve on the paper's state grid
+print(res.summary())                 # expected returns, betas, log P/D
+res.value_premium                    # 5.18
+```
+
+Change one number and solve again. Nothing else needs re-tuning:
+
+```python
+lrr.LongRunRisksModel(gamma=7.5).solve().value_premium
+lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().value_premium
+```
+
+Table VII, the paper's own model column, is one call:
+
+```python
+print(model.simulate(n_samples=1000, years=74, seed=0).summary())
 ```
 
 WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package). Details live on the [installation](https://tlorans.github.io/kiku-value-premium-replication/reference/installation.html) page.

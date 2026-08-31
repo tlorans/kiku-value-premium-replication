@@ -22,10 +22,11 @@ print("Two firms, identical except the loading of dividends on x_t")
 print()
 print(f"{'firm':6s} {'phi':>5s} {'A1':>7s} {'premium_lr %':>13s} {'g_eff %':>9s} {'gordon %':>9s}")
 for name, phi in FIRMS:
-    out = lrr.price_from_loadings(phi)
+    res = lrr.LongRunRisksModel.from_loading(phi).solve(method="analytical")
     print(
-        f"{name:6s} {out['loading']:5.1f} {out['A1']:7.1f} "
-        f"{out['premium_lr'] * 100:13.2f} {out['g_eff'] * 100:9.2f} {out['gordon_return'] * 100:9.2f}"
+        f"{name:6s} {phi:5.1f} {res.A1['claim']:7.1f} "
+        f"{res.long_run_premium['claim']:13.2f} "
+        f"{res.expected_growth['claim']:9.2f} {res.gordon_return['claim']:9.2f}"
     )
 print()
 print("premium_lr is the x_t-news piece of compensation (annualized).")

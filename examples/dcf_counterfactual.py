@@ -24,19 +24,19 @@ DCF panel exactly and the CAPM panel in level-free form.
 """
 from __future__ import annotations
 
-import copy
-
 import numpy as np
 
 import lrrcs as lrr
+from lrrcs.model import Dynamics
 
 N_PATHS = 200
 N_YEARS = 74
 SEED = 7
 T = N_YEARS * 12
 
-params = lrr.get_table_ii_params()
-sol = lrr.solve_analytical(params)
+model = lrr.LongRunRisksModel()
+params = model.params
+sol = model.solve(method="analytical")
 sigma = params.cons.sigma
 phi_x = params.cons.phi_x
 rho = params.cons.rho
@@ -95,7 +95,7 @@ print("===== (B) A rate fitted to the CAPM =====")
 print()
 # Betas from log-return innovations of the affine solution:
 # log R_{t+1} = const + dd_{t+1} + kappa1 * z_{t+1} - z_t ; levels cancel.
-dyn = lrr.Dynamics(params, seed=SEED)
+dyn = Dynamics(params, seed=SEED)
 names = ("growth", "value", "market")
 kappa1 = {k: np.exp(sol.mean_log_pd[k]) / (1.0 + np.exp(sol.mean_log_pd[k])) for k in names}
 lr = {k: [] for k in names}
@@ -127,9 +127,7 @@ print("(Table VII, untraced - F1).")
 print()
 print("===== (C) A forecast is not a valuation =====")
 print()
-params_hi = copy.deepcopy(params)
-params_hi.dividends["value"].phi = 7.4
-sol_hi = lrr.solve_analytical(params_hi)
+sol_hi = model.replace(claims={"value": {"phi": 7.4}}).solve(method="analytical")
 print("Raise value's cash-flow loading on x_t: phi 6.2 -> 7.4")
 print()
 print("DCF world (rate held at r, price of risk does not move):")
@@ -144,5 +142,5 @@ print("  expected-return response: none - the rate never sees the risk")
 print()
 print("Equilibrium (analytical solution, nothing re-estimated):")
 print(f"  A1 value    : {sol.A1['value']:7.1f} -> {sol_hi.A1['value']:7.1f}  (PD elasticity to x)")
-print(f"  premium_lr  : {sol.premium_lr['value'] * 100:6.2f} % -> {sol_hi.premium_lr['value'] * 100:6.2f} %  (x-news compensation)")
+print(f"  premium_lr  : {sol.long_run_premium['value']:6.2f} % -> {sol_hi.long_run_premium['value']:6.2f} %  (x-news compensation)")
 print("  the same news moves the cash flows AND the price of risk")

@@ -1,6 +1,6 @@
 """Table II calibration, printed from the package (Issue 7).
 
-Every value below is read from lrr.get_table_ii_params() at run time —
+Every value below is read from lrr.ModelParams() at run time —
 nothing is transcribed. The "target / source" column states what each
 parameter is disciplined by.
 
@@ -11,10 +11,10 @@ from __future__ import annotations
 
 import lrrcs as lrr
 
-p = lrr.get_table_ii_params()
+p = lrr.ModelParams()
 prefs, cons = p.prefs, p.cons
 
-print("Table II calibration (monthly), printed from lrr.get_table_ii_params()")
+print("Table II calibration (monthly), printed from lrr.ModelParams()")
 print()
 print("Preferences (household)")
 print(f"  delta = {prefs.delta}   | time preference | Kiku (2006) Table II")
