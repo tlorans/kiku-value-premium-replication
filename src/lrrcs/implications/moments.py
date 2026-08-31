@@ -22,7 +22,6 @@ to annual) come from :mod:`lrrcs.implications.simulation` instead.
 from __future__ import annotations
 import numpy as np
 from ..model.solver import ModelSolver
-from ..model.legs import resolve_legs
 
 _PAPER_RESIDUAL_PAIRS = {
     frozenset(("growth", "value")): "residual_corr_gv",
@@ -50,7 +49,7 @@ def residual_correlation(params, name_a: str, name_b: str) -> float:
 
 def _mean_return_by_state(solver: ModelSolver, name: str) -> np.ndarray:
     """E_i[R′] for one claim: E[e^{Δd′}] × Σ_j Π_ij (1 + e^{z_j}) / e^{z_i}."""
-    d = solver.p.dividends[name]
+    d = solver.p.claims[name]
     x = solver.grid.x_grid
     s2 = solver.grid.s2_grid
     z = solver.z[name]
@@ -64,7 +63,7 @@ def _second_moment_by_state(solver: ModelSolver, name_a: str,
                             name_b: str) -> np.ndarray:
     """E_i[R_a′ R_b′] with the full dividend covariance structure."""
     p = solver.p
-    da, db = p.dividends[name_a], p.dividends[name_b]
+    da, db = p.claims[name_a], p.claims[name_b]
     x = solver.grid.x_grid
     s2 = solver.grid.s2_grid
     za, zb = solver.z[name_a], solver.z[name_b]
@@ -100,79 +99,62 @@ def claim_stats(solver: ModelSolver, name: str, pi: np.ndarray) -> dict:
     }
 
 
-def compute_asset_pricing_moments(
-    solver: ModelSolver,
-    long: str | None = None,
-    short: str | None = None,
-    market: str | None = None,
-):
-    """Moments for the long, short, and market claims of a solved model.
+def population_moments(solver: ModelSolver) -> dict:
+    """Population return moments for every claim of a solved model.
+
+    Role free: this describes the claims, it does not decide which of
+    them make a spread. Betas need a reference claim, so instead of
+    picking one it returns the pairwise return covariance; the results
+    object divides a column of it by that claim's variance.
+
+    Returns
+    -------
+    dict
+        ``mean_return``, ``volatility``, ``mean_log_pd`` and ``sharpe``
+        per claim (annualized, percent); ``mean_rf``; and ``covariance``,
+        a nested dict of monthly gross-return covariances.
 
     Notes
     -----
-    Internal engine behind ``LongRunRisksModel.solve()``; the results
-    object presents these numbers as attributes.
+    Internal engine behind ``LongRunRisksModel.solve()``.
     """
     if not solver.converged or solver.z_c is None:
         raise RuntimeError("Call solver.solve() before computing moments.")
 
-    p = solver.p
-    long_key, short_key, market_key = resolve_legs(
-        solver.z, long=long, short=short, market=market
-    )
-    if market_key is None:
-        raise KeyError(
-            "No market claim. Pass market='...' or include a series named 'market'."
-        )
-
     pi = solver.stationary
+    names = list(solver.z)
 
     Rf_states = solver.risk_free()
     e_rf_inv = float(np.dot(pi, 1.0 / Rf_states))
     Rf = 1.0 / e_rf_inv
-
-    stats = {name: claim_stats(solver, name, pi)
-             for name in (short_key, long_key, market_key)}
-    Rg = stats[short_key]["gross"]
-    Rv = stats[long_key]["gross"]
-    Rm = stats[market_key]["gross"]
-
-    mean_Rg = stats[short_key]["mean_return"]
-    mean_Rv = stats[long_key]["mean_return"]
-    mean_Rm = stats[market_key]["mean_return"]
     mean_Rf = (Rf ** 12 - 1) * 100
-    value_premium = mean_Rv - mean_Rg
 
-    E_R2 = {name: stat["second"] for name, stat in stats.items()}
-    vol_g = stats[short_key]["volatility"]
-    vol_v = stats[long_key]["volatility"]
-    vol_m = stats[market_key]["volatility"]
+    stats = {name: claim_stats(solver, name, pi) for name in names}
 
-    cov_gm = float(np.dot(pi, _second_moment_by_state(solver, short_key, market_key))) - Rg * Rm
-    cov_vm = float(np.dot(pi, _second_moment_by_state(solver, long_key, market_key))) - Rv * Rm
-    var_m = max(E_R2[market_key] - Rm**2, 1e-12)
-    beta_g = cov_gm / var_m
-    beta_v = cov_vm / var_m
+    # Pairwise covariance of monthly gross returns. The diagonal repeats
+    # claim_stats' own second moment, so a beta against claim m is
+    # cov[a][m] / cov[m][m] -- the expression compute_asset_pricing_moments
+    # used for its two legs, now available for every claim.
+    covariance: dict[str, dict[str, float]] = {}
+    for a in names:
+        covariance[a] = {}
+        for b in names:
+            E_ab = float(np.dot(pi, _second_moment_by_state(solver, a, b)))
+            covariance[a][b] = E_ab - stats[a]["gross"] * stats[b]["gross"]
 
-    mean_pd = {name: stat["mean_log_pd"] for name, stat in stats.items()}
+    mean_return = {n: stats[n]["mean_return"] for n in names}
+    volatility = {n: stats[n]["volatility"] for n in names}
 
     return {
-        "mean_return": {short_key: mean_Rg, long_key: mean_Rv, market_key: mean_Rm},
+        "claims": names,
+        "mean_return": mean_return,
         "mean_rf": mean_Rf,
-        "value_premium": value_premium,
-        "long_short_premium": value_premium,
-        "long": long_key,
-        "short": short_key,
-        "market": market_key,
-        "volatility": {short_key: vol_g, long_key: vol_v, market_key: vol_m},
+        "volatility": volatility,
         "sharpe": {
-            short_key: (mean_Rg - mean_Rf) / vol_g if vol_g > 0 else np.nan,
-            long_key: (mean_Rv - mean_Rf) / vol_v if vol_v > 0 else np.nan,
-            market_key: (mean_Rm - mean_Rf) / vol_m if vol_m > 0 else np.nan,
+            n: (mean_return[n] - mean_Rf) / volatility[n]
+            if volatility[n] > 0 else np.nan
+            for n in names
         },
-        "capm_beta": {short_key: beta_g, long_key: beta_v},
-        "mean_log_pd": mean_pd,
-        "log_pd_value_minus_growth": mean_pd[long_key] - mean_pd[short_key],
-        "log_pd_long_minus_short": mean_pd[long_key] - mean_pd[short_key],
+        "mean_log_pd": {n: stats[n]["mean_log_pd"] for n in names},
+        "covariance": covariance,
     }
-

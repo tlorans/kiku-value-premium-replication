@@ -25,10 +25,9 @@ from typing import Mapping
 import numpy as np
 
 from .model.analytical import solve_analytical
-from .model.legs import Legs, resolve_legs
 from .model.params import (
     ConsumptionParams,
-    DividendParams,
+    ClaimParams,
     ModelParams,
     PreferencesParams,
 )
@@ -37,37 +36,37 @@ from .results import AnalyticalResults, GridResults, SimulationResults
 
 _PREFERENCE_FIELDS = ("delta", "gamma", "psi")
 _CONSUMPTION_FIELDS = ("mu", "rho", "phi_x", "sigma", "nu", "sigma_w")
-_DIVIDEND_FIELDS = ("mu", "phi", "phi_sigma", "alpha")
+_CLAIM_FIELDS = ("mu", "phi", "phi_sigma", "alpha")
 
 
-def _as_dividend(value, base: DividendParams | None, name: str) -> DividendParams:
-    """Coerce a claim specification to ``DividendParams``.
+def _as_claim(value, base: ClaimParams | None, name: str) -> ClaimParams:
+    """Coerce a claim specification to ``ClaimParams``.
 
-    A ``DividendParams`` replaces outright. A mapping replaces when it
+    A ``ClaimParams`` replaces outright. A mapping replaces when it
     gives all four fields and merges onto ``base`` when it gives some,
     which is what makes one-parameter counterfactuals a one-liner.
     """
-    if isinstance(value, DividendParams):
+    if isinstance(value, ClaimParams):
         return value
     if not isinstance(value, Mapping):
         raise TypeError(
-            f"Claim {name!r} must be a DividendParams or a mapping of "
-            f"{list(_DIVIDEND_FIELDS)}, got {type(value).__name__}."
+            f"Claim {name!r} must be a ClaimParams or a mapping of "
+            f"{list(_CLAIM_FIELDS)}, got {type(value).__name__}."
         )
-    unknown = set(value) - set(_DIVIDEND_FIELDS)
+    unknown = set(value) - set(_CLAIM_FIELDS)
     if unknown:
         raise TypeError(
             f"Claim {name!r} got unknown field(s) {sorted(unknown)}; "
-            f"expected any of {list(_DIVIDEND_FIELDS)}."
+            f"expected any of {list(_CLAIM_FIELDS)}."
         )
     if base is None:
-        missing = set(_DIVIDEND_FIELDS) - set(value)
+        missing = set(_CLAIM_FIELDS) - set(value)
         if missing:
             raise TypeError(
-                f"New claim {name!r} needs all of {list(_DIVIDEND_FIELDS)}; "
+                f"New claim {name!r} needs all of {list(_CLAIM_FIELDS)}; "
                 f"missing {sorted(missing)}."
             )
-        return DividendParams(**value)
+        return ClaimParams(**value)
     return _replace(base, **value)
 
 
@@ -84,15 +83,11 @@ class LongRunRisksModel:
     mu, rho, phi_x, sigma, nu, sigma_w : float, optional
         Consumption-process overrides.
     claims : mapping, optional
-        Dividend claims to price, as ``DividendParams`` or as mappings of
+        Dividend claims to price, as ``ClaimParams`` or as mappings of
         ``mu``, ``phi``, ``phi_sigma``, ``alpha``. A mapping that gives
         only some fields merges onto the claim already there, so
         ``claims={"value": {"phi": 2.6}}`` changes one number and leaves
         the rest of the calibration alone.
-    long, short, market : str, optional
-        Which claim plays each role. By default ``value`` or ``long`` is
-        the long leg, ``growth`` or ``short`` the short leg, and
-        ``market`` the market.
     residual_corr : mapping, optional
         Correlations of orthogonalised dividend residuals, keyed by pairs
         of claim names: ``{("high", "low"): 0.2}``. Needed only for
@@ -103,8 +98,6 @@ class LongRunRisksModel:
     ----------
     params : ModelParams
         The assembled parameterisation.
-    legs : Legs
-        The resolved long, short, and market claim names.
 
     Examples
     --------
@@ -136,9 +129,6 @@ class LongRunRisksModel:
         nu: float | None = None,
         sigma_w: float | None = None,
         claims: Mapping | None = None,
-        long: str | None = None,
-        short: str | None = None,
-        market: str | None = None,
         residual_corr: Mapping | None = None,
     ):
         base = params if params is not None else ModelParams()
@@ -161,7 +151,7 @@ class LongRunRisksModel:
             if v is not None
         }
 
-        dividends = dict(base.dividends)
+        dividends = dict(base.claims)
         if claims is not None:
             if not claims:
                 raise ValueError("claims is empty; a model needs at least one claim.")
@@ -170,17 +160,17 @@ class LongRunRisksModel:
                 # Naming any claim the base does not have means the caller is
                 # describing their own cross-section, not tweaking the paper's.
                 dividends = {
-                    name: _as_dividend(spec, None, name)
+                    name: _as_claim(spec, None, name)
                     for name, spec in claims.items()
                 }
             else:
                 for name, spec in claims.items():
-                    dividends[name] = _as_dividend(spec, dividends[name], name)
+                    dividends[name] = _as_claim(spec, dividends[name], name)
 
         self.params = ModelParams(
             prefs=_replace(base.prefs, **prefs_over),
             cons=_replace(base.cons, **cons_over),
-            dividends=dividends,
+            claims=dividends,
             residual_corr_gv=base.residual_corr_gv,
             residual_corr_gm=base.residual_corr_gm,
             residual_corr_vm=base.residual_corr_vm,
@@ -190,17 +180,6 @@ class LongRunRisksModel:
                 else (dict(base.residual_corr) if base.residual_corr else None)
             ),
         )
-
-        if len(self.params.dividends) == 1:
-            # A single claim has no cross-section: it is its own long leg.
-            only = next(iter(self.params.dividends))
-            self.legs = Legs(long=only, short=only, market=market)
-        else:
-            self.legs = Legs(
-                *resolve_legs(
-                    self.params.dividends, long=long, short=short, market=market
-                )
-            )
 
         self._kwargs = {
             "delta": delta,
@@ -212,134 +191,8 @@ class LongRunRisksModel:
             "sigma": sigma,
             "nu": nu,
             "sigma_w": sigma_w,
-            "long": long,
-            "short": short,
-            "market": market,
         }
         self._solved: dict[tuple, ModelSolver] = {}
-
-    # -- alternative constructors ---------------------------------------
-    @classmethod
-    def from_loading(
-        cls,
-        phi: float,
-        *,
-        mu: float = 0.0015,
-        phi_sigma: float = 7.5,
-        alpha: float = 0.5,
-        name: str = "claim",
-        params: ModelParams | None = None,
-        **overrides,
-    ) -> "LongRunRisksModel":
-        """Price one synthetic claim from its cash-flow loading on x_t.
-
-        The loading is measured from cash flows, never from returns; see
-        :func:`lrrcs.estimate_long_run_leverage`. With a single claim
-        there is no market, so market betas are undefined and the
-        analytical method is the natural one to use.
-
-        Examples
-        --------
-        ```python
-        import lrrcs as lrr
-        res = lrr.LongRunRisksModel.from_loading(1.5).solve(method="analytical")
-        res.A1["claim"], res.long_run_premium["claim"]
-        ```
-        """
-        claim = DividendParams(mu=mu, phi=phi, phi_sigma=phi_sigma, alpha=alpha)
-        base = params if params is not None else ModelParams()
-        stripped = ModelParams(
-            prefs=base.prefs,
-            cons=base.cons,
-            dividends={name: claim},
-        )
-        return cls(stripped, **overrides)
-
-    @classmethod
-    def from_cashflows(
-        cls,
-        dc,
-        claims: Mapping | None = None,
-        *,
-        long=None,
-        short=None,
-        market=None,
-        frequency: str = "annual",
-        window: int = 2,
-        default_phi_sigma: float = 7.5,
-        params: ModelParams | None = None,
-        **overrides,
-    ) -> "LongRunRisksModel":
-        """Calibrate the dividend claims from consumption and dividend growth.
-
-        Returns never enter the calibration, which is the paper's
-        identification discipline: only ``dc`` and the dividend growth
-        series are used.
-
-        Parameters
-        ----------
-        dc : array-like
-            Consumption growth.
-        claims : mapping of str to array-like, optional
-            Dividend growth by claim name, when you want your own names.
-        long, short, market : array-like or str, optional
-            A growth series names that leg and calibrates it, so
-            ``long=dd_value`` produces a claim called ``long``. A string
-            instead picks which of ``claims`` plays the role, the same
-            way it does on the constructor.
-
-        Examples
-        --------
-        ```python
-        import lrrcs as lrr
-
-        # the paper's three legs, named by role
-        model = lrr.LongRunRisksModel.from_cashflows(
-            dc, long=dd_value, short=dd_growth, market=dd_market
-        )
-
-        # your own names, with the roles named too
-        model = lrr.LongRunRisksModel.from_cashflows(
-            dc,
-            claims={"quality": dd_q, "junk": dd_j, "market": dd_m},
-            long="quality", short="junk",
-        )
-        print(model.solve().summary())
-        ```
-        """
-        from .calibration.from_data import calibrate_from_data
-
-        def role(value):
-            """A role is either a claim name or a growth series."""
-            if value is None or isinstance(value, str):
-                return None, value
-            return value, None
-
-        long_series, long_name = role(long)
-        short_series, short_name = role(short)
-        market_series, market_name = role(market)
-
-        dividends = calibrate_from_data(
-            dc,
-            dict(claims) if claims else None,
-            frequency=frequency,
-            window=window,
-            default_phi_sigma=default_phi_sigma,
-            long=long_series,
-            short=short_series,
-            market=market_series,
-        )
-        base = params if params is not None else ModelParams()
-        stripped = ModelParams(
-            prefs=base.prefs, cons=base.cons, dividends=dividends
-        )
-        return cls(
-            stripped,
-            long=long_name,
-            short=short_name,
-            market=market_name,
-            **overrides,
-        )
 
     def replace(self, **kwargs) -> "LongRunRisksModel":
         """A new model with some constructor arguments changed.
@@ -420,17 +273,7 @@ class LongRunRisksModel:
                     "the grid method solves for log(P/D) instead of anchoring it."
                 )
             solver = self._grid_solver(n_x, n_s, max_iter, tol)
-            moments = None
-            if self.legs.market is not None:
-                from .implications.moments import compute_asset_pricing_moments
-
-                moments = compute_asset_pricing_moments(
-                    solver,
-                    long=self.legs.long,
-                    short=self.legs.short,
-                    market=self.legs.market,
-                )
-            return GridResults(self, solver, moments)
+            return GridResults(self, solver)
 
         if method == "analytical":
             for name, value, default in (
@@ -446,7 +289,7 @@ class LongRunRisksModel:
                     )
             anchors = pd_anchor
             if isinstance(pd_anchor, (int, float)):
-                anchors = {name: float(pd_anchor) for name in self.params.dividends}
+                anchors = {name: float(pd_anchor) for name in self.params.claims}
             solution = solve_analytical(
                 self.params,
                 mean_zc=3.5 if pd_anchor_c is None else float(pd_anchor_c),
@@ -500,11 +343,6 @@ class LongRunRisksModel:
         print(sim.summary())
         ```
         """
-        if self.legs.market is None:
-            raise ValueError(
-                "Simulation needs a market claim for the CAPM betas. Name one "
-                "claim 'market', or pass market='...' when building the model."
-            )
         from .implications.simulation import simulate_table_vii
 
         solver = self._grid_solver(n_x, n_s, 200_000, 1e-10)
@@ -514,9 +352,6 @@ class LongRunRisksModel:
             years=years,
             seed=seed,
             burn_in_years=burn_in_years,
-            long=self.legs.long,
-            short=self.legs.short,
-            market=self.legs.market,
         )
         return SimulationResults(self, table, seed=seed)
 
@@ -605,6 +440,5 @@ class LongRunRisksModel:
         p = self.params.prefs
         return (
             f"LongRunRisksModel(gamma={p.gamma:g}, psi={p.psi:g}, "
-            f"delta={p.delta:g}, claims={list(self.params.dividends)}, "
-            f"long={self.legs.long!r}, short={self.legs.short!r})"
+            f"delta={p.delta:g}, claims={list(self.params.claims)})"
         )

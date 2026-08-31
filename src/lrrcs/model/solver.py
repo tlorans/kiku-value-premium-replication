@@ -166,7 +166,7 @@ class ModelSolver:
         if self.z_c is None:
             self.solve_consumption_claim()
 
-        d = self.p.dividends[name]
+        d = self.p.claims[name]
         n = self.grid.n_states
         Pi = self.grid.Pi
         x = self.grid.x_grid
@@ -224,7 +224,7 @@ class ModelSolver:
     def solve(self, max_iter: int = 200_000, tol: float = 1e-10):
         """Solve the consumption claim and all equity claims."""
         self.solve_consumption_claim(max_iter=max_iter, tol=tol)
-        for name in self.p.dividends:
+        for name in self.p.claims:
             self.solve_equity_claim(name, max_iter=max_iter, tol=tol)
         self._stationary_dist()
         self.converged = True

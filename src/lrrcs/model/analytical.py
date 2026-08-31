@@ -8,7 +8,7 @@ from __future__ import annotations
 import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Mapping
-from .params import ModelParams, ConsumptionParams, DividendParams, get_default_params
+from .params import ModelParams, ConsumptionParams, ClaimParams, get_default_params
 from .preferences import EpsteinZinPreferences
 
 #: Linearization points for log P/D, by claim name. A claim not listed here
@@ -38,7 +38,7 @@ class AnalyticalSolution:
     mean_log_pd: Dict[str, float]
 
 
-def _gordon_pieces(d: DividendParams, cons: ConsumptionParams,
+def _gordon_pieces(d: ClaimParams, cons: ConsumptionParams,
                    anchor: float) -> tuple[float, float]:
     """Annualized expected dividend growth and the Gordon return at an anchor.
 
@@ -109,7 +109,7 @@ def solve_analytical(params: ModelParams | None = None,
     premium_lr: Dict[str, float] = {}
     used_mean_z: Dict[str, float] = {}
 
-    for name, d in params.dividends.items():
+    for name, d in params.claims.items():
         mean_z = anchors.get(name, DEFAULT_PD_ANCHOR)
         used_mean_z[name] = mean_z
         kappa1 = np.exp(mean_z) / (1.0 + np.exp(mean_z))

@@ -25,7 +25,6 @@ return, sample by sample.
 from __future__ import annotations
 import numpy as np
 from ..model.solver import ModelSolver
-from ..model.legs import resolve_legs
 from .moments import residual_correlation
 
 
@@ -35,9 +34,6 @@ def simulate_table_vii(
     years: int = 74,
     seed: int = 0,
     burn_in_years: int = 5,
-    long: str | None = None,
-    short: str | None = None,
-    market: str | None = None,
 ) -> dict:
     """Model-implied Table VII: cross-sample means (and SDs) of annual stats.
 
@@ -61,9 +57,13 @@ def simulate_table_vii(
     return ``mean_return`` (%), return volatility ``volatility`` (%),
     ``sharpe``, annual CAPM beta ``capm_beta``, annual mean P/D level
     ``mean_pd_level`` and mean log P/D ``mean_log_pd``; the risk-free
-    rate ``mean_rf`` (%); the value (long-short) premium; the beta
-    ratio ``beta_ratio``; and ``*_se`` entries holding cross-sample
-    standard deviations of the return means.
+    rate ``mean_rf`` (%); and ``*_se`` entries holding cross-sample
+    standard deviations.
+
+    Betas are returned per sample, as ``beta_samples[claim][reference]``
+    holding one value per artificial sample. Which claim is the market
+    is not decided here, and the per-sample detail is what lets a beta
+    ratio be a mean of ratios rather than a ratio of means.
 
     Notes
     -----
@@ -76,13 +76,6 @@ def simulate_table_vii(
         raise RuntimeError("Call solver.solve() before simulating.")
 
     p = solver.p
-    long_key, short_key, market_key = resolve_legs(
-        solver.z, long=long, short=short, market=market
-    )
-    if market_key is None:
-        raise KeyError(
-            "No market claim. Pass market='...' or include a series named 'market'."
-        )
     names = list(solver.z)
     g = solver.grid
     rng = np.random.default_rng(seed)
@@ -94,11 +87,11 @@ def simulate_table_vii(
             corr[a, b] = corr[b, a] = residual_correlation(p, names[a], names[b])
     chol_v = np.linalg.cholesky(corr)
 
-    alphas = np.array([p.dividends[nm].alpha for nm in names])
+    alphas = np.array([p.claims[nm].alpha for nm in names])
     resid_scale = np.sqrt(np.maximum(1.0 - alphas**2, 0.0))
-    mus = np.array([p.dividends[nm].mu for nm in names])
-    phis = np.array([p.dividends[nm].phi for nm in names])
-    phi_sigmas = np.array([p.dividends[nm].phi_sigma for nm in names])
+    mus = np.array([p.claims[nm].mu for nm in names])
+    phis = np.array([p.claims[nm].phi for nm in names])
+    phi_sigmas = np.array([p.claims[nm].phi_sigma for nm in names])
 
     T = (years + burn_in_years) * 12
     burn = burn_in_years * 12
@@ -180,14 +173,17 @@ def simulate_table_vii(
         for nm in names
     }
 
-    ex_m = excess[market_key]
-    ex_m_dev = ex_m - ex_m.mean(axis=0)
-    var_m = (ex_m_dev**2).mean(axis=0)
-    betas = {}
-    for nm in names:
-        ex_a = excess[nm]
-        cov = (ex_m_dev * (ex_a - ex_a.mean(axis=0))).mean(axis=0)
-        betas[nm] = cov / var_m
+    # Betas against every possible reference claim, kept per sample.
+    # Same arithmetic as before, run once per reference instead of once.
+    beta_samples = {nm: {} for nm in names}
+    for ref in names:
+        ex_m = excess[ref]
+        ex_m_dev = ex_m - ex_m.mean(axis=0)
+        var_m = (ex_m_dev**2).mean(axis=0)
+        for nm in names:
+            ex_a = excess[nm]
+            cov = (ex_m_dev * (ex_a - ex_a.mean(axis=0))).mean(axis=0)
+            beta_samples[nm][ref] = cov / var_m
 
     pd_mean = {nm: ann_pd[nm].mean(axis=0) for nm in names}
     log_pd_mean = {nm: np.log(ann_pd[nm]).mean(axis=0) for nm in names}
@@ -203,9 +199,7 @@ def simulate_table_vii(
     out = {
         "n_samples": n_samples,
         "years": years,
-        "long": long_key,
-        "short": short_key,
-        "market": market_key,
+        "claims": names,
         "mean_return": cross(stats_mean),
         "mean_return_se": cross_sd(stats_mean),
         "volatility": cross(stats_vol),
@@ -214,13 +208,14 @@ def simulate_table_vii(
         "mean_rf": float(np.mean(rf_mean)),
         "mean_rf_se": (float(np.std(rf_mean, ddof=1))
                        if n_samples > 1 else float("nan")),
-        "capm_beta": cross(betas),
-        "beta_ratio": float(np.mean(betas[long_key] / betas[short_key])),
+        "beta_samples": beta_samples,
+        "beta_matrix": {
+            nm: {ref: float(np.mean(b)) for ref, b in row.items()}
+            for nm, row in beta_samples.items()
+        },
         "mean_pd_level": cross(pd_mean),
         "mean_log_pd": cross(log_pd_mean),
         "mean_log_pd_se": cross_sd(log_pd_mean),
     }
-    out["value_premium"] = out["mean_return"][long_key] - out["mean_return"][short_key]
-    out["long_short_premium"] = out["value_premium"]
     return out
 

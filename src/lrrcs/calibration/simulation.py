@@ -29,7 +29,7 @@ def simulate_cashflow_moments(
         params = get_default_params()
     dyn = Dynamics(params, seed=seed)
 
-    names = list(params.dividends)
+    names = list(params.claims)
     cons_means, cons_vols, cons_ac1 = [], [], []
     div_means = {k: [] for k in names}
     div_vols = {k: [] for k in names}

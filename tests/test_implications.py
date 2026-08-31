@@ -49,7 +49,7 @@ def test_rankings_on_paper_grid(paper_results):
     assert er["value"] > er["market"] > er["growth"]
     # CAPM fails inside the model: value has the higher premium and the
     # lower market beta (Table VIII).
-    beta = paper_results.capm_betas
+    beta = paper_results.capm_betas("market")
     assert beta["value"] < beta["growth"]
     lpd = paper_results.mean_log_pd
     assert lpd["value"] < lpd["market"] < lpd["growth"]
@@ -57,11 +57,12 @@ def test_rankings_on_paper_grid(paper_results):
 
 def test_table_vii_by_simulation(paper_model):
     sim = paper_model.simulate(n_samples=300, years=74, seed=0)
+    cmp = sim.compare("value", "growth", market="market")
     er = sim.expected_returns
     assert er["value"] > er["market"] > er["growth"]
-    assert 4.5 < sim.value_premium < 6.5           # paper: 5.29
+    assert 4.5 < cmp.premium < 6.5                 # paper: 5.29
     assert 0.3 < sim.risk_free < 2.2               # paper: 1.58
-    assert 0.65 < sim.beta_ratio < 1.0             # paper: 0.92
+    assert 0.65 < cmp.beta_ratio < 1.0             # paper: 0.92
     lpd = sim.mean_log_pd
     assert lpd["value"] < lpd["market"] < lpd["growth"]   # paper: 3.10 < 3.24 < 3.65
     for name in ("growth", "value", "market"):
@@ -75,7 +76,7 @@ def test_grid_convergence():
     rf = []
     for n_x in (20, 40, 60):
         res = model.solve(n_x=n_x, n_s=4, tol=1e-8)
-        assert 3.0 < res.value_premium < 7.0, n_x
+        assert 3.0 < res.compare("value", "growth").premium < 7.0, n_x
         rf.append(res.risk_free)
     assert rf[0] < rf[1] < rf[2]
 
@@ -89,7 +90,7 @@ def test_analytical_consistency_fine_grid():
     is_mid = int(np.argmin(np.abs(res.s2_nodes - c.sigma**2)))
     n_x, n_s = res.n_x, res.n_s
     mid = n_x // 2
-    for name, d in params.dividends.items():
+    for name, d in params.claims.items():
         z2d = res.z[name].reshape(n_x, n_s)
         slope = ((z2d[mid + 1, is_mid] - z2d[mid - 1, is_mid])
                  / (res.x_nodes[mid + 1] - res.x_nodes[mid - 1]))

@@ -1,18 +1,33 @@
 import inspect
 import numpy as np
 from lrrcs.calibration import (
-    calibrate_from_data,
+    calibrate_claim,
+    calibrate_claims,
     estimate_long_run_leverage,
-    get_table_ii_dividends,
+    get_table_ii_claims,
     simulate_cashflow_moments,
 )
 
 
-def test_calibrate_from_data_has_no_returns_argument():
-    names = inspect.signature(calibrate_from_data).parameters
-    assert "returns" not in names
-    assert "premia" not in names
-    assert "ret" not in names
+def test_calibration_has_no_returns_argument():
+    """The paper's discipline, enforced by the signature itself."""
+    for fn in (calibrate_claim, calibrate_claims):
+        names = inspect.signature(fn).parameters
+        assert "returns" not in names, fn.__name__
+        assert "premia" not in names, fn.__name__
+        assert "ret" not in names, fn.__name__
+
+
+def test_calibrate_claim_matches_the_batch_call():
+    """One claim alone must equal the same claim inside a cross-section."""
+    rng = np.random.default_rng(5)
+    n = 60
+    dc = rng.normal(0.02, 0.03, size=n)
+    a = 0.02 + 1.5 * dc + rng.normal(0, 0.05, size=n)
+    b = 0.01 + 0.4 * dc + rng.normal(0, 0.07, size=n)
+    batch = calibrate_claims(dc, {"a": a, "b": b})
+    for name, dd in (("a", a), ("b", b)):
+        assert calibrate_claim(dc, dd) == batch[name], name
 
 
 def test_eq19_recovers_known_phi():
@@ -25,8 +40,8 @@ def test_eq19_recovers_known_phi():
     assert abs(phi - 2.16) < 0.4
 
 
-def test_table_ii_dividends():
-    d = get_table_ii_dividends()
+def test_table_ii_claims():
+    d = get_table_ii_claims()
     assert d["value"].phi == 6.2
     assert d["growth"].phi == 2.6
 
@@ -40,14 +55,14 @@ def test_simulate_cashflow_moments_keys():
     assert "E[dd]" in mom["dividends"]["value"]
 
 
-def test_calibrate_from_data_phi_sigma_matches_residual_vol():
+def test_calibrate_claims_phi_sigma_matches_residual_vol():
     from lrrcs.calibration.from_data import _consumption_innovation
 
     rng = np.random.default_rng(11)
     n = 80
     dc = rng.normal(0.02, 0.03, size=n)
     dd = 0.01 + 0.5 * dc + rng.normal(0, 0.08, size=n)
-    out = calibrate_from_data(dc, {"growth": dd}, frequency="annual", window=2)
+    out = calibrate_claims(dc, {"growth": dd}, frequency="annual", window=2)
 
     window = 2
     ma = np.full(n, np.nan)
@@ -61,10 +76,10 @@ def test_calibrate_from_data_phi_sigma_matches_residual_vol():
     assert abs(out["growth"].phi_sigma - expected) < 1e-10
 
 
-def test_calibrate_from_data_phi_sigma_fallback_when_dc_degenerate():
+def test_calibrate_claims_phi_sigma_fallback_when_dc_degenerate():
     dc = np.full(20, 0.02)
     dd = np.full(20, 0.01)
-    out = calibrate_from_data(
+    out = calibrate_claims(
         dc, {"market": dd}, frequency="annual", default_phi_sigma=7.5
     )
     assert out["market"].phi_sigma == 7.5

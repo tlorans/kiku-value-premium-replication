@@ -2,8 +2,8 @@ from pathlib import Path
 import lrrcs as lrr
 
 
-def test_version_is_0_6_0():
-    assert lrr.__version__ == "0.6.0"
+def test_version_is_0_7_0():
+    assert lrr.__version__ == "0.7.0"
 
 
 def test_tidyfinance_is_a_runtime_dependency():
@@ -21,7 +21,7 @@ def test_pyproject_companion_metadata():
     extras = project["optional-dependencies"]
     extra_blob = "\n".join(x for group in extras.values() for x in group)
     assert project["name"] == "lrrcs"
-    assert project["version"] == "0.6.0"
+    assert project["version"] == "0.7.0"
     assert project["requires-python"] == ">=3.11"
     assert "tidyfinance>=0.5.0" in deps
     assert "numpy>=1.26" in deps
@@ -43,15 +43,18 @@ def test_root_api_has_companion_names():
         "GridResults",
         "AnalyticalResults",
         "SimulationResults",
+        "Comparison",
         "Summary",
         # parameters and errors
         "ModelParams",
         "PreferencesParams",
         "ConsumptionParams",
-        "DividendParams",
+        "ClaimParams",
         "SolverDivergenceError",
         "EmpiricalDataError",
-        # measuring loadings and building data
+        # calibrating claims, and building data
+        "calibrate_claim",
+        "calibrate_claims",
         "estimate_long_run_leverage",
         "expected_growth_proxy",
         "filter_expected_growth",
@@ -69,7 +72,7 @@ def test_root_api_has_companion_names():
 
 def test_root_api_is_small():
     """The documented surface stays curated rather than hoisting everything."""
-    assert len(lrr.__all__) <= 25
+    assert len(lrr.__all__) <= 27
 
 
 def test_root_api_dropped_names():
@@ -97,9 +100,15 @@ def test_root_api_dropped_names():
         "print_calibration_summary",
         "print_moments",
         # reachable through lrrcs.calibration, not at the root
-        "calibrate_from_data",
-        "get_table_ii_dividends",
+        "get_table_ii_claims",
         "simulate_cashflow_moments",
+        # roles left the model in 0.7.0
+        "Legs",
+        "resolve_legs",
+        "ROLE_ALIASES",
+        "DividendParams",
+        "calibrate_from_data",
+        "compute_asset_pricing_moments",
         # reachable through lrrcs.empirical, not at the root
         "figure1",
     ):
@@ -109,16 +118,16 @@ def test_root_api_dropped_names():
 
 def test_engines_stay_importable_by_module_path():
     """The clean break is at the root namespace, not in the subpackages."""
-    from lrrcs.calibration import calibrate_from_data, simulate_cashflow_moments
+    from lrrcs.calibration import calibrate_claims, simulate_cashflow_moments
     from lrrcs.empirical import figure1
-    from lrrcs.implications import compute_asset_pricing_moments, simulate_table_vii
+    from lrrcs.implications import population_moments, simulate_table_vii
     from lrrcs.model import ModelSolver, solve_analytical
 
     for obj in (
-        calibrate_from_data,
+        calibrate_claims,
         simulate_cashflow_moments,
         figure1,
-        compute_asset_pricing_moments,
+        population_moments,
         simulate_table_vii,
         ModelSolver,
         solve_analytical,
@@ -134,6 +143,14 @@ def test_table_helpers_default_to_1930_2003():
     sig = inspect.signature(lrr.build_annual_panel)
     assert sig.parameters["start"].default == 1930
     assert sig.parameters["end"].default == 2003
+
+
+def test_legs_module_is_gone():
+    """Roles left the model in 0.7.0, so the resolver has no home."""
+    import importlib
+    import pytest
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("lrrcs.model.legs")
 
 
 def test_old_flat_modules_are_gone():

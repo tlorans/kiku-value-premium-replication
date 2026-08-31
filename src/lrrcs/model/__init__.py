@@ -3,10 +3,9 @@
 The documented way in is :class:`lrrcs.LongRunRisksModel`; the names here
 are the machinery behind it.
 """
-from .legs import ROLE_ALIASES, Legs, resolve_legs
 from .params import (
     ConsumptionParams,
-    DividendParams,
+    ClaimParams,
     ModelParams,
     PreferencesParams,
     get_default_params,
@@ -24,13 +23,10 @@ from .analytical import (
 )
 
 __all__ = [
-    "ROLE_ALIASES",
-    "Legs",
-    "resolve_legs",
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
-    "DividendParams",
+    "ClaimParams",
     "get_table_ii_params",
     "get_default_params",
     "EpsteinZinPreferences",

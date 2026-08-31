@@ -1,17 +1,18 @@
-"""Bring your own claim: LongRunRisksModel.from_loading."""
+"""Bring your own claim: ClaimParams.from_loading."""
 import math
 
 import lrrcs as lrr
 
 
 def _priced(loading):
-    return lrr.LongRunRisksModel.from_loading(loading).solve(method="analytical")
+    return lrr.LongRunRisksModel(
+        claims={"claim": lrr.ClaimParams.from_loading(loading)}
+    ).solve(method="analytical")
 
 
 def test_from_loading_prices_a_single_claim():
     res = _priced(1.5)
     assert res.claims == ("claim",)
-    assert res.legs.market is None
     for attr in ("A1", "A2", "long_run_premium", "mean_log_pd",
                  "expected_growth", "gordon_return"):
         assert "claim" in getattr(res, attr).index, attr
@@ -40,7 +41,20 @@ def test_from_loading_growth_channel_is_consistent():
     )
 
 
-def test_from_loading_accepts_preference_overrides():
-    patient = lrr.LongRunRisksModel.from_loading(2.6, gamma=7.5)
+def test_from_loading_composes_with_preference_overrides():
+    patient = lrr.LongRunRisksModel(
+        claims={"claim": lrr.ClaimParams.from_loading(2.6)}, gamma=7.5
+    )
     assert patient.params.prefs.gamma == 7.5
-    assert patient.params.dividends["claim"].phi == 2.6
+    assert patient.params.claims["claim"].phi == 2.6
+
+
+def test_from_loading_is_just_a_claim():
+    """It builds parameters, so several claims compose in one model."""
+    model = lrr.LongRunRisksModel(claims={
+        "high": lrr.ClaimParams.from_loading(1.5),
+        "low": lrr.ClaimParams.from_loading(0.5),
+    })
+    res = model.solve(method="analytical")
+    assert res.A1["high"] > res.A1["low"]
+    assert res.compare("high", "low").premium > 0

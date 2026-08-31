@@ -10,7 +10,7 @@ Solve the Kiku (2006) model and read its numbers::
     model = lrr.LongRunRisksModel()
     res = model.solve()
     print(res.summary())
-    res.value_premium
+    res.compare("value", "growth").premium
 
     sim = model.simulate(n_samples=1000, years=74, seed=0)
     print(sim.summary())
@@ -22,11 +22,13 @@ names below are the documented surface.
 
 from __future__ import annotations
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 from . import calibration, empirical
 from .api import LongRunRisksModel
 from .calibration import (
+    calibrate_claim,
+    calibrate_claims,
     estimate_long_run_leverage,
     expected_growth_proxy,
     filter_expected_growth,
@@ -41,15 +43,20 @@ from .empirical import (
     table_i,
     table_vi_data,
 )
-from .model.legs import Legs
 from .model.params import (
     ConsumptionParams,
-    DividendParams,
+    ClaimParams,
     ModelParams,
     PreferencesParams,
 )
 from .model.solver import SolverDivergenceError
-from .results import AnalyticalResults, GridResults, SimulationResults, Summary
+from .results import (
+    AnalyticalResults,
+    Comparison,
+    GridResults,
+    SimulationResults,
+    Summary,
+)
 
 from ._backend import use_backend as _use_backend
 
@@ -65,17 +72,19 @@ __all__ = [
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
-    "DividendParams",
-    "Legs",
+    "ClaimParams",
     # results
     "GridResults",
     "AnalyticalResults",
     "SimulationResults",
+    "Comparison",
     "Summary",
     # errors
     "SolverDivergenceError",
     "EmpiricalDataError",
-    # measuring loadings from cash flows
+    # calibrating claims from cash flows (no returns enter)
+    "calibrate_claim",
+    "calibrate_claims",
     "estimate_long_run_leverage",
     "expected_growth_proxy",
     "filter_expected_growth",

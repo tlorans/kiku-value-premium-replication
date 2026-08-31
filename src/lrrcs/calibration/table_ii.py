@@ -1,7 +1,7 @@
 """Exact Table II dividend-process parameters (bottom panel)."""
 from __future__ import annotations
 from typing import Dict
-from ..model.params import DividendParams
+from ..model.params import ClaimParams
 
 
 # Exact values from Table II (bottom panel)
@@ -12,6 +12,6 @@ TABLE_II_DIVIDENDS = {
 }
 
 
-def get_table_ii_dividends() -> Dict[str, DividendParams]:
-    """Return the exact DividendParams used in the paper (Table II)."""
-    return {name: DividendParams(**kwargs) for name, kwargs in TABLE_II_DIVIDENDS.items()}
+def get_table_ii_claims() -> Dict[str, ClaimParams]:
+    """Return the exact ClaimParams used in the paper (Table II)."""
+    return {name: ClaimParams(**kwargs) for name, kwargs in TABLE_II_DIVIDENDS.items()}

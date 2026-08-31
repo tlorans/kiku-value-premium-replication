@@ -21,7 +21,7 @@ class Dynamics:
         self.p = params or get_default_params()
         self.rng = np.random.default_rng(seed)
 
-        self.names = list(self.p.dividends)
+        self.names = list(self.p.claims)
         n = len(self.names)
         paper = ["growth", "value", "market"]
         if self.names == paper:
@@ -65,7 +65,7 @@ class Dynamics:
         eta = self.rng.standard_normal(T)
         if n:
             v = self.rng.standard_normal((T, n)) @ self.chol_v.T
-            alphas = np.array([self.p.dividends[name].alpha for name in names])
+            alphas = np.array([self.p.claims[name].alpha for name in names])
             scale = np.sqrt(np.maximum(1.0 - alphas**2, 0.0))
             u = alphas[None, :] * eta[:, None] + scale[None, :] * v
         else:
@@ -75,6 +75,6 @@ class Dynamics:
 
         out = {"x": x, "sigma2": s2, "dc": dc}
         for i, name in enumerate(names):
-            d = self.p.dividends[name]
+            d = self.p.claims[name]
             out[f"dd_{name}"] = d.mu + d.phi * x + d.phi_sigma * np.sqrt(s2) * u[:, i]
         return out

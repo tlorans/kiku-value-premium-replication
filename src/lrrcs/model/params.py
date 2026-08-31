@@ -6,13 +6,14 @@ Step 1  Aggregate long-run risks consumption process
         → ConsumptionParams (Table II of the paper)
 
 Step 2  Heterogeneous cash-flow processes
-        → DividendParams for each portfolio
+        → ClaimParams for each portfolio
 
 The single most important cross-sectional parameter is
 
-    DividendParams.phi   = long-run leverage
-                         = loading of dividend growth on the persistent
-                           expected-growth component x_t of consumption.
+    ClaimParams.phi   = long-run leverage
+                        = loading of the claim's cash-flow growth on the
+                          persistent expected-growth component x_t of
+                          consumption.
 
 In the paper: value has phi = 6.2, growth has phi = 2.6.
 This differential long-run exposure is what generates the value premium
@@ -49,14 +50,18 @@ class ConsumptionParams:
 
 
 @dataclass
-class DividendParams:
+class ClaimParams:
     """
-    Step 2 – Portfolio-specific cash-flow process.
+    Step 2 – The cash-flow process of one claim.
+
+    A claim is anything with a cash-flow stream to price: a portfolio, a
+    single firm, or a synthetic claim you invent. Only ``phi`` varies the
+    economics across a cross-section.
 
     Parameters
     ----------
     mu : float
-        Mean dividend growth (monthly).
+        Mean cash-flow growth (monthly).
     phi : float
         **Long-run leverage** – loading on the persistent expected-growth
         component x_t of consumption.  This is the key cross-sectional
@@ -64,8 +69,16 @@ class DividendParams:
     phi_sigma : float
         Loading on short-run / volatility risk.
     alpha : float
-        Correlation of the portfolio’s residual shock with the
-        consumption innovation.
+        Correlation of the claim’s residual shock with the consumption
+        innovation.
+
+    Examples
+    --------
+    ```python
+    import lrrcs as lrr
+    claim = lrr.ClaimParams(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15)
+    lrr.LongRunRisksModel(claims={"mine": claim}).solve(method="analytical")
+    ```
     """
     mu: float
     phi: float          # long-run leverage (the decisive parameter)
@@ -77,6 +90,28 @@ class DividendParams:
         """Alias for `phi` – makes the economic meaning explicit."""
         return self.phi
 
+    @classmethod
+    def from_loading(cls, phi: float, *, mu: float = 0.0015,
+                     phi_sigma: float = 7.5, alpha: float = 0.5) -> "ClaimParams":
+        """A synthetic claim defined by its loading on x_t.
+
+        The loading is measured from cash flows, never from returns; see
+        :func:`lrrcs.estimate_long_run_leverage`. The other three
+        parameters default to neutral middle-of-the-road values so that
+        two claims built this way differ only in ``phi``.
+
+        Examples
+        --------
+        ```python
+        import lrrcs as lrr
+        model = lrr.LongRunRisksModel(claims={
+            "high": lrr.ClaimParams.from_loading(1.5),
+            "low": lrr.ClaimParams.from_loading(0.5),
+        })
+        ```
+        """
+        return cls(mu=mu, phi=phi, phi_sigma=phi_sigma, alpha=alpha)
+
 
 @dataclass
 class ModelParams:
@@ -84,13 +119,13 @@ class ModelParams:
     Complete model parameterisation used throughout the package.
 
     Contains:
-    - prefs   : Epstein–Zin preferences (Step 4)
-    - cons    : aggregate consumption process (Step 1)
-    - dividends : dict of DividendParams for every portfolio (Step 2)
+    - prefs  : Epstein–Zin preferences (Step 4)
+    - cons   : aggregate consumption process (Step 1)
+    - claims : dict of ClaimParams, one per claim to price (Step 2)
     """
     prefs: PreferencesParams = field(default_factory=PreferencesParams)
     cons: ConsumptionParams = field(default_factory=ConsumptionParams)
-    dividends: Dict[str, DividendParams] = field(default_factory=dict)
+    claims: Dict[str, ClaimParams] = field(default_factory=dict)
     # residual correlations of orthogonalised dividend shocks
     residual_corr_gv: float = 0.20
     residual_corr_gm: float = 0.80
@@ -101,12 +136,12 @@ class ModelParams:
     residual_corr: Dict[frozenset, float] | None = None
 
     def __post_init__(self):
-        if not self.dividends:
+        if not self.claims:
             # Exact Table II values (bottom panel)
-            self.dividends = {
-                "growth": DividendParams(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
-                "value":  DividendParams(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
-                "market": DividendParams(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
+            self.claims = {
+                "growth": ClaimParams(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
+                "value":  ClaimParams(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
+                "market": ClaimParams(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
             }
         if self.residual_corr:
             self.residual_corr = {

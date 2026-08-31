@@ -26,7 +26,6 @@ def grid(model):
 # -- specification ------------------------------------------------------
 def test_default_model_is_the_table_ii_calibration(model):
     assert model.params == lrr.ModelParams()
-    assert model.legs == ("value", "growth", "market")
 
 
 def test_keyword_overrides_leave_the_rest_alone():
@@ -34,23 +33,23 @@ def test_keyword_overrides_leave_the_rest_alone():
     assert model.params.prefs.gamma == 7.5
     assert model.params.prefs.psi == 0.5
     assert model.params.prefs.delta == 0.999
-    assert model.params.dividends["value"].phi == 6.2
+    assert model.params.claims["value"].phi == 6.2
 
 
 def test_partial_claim_override_merges_onto_the_calibration():
     """The counterfactual idiom: change one number, keep the rest."""
     model = lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}})
-    value = model.params.dividends["value"]
+    value = model.params.claims["value"]
     assert value.phi == 2.6
     assert value.mu == 0.0019 and value.phi_sigma == 7.4 and value.alpha == 0.15
-    assert model.params.dividends["growth"].phi == 2.6
+    assert model.params.claims["growth"].phi == 2.6
 
 
 def test_the_model_never_mutates_the_params_it_was_given():
     params = lrr.ModelParams()
     lrr.LongRunRisksModel(params, gamma=2.0, claims={"value": {"phi": 1.0}})
     assert params.prefs.gamma == 10.0
-    assert params.dividends["value"].phi == 6.2
+    assert params.claims["value"].phi == 6.2
 
 
 def test_new_claim_names_replace_the_cross_section():
@@ -60,11 +59,8 @@ def test_new_claim_names_replace_the_cross_section():
             "low": dict(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
             "market": dict(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
         },
-        long="high",
-        short="low",
     )
-    assert set(model.params.dividends) == {"high", "low", "market"}
-    assert model.legs == ("high", "low", "market")
+    assert set(model.params.claims) == {"high", "low", "market"}
 
 
 def test_partial_spec_for_an_unknown_claim_is_rejected():
@@ -86,8 +82,6 @@ def test_residual_corr_accepts_pairs_of_names():
             "low": dict(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
             "market": dict(mu=0.0012, phi=2.8, phi_sigma=7.5, alpha=0.55),
         },
-        long="high",
-        short="low",
         residual_corr={("high", "low"): 0.2},
     )
     from lrrcs.implications import residual_correlation
@@ -123,16 +117,19 @@ def test_cross_method_options_are_rejected():
 def test_grid_results_expose_moments_by_claim(grid):
     assert list(grid.expected_returns.index) == ["growth", "value", "market"]
     for attr in ("expected_returns", "volatility", "sharpe_ratios",
-                 "capm_betas", "mean_log_pd", "price_dividend"):
+                 "mean_log_pd", "price_dividend"):
         series = getattr(grid, attr)
         assert set(series.index) == {"growth", "value", "market"}, attr
         assert series.notna().all(), attr
     assert isinstance(grid.risk_free, float)
-    assert grid.value_premium == grid.long_short_premium
-    assert grid.value_premium == pytest.approx(
+    betas = grid.capm_betas("market")
+    assert set(betas.index) == {"growth", "value", "market"}
+    assert betas.notna().all()
+    cmp = grid.compare("value", "growth", market="market")
+    assert cmp.premium == pytest.approx(
         grid.expected_returns["value"] - grid.expected_returns["growth"]
     )
-    assert grid.log_pd_spread == pytest.approx(
+    assert cmp.log_pd_spread == pytest.approx(
         grid.mean_log_pd["value"] - grid.mean_log_pd["growth"]
     )
 
@@ -152,7 +149,7 @@ def test_analytical_results_are_in_percent(model):
     res = model.solve(method="analytical")
     # The paper's long-run piece is well under a percent a year.
     assert 0.0 < res.long_run_premium["value"] < 5.0
-    assert res.value_premium == pytest.approx(
+    assert res.compare("value", "growth").premium == pytest.approx(
         res.long_run_premium["value"] - res.long_run_premium["growth"]
     )
     assert res.Lambda_eta == res.risk_prices["eta"]
@@ -180,7 +177,6 @@ def test_grid_summary_reports_the_attributes(grid):
         assert name in text
     numbers = _numbers(text)
     # Every headline number in the table is the attribute, formatted.
-    assert round(grid.value_premium, 2) in numbers
     assert round(grid.risk_free, 2) in numbers
     for name in grid.claims:
         assert round(grid.expected_returns[name], 2) in numbers
@@ -213,17 +209,33 @@ def test_simulation_is_deterministic_in_the_seed(model):
     assert first == second
 
 
-def test_simulate_needs_a_market_claim():
-    model = lrr.LongRunRisksModel.from_loading(2.6)
-    with pytest.raises(ValueError, match="market"):
-        model.simulate(n_samples=2, years=10)
+def test_a_model_without_a_market_can_still_simulate():
+    """Pre-0.7.0 this raised: simulation demanded a claim named market."""
+    model = lrr.LongRunRisksModel(
+        claims={"mine": lrr.ClaimParams.from_loading(2.6)}
+    )
+    sim = model.simulate(n_samples=5, years=20, seed=0)
+    assert np.isfinite(sim.expected_returns["mine"])
+    # A lone claim is its own reference, so its beta is one.
+    assert sim.capm_betas("mine")["mine"] == pytest.approx(1.0)
 
 
 def test_value_premium_matches_the_pre_facade_band():
-    """Continuity guard: the 0.5.0 pipeline put this at 5.38."""
+    """Continuity guard: every earlier release put this at 5.3791042785."""
     sim = lrr.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
-    assert 4.5 < sim.value_premium < 6.5
-    assert sim.value_premium == pytest.approx(5.38, abs=0.01)
+    cmp = sim.compare("value", "growth", market="market")
+    assert 4.5 < cmp.premium < 6.5
+    assert cmp.premium == pytest.approx(5.3791042785, abs=1e-9)
+
+
+def test_beta_ratio_is_the_mean_of_per_sample_ratios():
+    """Not the ratio of the mean betas: the two differ by about 0.008."""
+    sim = lrr.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
+    cmp = sim.compare("value", "growth", market="market")
+    assert cmp.beta_ratio == pytest.approx(0.8118025654055882, abs=1e-9)
+    betas = sim.capm_betas("market")
+    naive = betas["value"] / betas["growth"]
+    assert abs(cmp.beta_ratio - naive) > 1e-3
 
 
 def test_simulate_cashflows_has_one_row_per_series(model):
@@ -233,13 +245,12 @@ def test_simulate_cashflows_has_one_row_per_series(model):
 
 
 # -- calibration ---------------------------------------------------------
-def test_from_cashflows_never_takes_returns():
-    assert "returns" not in inspect.signature(
-        lrr.LongRunRisksModel.from_cashflows
-    ).parameters
+def test_calibration_never_takes_returns():
+    for fn in (lrr.calibrate_claim, lrr.calibrate_claims):
+        assert "returns" not in inspect.signature(fn).parameters, fn.__name__
 
 
-def test_from_cashflows_builds_a_model_from_growth_series():
+def test_calibrated_claims_build_a_model():
     rng = np.random.default_rng(4)
     n = 60
     dc = rng.normal(0.02, 0.03, size=n)
@@ -247,11 +258,10 @@ def test_from_cashflows_builds_a_model_from_growth_series():
     dd_short = 0.01 + 0.2 * dc + rng.normal(0, 0.04, size=n)
     dd_market = 0.02 + 0.5 * dc + rng.normal(0, 0.03, size=n)
 
-    model = lrr.LongRunRisksModel.from_cashflows(
-        dc, long=dd_long, short=dd_short, market=dd_market
-    )
-    assert set(model.params.dividends) == {"long", "short", "market"}
-    assert model.legs == ("long", "short", "market")
+    model = lrr.LongRunRisksModel(claims=lrr.calibrate_claims(
+        dc, {"long": dd_long, "short": dd_short, "market": dd_market}
+    ))
+    assert set(model.params.claims) == {"long", "short", "market"}
     # Preferences still come from the paper unless overridden.
     assert model.params.prefs.gamma == 10.0
 
@@ -270,33 +280,21 @@ def _growth_series(n=74, seed=42):
     )
 
 
-def test_from_cashflows_with_custom_claim_names():
-    """A role argument may name one of `claims` instead of carrying a series."""
+def test_custom_claim_names_need_no_role_argument():
+    """Naming your own cross-section is now just naming the dict keys."""
     dc, high, low, market = _growth_series()
-    model = lrr.LongRunRisksModel.from_cashflows(
-        dc,
-        claims={"quality": high, "junk": low, "market": market},
-        long="quality",
-        short="junk",
-    )
-    assert set(model.params.dividends) == {"quality", "junk", "market"}
-    assert model.legs == ("quality", "junk", "market")
-    assert np.isfinite(model.solve(method="analytical").value_premium)
+    model = lrr.LongRunRisksModel(claims=lrr.calibrate_claims(
+        dc, {"quality": high, "junk": low, "market": market}
+    ))
+    assert set(model.params.claims) == {"quality", "junk", "market"}
+    res = model.solve(method="analytical")
+    assert np.isfinite(res.compare("quality", "junk").premium)
 
 
-def test_from_cashflows_roles_may_be_series_or_names():
-    """Both spellings reach the same calibrated parameters."""
+def test_calibrating_one_claim_equals_calibrating_the_set():
+    """The seam that makes calibration composable: no cross-claim coupling."""
     dc, high, low, market = _growth_series()
-    by_series = lrr.LongRunRisksModel.from_cashflows(
-        dc, long=high, short=low, market=market
-    )
-    by_name = lrr.LongRunRisksModel.from_cashflows(
-        dc,
-        claims={"long": high, "short": low, "market": market},
-        long="long",
-        short="short",
-        market="market",
-    )
-    assert by_series.legs == by_name.legs
-    for claim in ("long", "short", "market"):
-        assert by_series.params.dividends[claim] == by_name.params.dividends[claim]
+    series = {"quality": high, "junk": low, "market": market}
+    batch = lrr.calibrate_claims(dc, series)
+    for name, dd in series.items():
+        assert lrr.calibrate_claim(dc, dd) == batch[name], name

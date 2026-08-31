@@ -8,9 +8,9 @@ def test_table_ii_phi():
     assert p.prefs.gamma == 10.0
     assert p.prefs.psi == 1.5
     assert p.cons.rho == 0.98
-    assert p.dividends["value"].phi == 6.2
-    assert p.dividends["growth"].phi == 2.6
-    assert p.dividends["market"].phi == 2.8
+    assert p.claims["value"].phi == 6.2
+    assert p.claims["growth"].phi == 2.6
+    assert p.claims["market"].phi == 2.8
 
 
 def test_analytical_value_has_higher_lr_premium():

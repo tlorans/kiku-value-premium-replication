@@ -1,8 +1,13 @@
 """Results of solving and simulating a :class:`~lrrcs.api.LongRunRisksModel`.
 
 Every solve or simulation returns one of these objects. They hold the
-numbers as attributes, print a formatted table through
-:meth:`summary`, and hand back a tidy frame through :meth:`to_frame`.
+numbers as attributes, print a formatted table through :meth:`summary`,
+and hand back a tidy frame through :meth:`to_frame`.
+
+They describe **claims**, never roles. A model prices a set of named
+claims; which two of them form a spread, and which one stands in for the
+market, are questions you ask afterwards through
+:meth:`LRRResults.compare`.
 
 Conventions
 -----------
@@ -21,7 +26,6 @@ import pandas as pd
 
 from ._backend import to_backend
 from .model.analytical import AnalyticalSolution, _gordon_pieces
-from .model.legs import Legs
 from .model.params import ModelParams
 
 # Kiku (2006) Table VII, Model column: cross-sample means of annual stats.
@@ -36,6 +40,10 @@ _PAPER_TABLE_VII = {
     "value_premium": 5.29,
     "beta_ratio": 0.92,
 }
+
+# Floor on a reference claim's return variance, so a degenerate claim
+# cannot divide a beta by zero. Carried over from the pre-0.7.0 moments.
+_VAR_FLOOR = 1e-12
 
 
 class Summary:
@@ -92,17 +100,17 @@ class LRRResults:
         How the results were produced.
     claims : tuple of str
         The claim names, in the order the model prices them.
-    legs : Legs
-        Which claim plays the long, short, and market role.
     """
 
     method = "base"
 
+    #: (attribute holding the headline per-claim measure, its prose name)
+    _premium_field = ("expected_returns", "expected return")
+
     def __init__(self, model):
         self.model = model
         self.params: ModelParams = model.params
-        self.claims: tuple[str, ...] = tuple(model.params.dividends)
-        self.legs: Legs = model.legs
+        self.claims: tuple[str, ...] = tuple(model.params.claims)
 
     # -- shared helpers -------------------------------------------------
     @property
@@ -110,33 +118,56 @@ class LRRResults:
         """True for the untouched Table II calibration."""
         return self.params == ModelParams()
 
-    def _spread(self, values: pd.Series) -> float:
-        """Long leg minus short leg, NaN when either leg is missing."""
-        long, short = self.legs.long, self.legs.short
-        if long is None or short is None:
-            return float("nan")
-        return float(values[long] - values[short])
-
-    def _premium_label(self) -> str:
-        paper_legs = {self.legs.long, self.legs.short} <= {"value", "growth"}
-        return "Value premium" if paper_legs else "Long-short premium"
+    def _check_claim(self, role: str, name: str) -> None:
+        if name not in self.claims:
+            raise KeyError(
+                f"{role}={name!r} is not among the claims {list(self.claims)}."
+            )
 
     def _header_lines(self, subtitle: str) -> list[str]:
         p = self.params.prefs
-        legs = f"long={self.legs.long}, short={self.legs.short}"
-        if self.legs.market:
-            legs += f", market={self.legs.market}"
         return [
             "=" * 72,
             "Long-Run Risks Model Results".center(72),
             "=" * 72,
-            f"Model:        Kiku (2006) general equilibrium",
+            "Model:        Kiku (2006) general equilibrium",
             f"Method:       {subtitle}",
             f"Preferences:  delta = {p.delta:g}   gamma = {p.gamma:g}   "
             f"psi = {p.psi:g}   theta = {p.theta:.1f}",
             f"Claims:       {', '.join(self.claims)}",
-            f"Legs:         {legs}",
         ]
+
+    # -- comparison ------------------------------------------------------
+    def compare(self, long: str, short: str, *,
+                market: str | None = None) -> "Comparison":
+        """Set two priced claims side by side.
+
+        Parameters
+        ----------
+        long, short : str
+            The two claims to compare. The premium is long minus short.
+        market : str, optional
+            The claim to measure CAPM betas against. Only betas need it.
+
+        Returns
+        -------
+        Comparison
+
+        Examples
+        --------
+        ```python
+        import lrrcs as lrr
+        res = lrr.LongRunRisksModel().solve()
+        cmp = res.compare("value", "growth", market="market")
+        cmp.premium
+        print(cmp.summary())
+        ```
+        """
+        return Comparison(self, long, short, market=market)
+
+    def _beta_ratio(self, long: str, short: str, market: str) -> float:
+        """Beta of the long leg over beta of the short leg."""
+        return float("nan")
 
     def summary(self) -> Summary:  # pragma: no cover - overridden
         raise NotImplementedError
@@ -147,8 +178,160 @@ class LRRResults:
     def __repr__(self) -> str:
         return (
             f"<{type(self).__name__} method={self.method!r} "
-            f"claims={list(self.claims)} "
-            f"value_premium={getattr(self, 'value_premium', float('nan')):.2f}>"
+            f"claims={list(self.claims)}>"
+        )
+
+
+class Comparison:
+    """A pairwise comparison of two priced claims.
+
+    Built by :meth:`LRRResults.compare`, never constructed directly. The
+    model prices a set of claims; which two of them form a spread is a
+    question asked afterwards, and this is the answer.
+
+    Attributes
+    ----------
+    long, short : str
+        The compared claims.
+    market : str or None
+        The reference claim for betas, if one was given.
+    premium : float
+        Long minus short, in the results' headline measure: expected
+        return for a grid or simulated solve, long-run risk premium for
+        the analytical one. In percent.
+    log_pd_spread : float
+        Long minus short mean log P/D. On analytical results this is the
+        spread of the linearization anchors, not of solved levels.
+    volatility_spread : float
+        Long minus short return volatility; NaN on analytical results.
+    betas : pandas.Series
+        The two legs' CAPM betas against ``market``; NaN without one.
+    beta_ratio : float
+        Beta of the long leg over beta of the short leg. On simulated
+        results this is the cross-sample mean of the per-sample ratio,
+        which is the paper's object and is *not* the ratio of the
+        reported mean betas.
+    label : str
+        "Value premium" for a value/growth pair, else "Long-short premium".
+    """
+
+    def __init__(self, results: LRRResults, long: str, short: str, *,
+                 market: str | None = None):
+        results._check_claim("long", long)
+        results._check_claim("short", short)
+        if market is not None:
+            results._check_claim("market", market)
+        if long == short:
+            raise ValueError(
+                f"compare needs two different claims; both legs are {long!r}."
+            )
+
+        self.results = results
+        self.long = long
+        self.short = short
+        self.market = market
+
+        field, measure = results._premium_field
+        values = getattr(results, field)
+        self.premium = float(values[long] - values[short])
+        self.premium_measure = measure
+
+        self.log_pd_spread = float(
+            results.mean_log_pd[long] - results.mean_log_pd[short]
+        )
+
+        vol = getattr(results, "volatility", None)
+        self.volatility_spread = (
+            float(vol[long] - vol[short]) if vol is not None else float("nan")
+        )
+
+        if market is not None and hasattr(results, "capm_betas"):
+            self.betas = results.capm_betas(market)[[long, short]]
+            self.beta_ratio = results._beta_ratio(long, short, market)
+        else:
+            self.betas = pd.Series(
+                [np.nan, np.nan], index=[long, short], dtype=float
+            )
+            self.beta_ratio = float("nan")
+
+    @property
+    def label(self) -> str:
+        """How the paper would name this spread."""
+        paper_pair = {self.long, self.short} <= {"value", "growth"}
+        return "Value premium" if paper_pair else "Long-short premium"
+
+    def to_frame(self):
+        """The comparison as one tidy row, for stacking across a sweep.
+
+        Examples
+        --------
+        ```python
+        import pandas as pd
+        pd.concat([
+            model.replace(gamma=g).solve().compare("value", "growth").to_frame()
+            for g in (5, 10, 15)
+        ])
+        ```
+        """
+        out = pd.DataFrame([{
+            "long": self.long,
+            "short": self.short,
+            "market": self.market,
+            "premium": self.premium,
+            "log_pd_spread": self.log_pd_spread,
+            "volatility_spread": self.volatility_spread,
+            "beta_long": float(self.betas[self.long]),
+            "beta_short": float(self.betas[self.short]),
+            "beta_ratio": self.beta_ratio,
+        }])
+        return to_backend(out)
+
+    def summary(self) -> Summary:
+        """The two legs and the spreads between them."""
+        res = self.results
+        lines = res._header_lines(res._subtitle())
+        market = f"   market = {self.market}" if self.market else ""
+        lines.append(
+            f"Comparison:   long = {self.long}   short = {self.short}{market}"
+        )
+        lines.append("-" * 72)
+        lines.append(
+            f"{'Leg':6s} {'Claim':14s} {'E[R] %':>9s} {'Vol %':>8s} "
+            f"{'CAPM b':>8s} {'log(P/D)':>9s}"
+        )
+        values = getattr(res, res._premium_field[0])
+        vol = getattr(res, "volatility", None)
+        for role, name in (("long", self.long), ("short", self.short)):
+            lines.append(
+                f"{role:6s} {name:14s} {_fmt(values[name], 9)} "
+                f"{_fmt(vol[name] if vol is not None else np.nan)} "
+                f"{_fmt(self.betas[name])} "
+                f"{_fmt(res.mean_log_pd[name], 9)}"
+            )
+        lines.append("-" * 72)
+        label = f"{self.label} ({self.premium_measure})"
+        lines.append(f"{label:38s} {_fmt(self.premium)} %")
+        lines.append(
+            f"{'log(P/D) spread (' + self.long + ' - ' + self.short + ')':38s} "
+            f"{_fmt(self.log_pd_spread)}"
+        )
+        if np.isfinite(self.beta_ratio):
+            ratio_label = f"CAPM beta ratio ({self.long}/{self.short})"
+            lines.append(f"{ratio_label:38s} {_fmt(self.beta_ratio)}")
+        lines.append("=" * 72)
+        if (res._is_paper_calibration
+                and (self.long, self.short) == ("value", "growth")):
+            paper = _PAPER_TABLE_VII
+            lines.append(
+                f"Kiku (2006), Table VII: premium {paper['value_premium']:.2f} %, "
+                f"beta ratio {paper['beta_ratio']:.2f}."
+            )
+        return Summary(lines)
+
+    def __repr__(self) -> str:
+        return (
+            f"<Comparison long={self.long!r} short={self.short!r} "
+            f"premium={self.premium:.2f}>"
         )
 
 
@@ -160,16 +343,17 @@ class GridResults(LRRResults):
 
     Attributes
     ----------
-    expected_returns, volatility, sharpe_ratios, capm_betas : pandas.Series
-        Annualized return moments by claim, in percent (betas unitless).
+    expected_returns, volatility, sharpe_ratios : pandas.Series
+        Annualized return moments by claim, in percent.
     mean_log_pd, price_dividend : pandas.Series
         Mean log price-dividend ratio and its level, by claim.
     risk_free : float
-        Annualized risk-free rate, in percent.
-    value_premium : float
-        Long leg minus short leg expected return, in percent.
-    log_pd_spread : float
-        Long leg minus short leg mean log P/D.
+        Annualized risk-free rate, in percent. It follows from the SDF,
+        so no claim is involved.
+    return_cov : pandas.DataFrame
+        Pairwise covariance of monthly gross returns, claim by claim.
+    beta_matrix : pandas.DataFrame
+        CAPM betas: rows are the claim, columns the reference claim.
     converged : bool
         Whether every Euler fixed point converged.
     n_x, n_s : int
@@ -180,59 +364,65 @@ class GridResults(LRRResults):
 
     method = "grid"
 
-    def __init__(self, model, solver, moments: dict | None):
+    def __init__(self, model, solver):
         super().__init__(model)
         self._solver = solver
-        self._moments = moments
         self.n_x = solver.grid.n_x
         self.n_s = solver.grid.n_s
         self.converged = bool(solver.converged)
 
-        from .implications.moments import claim_stats
+        from .implications.moments import population_moments
 
-        pi = solver.stationary
-        stats = {name: claim_stats(solver, name, pi) for name in self.claims}
+        moments = population_moments(solver)
+        self._moments = moments
 
-        self.expected_returns = _series(
-            {n: s["mean_return"] for n, s in stats.items()}, self.claims
-        )
-        self.volatility = _series(
-            {n: s["volatility"] for n, s in stats.items()}, self.claims
-        )
-        self.mean_log_pd = _series(
-            {n: s["mean_log_pd"] for n, s in stats.items()}, self.claims
-        )
+        self.expected_returns = _series(moments["mean_return"], self.claims)
+        self.volatility = _series(moments["volatility"], self.claims)
+        self.mean_log_pd = _series(moments["mean_log_pd"], self.claims)
         self.price_dividend = np.exp(self.mean_log_pd)
+        self.sharpe_ratios = _series(moments["sharpe"], self.claims)
+        self.risk_free = float(moments["mean_rf"])
 
-        if moments is not None:
-            self.risk_free = float(moments["mean_rf"])
-            self.capm_betas = _series(moments["capm_beta"], self.claims)
-            if self.legs.market is not None:
-                self.capm_betas[self.legs.market] = 1.0
-        else:
-            # No market claim: the risk-free rate still follows from the SDF,
-            # but market betas are undefined.
-            Rf = 1.0 / float(np.dot(pi, 1.0 / solver.risk_free()))
-            self.risk_free = (Rf**12 - 1) * 100
-            self.capm_betas = _series({}, self.claims)
-
-        self.sharpe_ratios = pd.Series(
-            [
-                (self.expected_returns[n] - self.risk_free) / self.volatility[n]
-                if self.volatility[n] > 0
-                else np.nan
-                for n in self.claims
-            ],
-            index=list(self.claims),
-            dtype=float,
+        names = list(self.claims)
+        cov = moments["covariance"]
+        self.return_cov = pd.DataFrame(
+            [[cov[a][b] for b in names] for a in names],
+            index=names, columns=names,
         )
-        self.value_premium = self._spread(self.expected_returns)
-        self.log_pd_spread = self._spread(self.mean_log_pd)
+        self.beta_matrix = self._betas_from_cov()
 
-    @property
-    def long_short_premium(self) -> float:
-        """Alias of :attr:`value_premium` for non-paper leg names."""
-        return self.value_premium
+    def _betas_from_cov(self) -> pd.DataFrame:
+        """Betas against every reference claim: cov(a, m) / var(m)."""
+        cov = self.return_cov.to_numpy()
+        var = np.maximum(np.diag(cov), _VAR_FLOOR)
+        betas = pd.DataFrame(
+            cov / var[None, :], index=list(self.claims), columns=list(self.claims)
+        )
+        for name in self.claims:
+            # A claim's beta on itself is one by definition, and saying so
+            # keeps the variance floor from showing through on a degenerate
+            # claim.
+            betas.loc[name, name] = 1.0
+        return betas
+
+    def capm_betas(self, market: str) -> pd.Series:
+        """CAPM betas of every claim against ``market``.
+
+        Examples
+        --------
+        ```python
+        res.capm_betas("market")["value"]
+        ```
+        """
+        self._check_claim("market", market)
+        return self.beta_matrix[market].rename(f"beta_vs_{market}")
+
+    def _beta_ratio(self, long: str, short: str, market: str) -> float:
+        b = self.capm_betas(market)
+        return float(b[long] / b[short])
+
+    def _subtitle(self) -> str:
+        return f"grid ({self.n_x} x {self.n_s} states)"
 
     # -- the solved objects behind the moments --------------------------
     @property
@@ -282,13 +472,16 @@ class GridResults(LRRResults):
         return to_backend(out)
 
     def to_frame(self):
-        """Moments by claim, one row per claim."""
+        """Moments by claim, one row per claim.
+
+        Betas need a reference claim, so they are not here; join them on
+        with ``res.capm_betas("market")`` when you want them.
+        """
         out = pd.DataFrame(
             {
                 "expected_return": self.expected_returns,
                 "volatility": self.volatility,
                 "sharpe": self.sharpe_ratios,
-                "capm_beta": self.capm_betas,
                 "mean_log_pd": self.mean_log_pd,
                 "price_dividend": self.price_dividend,
             }
@@ -298,27 +491,28 @@ class GridResults(LRRResults):
 
     def summary(self) -> Summary:
         """Formatted population moments, in the style of Tables VII-VIII."""
-        lines = self._header_lines(f"grid ({self.n_x} x {self.n_s} states)")
+        lines = self._header_lines(self._subtitle())
         lines.append(f"Converged:    {self.converged}")
         lines.append("-" * 72)
         lines.append(
             f"{'Claim':12s} {'E[R] %':>8s} {'Vol %':>8s} {'Sharpe':>8s} "
-            f"{'CAPM b':>8s} {'log(P/D)':>9s} {'P/D':>8s}"
+            f"{'log(P/D)':>9s} {'P/D':>8s}"
         )
         for name in self.claims:
             lines.append(
                 f"{name:12s} {_fmt(self.expected_returns[name])} "
                 f"{_fmt(self.volatility[name])} {_fmt(self.sharpe_ratios[name])} "
-                f"{_fmt(self.capm_betas[name])} {_fmt(self.mean_log_pd[name], 9)} "
+                f"{_fmt(self.mean_log_pd[name], 9)} "
                 f"{_fmt(self.price_dividend[name], 8, 1)}"
             )
         lines.append("-" * 72)
         lines.append(f"Risk-free rate                {_fmt(self.risk_free)} %")
-        lines.append(f"{self._premium_label():29s} {_fmt(self.value_premium)} %")
-        lines.append(f"log(P/D) spread (long-short)  {_fmt(self.log_pd_spread)}")
         lines.append("=" * 72)
         lines.append(
             "Population moments under the stationary distribution, annualized."
+        )
+        lines.append(
+            "Compare two claims with .compare(long=..., short=...)."
         )
         return Summary(lines)
 
@@ -331,6 +525,9 @@ class AnalyticalResults(LRRResults):
     solved level. ``long_run_premium`` is the compensation for
     expected-growth news only; short-run and volatility news add more.
 
+    There is no return distribution in this solution, so it carries no
+    volatilities and no betas.
+
     Attributes
     ----------
     A1, A2 : pandas.Series
@@ -338,15 +535,14 @@ class AnalyticalResults(LRRResults):
     long_run_premium : pandas.Series
         Annualized long-run risk premium by claim, in percent.
     expected_growth, gordon_return : pandas.Series
-        Annualized expected dividend growth including convexity, and the
+        Annualized expected cash-flow growth including convexity, and the
         Gordon return at the anchor, in percent.
     risk_prices : pandas.Series
         Prices of the short-run, long-run, and volatility shocks.
-    value_premium : float
-        Long leg minus short leg long-run premium, in percent.
     """
 
     method = "analytical"
+    _premium_field = ("long_run_premium", "long-run risk premium")
 
     def __init__(self, model, solution: AnalyticalSolution):
         super().__init__(model)
@@ -368,7 +564,7 @@ class AnalyticalResults(LRRResults):
         self.mean_log_pd = _series(solution.mean_log_pd, self.claims)
 
         growth, gordon = {}, {}
-        for name, d in self.params.dividends.items():
+        for name, d in self.params.claims.items():
             g_eff, gordon_r = _gordon_pieces(
                 d, self.params.cons, solution.mean_log_pd[name]
             )
@@ -376,13 +572,6 @@ class AnalyticalResults(LRRResults):
             gordon[name] = gordon_r * 100.0
         self.expected_growth = _series(growth, self.claims)
         self.gordon_return = _series(gordon, self.claims)
-
-        self.value_premium = self._spread(self.long_run_premium)
-
-    @property
-    def long_short_premium(self) -> float:
-        """Alias of :attr:`value_premium` for non-paper leg names."""
-        return self.value_premium
 
     @property
     def Lambda_eta(self) -> float:
@@ -398,6 +587,9 @@ class AnalyticalResults(LRRResults):
     def Lambda_w(self) -> float:
         """Price of the volatility shock."""
         return float(self.risk_prices["w"])
+
+    def _subtitle(self) -> str:
+        return "analytical (log-linear, Section 3.4)"
 
     def to_frame(self):
         """Loadings and premia by claim, one row per claim."""
@@ -416,7 +608,7 @@ class AnalyticalResults(LRRResults):
 
     def summary(self) -> Summary:
         """Formatted loadings, long-run premia, and risk prices."""
-        lines = self._header_lines("analytical (log-linear, Section 3.4)")
+        lines = self._header_lines(self._subtitle())
         lines.append("-" * 72)
         lines.append(
             f"{'Claim':12s} {'A1':>9s} {'A2':>11s} {'LR prem %':>10s} "
@@ -431,11 +623,6 @@ class AnalyticalResults(LRRResults):
                 f"{_fmt(self.mean_log_pd[name], 9)}"
             )
         lines.append("-" * 72)
-        if np.isfinite(self.value_premium):
-            lines.append(
-                f"{self._premium_label()} from long-run risks  "
-                f"{_fmt(self.value_premium)} %"
-            )
         lines.append(
             f"Risk prices: short-run {self.Lambda_eta:.2f}, "
             f"long-run {self.Lambda_eps:.2f}, volatility {self.Lambda_w:.2f}"
@@ -444,6 +631,9 @@ class AnalyticalResults(LRRResults):
         lines.append(
             "Long-run piece only, at fixed log(P/D) anchors; "
             "short-run and volatility news add more."
+        )
+        lines.append(
+            "Compare two claims with .compare(long=..., short=...)."
         )
         return Summary(lines)
 
@@ -457,14 +647,17 @@ class SimulationResults(LRRResults):
 
     Attributes
     ----------
-    expected_returns, volatility, sharpe_ratios, capm_betas : pandas.Series
+    expected_returns, volatility, sharpe_ratios : pandas.Series
         Cross-sample mean annual statistics by claim.
     expected_returns_se, volatility_se, mean_log_pd_se : pandas.Series
         Cross-sample standard deviations.
     pd_levels, mean_log_pd : pandas.Series
         Mean annual price-dividend ratio and its log.
-    risk_free, risk_free_se, value_premium, beta_ratio : float
-        Whole-model statistics; rates and premia in percent.
+    risk_free, risk_free_se : float
+        The rate and its cross-sample dispersion, in percent.
+    beta_matrix : pandas.DataFrame
+        Cross-sample mean CAPM betas: rows the claim, columns the
+        reference claim.
     n_samples, years, seed : int
         What was simulated.
     """
@@ -483,20 +676,41 @@ class SimulationResults(LRRResults):
         self.volatility = _series(table["volatility"], self.claims)
         self.volatility_se = _series(table["volatility_se"], self.claims)
         self.sharpe_ratios = _series(table["sharpe"], self.claims)
-        self.capm_betas = _series(table["capm_beta"], self.claims)
         self.pd_levels = _series(table["mean_pd_level"], self.claims)
         self.mean_log_pd = _series(table["mean_log_pd"], self.claims)
         self.mean_log_pd_se = _series(table["mean_log_pd_se"], self.claims)
 
         self.risk_free = float(table["mean_rf"])
         self.risk_free_se = float(table["mean_rf_se"])
-        self.value_premium = float(table["value_premium"])
-        self.beta_ratio = float(table["beta_ratio"])
 
-    @property
-    def long_short_premium(self) -> float:
-        """Alias of :attr:`value_premium` for non-paper leg names."""
-        return self.value_premium
+        names = list(self.claims)
+        self._beta_samples = table["beta_samples"]
+        matrix = table["beta_matrix"]
+        self.beta_matrix = pd.DataFrame(
+            [[matrix[a][b] for b in names] for a in names],
+            index=names, columns=names,
+        )
+
+    def capm_betas(self, market: str) -> pd.Series:
+        """Cross-sample mean CAPM betas of every claim against ``market``."""
+        self._check_claim("market", market)
+        return self.beta_matrix[market].rename(f"beta_vs_{market}")
+
+    def _beta_ratio(self, long: str, short: str, market: str) -> float:
+        """Cross-sample mean of the per-sample beta ratio.
+
+        This is the paper's object, and it is not the ratio of the mean
+        betas: the mean of a ratio and the ratio of means differ, by
+        about a hundredth here.
+        """
+        samples = self._beta_samples
+        return float(np.mean(samples[long][market] / samples[short][market]))
+
+    def _subtitle(self) -> str:
+        return (
+            f"simulation ({self.n_samples} samples x {self.years} years, "
+            f"seed {self.seed})"
+        )
 
     def to_frame(self):
         """Simulated statistics by claim, one row per claim."""
@@ -507,7 +721,6 @@ class SimulationResults(LRRResults):
                 "volatility": self.volatility,
                 "volatility_se": self.volatility_se,
                 "sharpe": self.sharpe_ratios,
-                "capm_beta": self.capm_betas,
                 "price_dividend": self.pd_levels,
                 "mean_log_pd": self.mean_log_pd,
             }
@@ -518,13 +731,11 @@ class SimulationResults(LRRResults):
     def summary(self) -> Summary:
         """Formatted Table VII, beside the paper's own column when comparable."""
         paper = _PAPER_TABLE_VII if self._is_paper_calibration else None
-        lines = self._header_lines(
-            f"simulation ({self.n_samples} samples x {self.years} years, seed {self.seed})"
-        )
+        lines = self._header_lines(self._subtitle())
         lines.append("-" * 72)
         header = (
             f"{'Claim':10s} {'E[R] %':>8s} {'(SD)':>7s} {'Vol %':>8s} "
-            f"{'Sharpe':>7s} {'beta':>6s} {'P/D':>7s} {'log P/D':>8s}"
+            f"{'Sharpe':>7s} {'P/D':>7s} {'log P/D':>8s}"
         )
         if paper:
             header += f" {'Paper E[R]':>11s}"
@@ -535,7 +746,6 @@ class SimulationResults(LRRResults):
                 f"{_fmt(self.expected_returns_se[name], 7)} "
                 f"{_fmt(self.volatility[name])} "
                 f"{_fmt(self.sharpe_ratios[name], 7)} "
-                f"{_fmt(self.capm_betas[name], 6)} "
                 f"{_fmt(self.pd_levels[name], 7, 1)} "
                 f"{_fmt(self.mean_log_pd[name], 8)}"
             )
@@ -547,9 +757,6 @@ class SimulationResults(LRRResults):
             f"Risk-free rate                {_fmt(self.risk_free)} %  "
             f"(SD {self.risk_free_se:.2f})"
         )
-        lines.append(f"{self._premium_label():29s} {_fmt(self.value_premium)} %")
-        beta_label = f"CAPM beta ratio ({self.legs.long}/{self.legs.short})"
-        lines.append(f"{beta_label:29s} {self.beta_ratio:8.2f}")
         lines.append("=" * 72)
         if paper:
             lines.append(
@@ -558,4 +765,7 @@ class SimulationResults(LRRResults):
                 f"rf {paper['mean_rf']:.2f} %, "
                 f"beta ratio {paper['beta_ratio']:.2f})."
             )
+        lines.append(
+            "Compare two claims with .compare(long=..., short=..., market=...)."
+        )
         return Summary(lines)
