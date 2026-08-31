@@ -6,9 +6,8 @@ book-to-market, quality, and so on):
 
   1. Obtain annual series of consumption growth (dc) and dividend growth
      for each portfolio (dd).
-  2. Build the model straight from those series with
-     LongRunRisksModel.from_cashflows.
-  3. Solve it and read the premia.
+  2. Turn each series into a ClaimParams with calibrate_claims.
+  3. Put them in a model, solve it, and compare two of them.
 
 Returns never enter step 2. That is the paper's identification
 discipline: the cross-section is disciplined by cash flows alone, so the
@@ -62,23 +61,25 @@ def main():
           f"growth phi = {phi_growth:.2f}")
 
     # 3. Build the model from those same cash flows.
-    model = lrr.LongRunRisksModel.from_cashflows(
+    claims = lrr.calibrate_claims(
         dc,
-        long=dd_value,
-        short=dd_growth,
-        market=dd_market,
+        {"value": dd_value, "growth": dd_growth, "market": dd_market},
         frequency="annual",
         window=2,          # paper uses a 2-year moving average
     )
+    model = lrr.LongRunRisksModel(claims=claims)
 
     print("\nCalibrated cash-flow parameters:")
     print(f"  {'claim':8s} {'mu':>9s} {'phi':>8s} {'phi_sigma':>10s} {'alpha':>7s}")
-    for name, d in model.params.dividends.items():
+    for name, d in model.params.claims.items():
         print(f"  {name:8s} {d.mu:9.5f} {d.phi:8.3f} {d.phi_sigma:10.2f} {d.alpha:7.2f}")
 
-    # 4. Price the claims.
+    # 4. Price the claims, then compare two of them.
+    res = model.solve(method="analytical")
     print()
-    print(model.solve(method="analytical").summary())
+    print(res.summary())
+    print()
+    print(res.compare("value", "growth").summary())
 
     print("\nThe leg with the highest estimated phi receives the largest")
     print("long-run risk premium. That is the mechanism behind the value")

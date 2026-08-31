@@ -39,12 +39,14 @@ Pricing a claim takes four steps, and none of them uses a return.
    (19) of the paper and
    [Chapter 8](08-calibrating-cash-flows.qmd). The slope is the loading
    $\tilde\phi$.
-3. **Build a model from the loading and solve it.**
-   `lrr.LongRunRisksModel.from_loading(phi)` embeds the claim in the
-   Table II economy, and `.solve(method="analytical")` solves the
-   log-linear model of [Chapter 6](06-log-linear-solution.qmd) for that
-   one claim. A model with a single claim has no market leg, so market
-   betas are undefined and the analytical method is the one to use.
+3. **Build a claim from the loading, put it in a model, and solve.**
+   `lrr.ClaimParams.from_loading(phi)` describes the claim, and
+   `lrr.LongRunRisksModel(claims={"claim": ...})` puts it in the Table
+   II economy. `.solve(method="analytical")` then solves the log-linear
+   model of [Chapter 6](06-log-linear-solution.qmd) for that one claim.
+   A model that holds a single claim has no market claim to measure
+   against, so market betas are undefined and the analytical method is
+   the one to use.
 4. **Read off the outputs.** `A1` is the elasticity of the
    price-dividend ratio to $x_t$, so it measures how the claim's
    valuation responds to growth news. `long_run_premium` is the
@@ -98,13 +100,12 @@ BASE = dict(mu=0.0015, phi_sigma=7.5, alpha=0.5)
 
 firms = lrr.LongRunRisksModel(
     claims={"A": dict(BASE, phi=0.5), "B": dict(BASE, phi=1.5)},
-    long="B", short="A",
 ).solve(method="analytical")
 
 names = list(firms.claims)
 rows = pd.DataFrame({
     "firm": names,
-    "phi": [firms.params.dividends[n].phi for n in names],
+    "phi": [firms.params.claims[n].phi for n in names],
     "a1": [firms.A1[n] for n in names],
     "prem": [firms.long_run_premium[n] for n in names],
     "growth": [firms.expected_growth[n] for n in names],
@@ -187,17 +188,18 @@ phi = {c: leverage(dividend_growth(c)) for c in ("Value", "Growth", "Market")}
 Value's dividends load heavily on the slow component of consumption,
 and growth's barely respond. On the reconstruction here, growth's slope
 is even slightly negative, and the market sits in between. For complete
-series, `lrr.calibration.calibrate_from_data` wraps the same regression
-in one call and also estimates the short-run parameters ($\mu$,
-$\phi_\sigma$, $\alpha$):
+series, `lrr.calibrate_claims` runs the same regression for you and
+also estimates the short-run parameters ($\mu$, $\phi_\sigma$,
+$\alpha$). You hand it one growth series per claim, and you get back
+each claim's parameters under the name you gave it:
 
 ```{python}
-div = lrr.calibration.calibrate_from_data(
+div = lrr.calibrate_claims(
     dc,
+    {"Growth": dividend_growth("Growth"),
+     "Market": dividend_growth("Market")},
     frequency="annual",
     window=2,
-    short=dividend_growth("Growth"),
-    market=dividend_growth("Market"),
 )
 (
     GT(pd.DataFrame([
@@ -205,7 +207,7 @@ div = lrr.calibration.calibrate_from_data(
          "phi_sigma": d.phi_sigma, "alpha": d.alpha}
         for name, d in div.items()
     ]))
-    .tab_header(title="Calibrated dividend parameters")
+    .tab_header(title="Calibrated claim parameters")
     .cols_label(portfolio="", mu="mu (monthly)", phi="phi (long-run)",
                 phi_sigma="phi_sigma", alpha="alpha")
     .fmt_number(columns="mu", decimals=5)
@@ -217,31 +219,40 @@ div = lrr.calibration.calibrate_from_data(
 
 The slopes match the regression run by hand above. The signature has no
 argument for returns, by design, so the Euler equation stays a test
-rather than becoming a target. `lrr.LongRunRisksModel.from_cashflows`
-runs the same calibration and hands back a model that is ready to
-solve.
+rather than becoming a target. The dictionary that comes back is
+exactly what a model takes, so
+`lrr.LongRunRisksModel(claims=lrr.calibrate_claims(dc, {...}))` goes
+from cash-flow series to a model that is ready to solve in one line.
 
 For steps 3 and 4, put both measured loadings into one model and solve
 it. Everything except the loading is held at the same values as the two
 synthetic firms above, so the only difference between the rows is the
-measured cash-flow exposure. Naming the long leg and the short leg lets
-the results object report the spread itself:
+measured cash-flow exposure.
+
+The work comes in three layers, and the order matters. First you
+calibrate each claim from its own cash flows. Second you put the claims
+in a model, which prices all of them in one economy. Third, once the
+model is solved, you pick two of the priced claims and compare them,
+which is the `compare` call below. The third step stands apart because
+it asks a different kind of question. The model prices claims. Which
+pair of claims makes a spread worth reporting is your question, not the
+model's, and one solved model answers it for any pair you name:
 
 ```{python}
 legs = lrr.LongRunRisksModel(
     claims={"value leg": dict(BASE, phi=phi["Value"]),
             "growth leg": dict(BASE, phi=phi["Growth"])},
-    long="value leg", short="growth leg",
 ).solve(method="analytical")
 
+spread = legs.compare("value leg", "growth leg")
 print(f"Value-growth spread from long-run risks: "
-      f"{legs.value_premium:.2f} points")
+      f"{spread.premium:.2f} points")
 
 leg_names = list(legs.claims)
 (
     GT(pd.DataFrame({
         "leg": leg_names,
-        "phi": [legs.params.dividends[n].phi for n in leg_names],
+        "phi": [legs.params.claims[n].phi for n in leg_names],
         "a1": [legs.A1[n] for n in leg_names],
         "prem": [legs.long_run_premium[n] for n in leg_names],
     }))
@@ -360,7 +371,9 @@ Answer from memory before opening.
 ```{python}
 #| code-fold: true
 # Exercise 1: the riskless long-run loading
-res0 = lrr.LongRunRisksModel.from_loading(1 / 1.5).solve(method="analytical")
+res0 = lrr.LongRunRisksModel(
+    claims={"claim": lrr.ClaimParams.from_loading(1 / 1.5)}
+).solve(method="analytical")
 print(f"phi = 1/psi = {1/1.5:.3f}:  A1 = {res0.A1['claim']:.3f}, "
       f"long-run premium = {res0.long_run_premium['claim']:+.3f} %/yr")
 
@@ -380,16 +393,20 @@ years_c = (pl.read_csv(DATA / "consumption_annual.csv").sort("year")
            ["year"].to_numpy())
 keep = years_c >= 1946
 ma_post = lrr.expected_growth_proxy(dc[keep], window=2)
-prem = {}
+lev = {}
 for c in ("Value", "Growth"):
     dd_post = (panel.filter(pl.col("claim") == c)
                .filter(pl.col("year") >= 1946).sort("year")
                ["dgrowth"].to_numpy())
-    lev = leverage_on(dd_post, ma_post)
-    prem[c] = (lrr.LongRunRisksModel.from_loading(lev)
-               .solve(method="analytical").long_run_premium["claim"])
-    print(f"{c:6s}  post-war phi: {lev:7.2f}   premium: {prem[c]:+.2f} %/yr")
-print(f"post-war spread: {prem['Value'] - prem['Growth']:.2f} points")
+    lev[c] = leverage_on(dd_post, ma_post)
+post = lrr.LongRunRisksModel(
+    claims={c: lrr.ClaimParams.from_loading(lev[c]) for c in lev}
+).solve(method="analytical")
+for c in ("Value", "Growth"):
+    print(f"{c:6s}  post-war phi: {lev[c]:7.2f}   "
+          f"premium: {post.long_run_premium[c]:+.2f} %/yr")
+print(f"post-war spread: "
+      f"{post.compare('Value', 'Growth').premium:.2f} points")
 ```
 
 At the household's own loading the claim is long-run riskless, so both the
@@ -413,7 +430,7 @@ pricing are `LongRunRisksModel(...).solve(method="analytical")` on the
 Table II economy; the measured leverages are the equation (19)
 regression on `data/consumption_annual.csv` and
 `data/annual_panel.csv` via `lrr.expected_growth_proxy`, with
-`lrr.calibration.calibrate_from_data` wrapping the same arithmetic.
+`lrr.calibrate_claims` wrapping the same arithmetic.
 Every cell runs when the site is built. Download
 the chapter as a notebook (Other Formats, top of the page) to rerun it
 on your own series.

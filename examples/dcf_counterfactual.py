@@ -53,7 +53,7 @@ def var_cum_x(t: int) -> float:
 
 def expected_dividend_path(name: str, max_t: int = 1200) -> np.ndarray:
     """E[D_t / D_0] for t = 1..max_t under the stationary distribution."""
-    d = params.dividends[name]
+    d = params.claims[name]
     mean_growth = d.mu + 0.5 * d.phi_sigma**2 * sigma**2  # iid part
     out = np.empty(max_t)
     for t in range(1, max_t + 1):
@@ -63,7 +63,7 @@ def expected_dividend_path(name: str, max_t: int = 1200) -> np.ndarray:
 
 def g_effective(name: str) -> float:
     """Annualized expected dividend growth incl. convexity (long-horizon rate)."""
-    d = params.dividends[name]
+    d = params.claims[name]
     monthly = d.mu + 0.5 * d.phi_sigma**2 * sigma**2 + 0.5 * d.phi**2 * gamma0 * (1.0 + rho) / (1.0 - rho)
     return monthly * 12.0
 
@@ -132,8 +132,8 @@ print("Raise value's cash-flow loading on x_t: phi 6.2 -> 7.4")
 print()
 print("DCF world (rate held at r, price of risk does not move):")
 g_hi = (
-    params.dividends["value"].mu
-    + 0.5 * params.dividends["value"].phi_sigma**2 * sigma**2
+    params.claims["value"].mu
+    + 0.5 * params.claims["value"].phi_sigma**2 * sigma**2
     + 0.5 * 7.4**2 * gamma0 * (1.0 + rho) / (1.0 - rho)
 ) * 12.0
 print(f"  g_eff value : {g_effective('value') * 100:6.2f} %/yr -> {g_hi * 100:6.2f} %/yr")

@@ -143,6 +143,22 @@ def test_freeze_covers_every_executed_page():
 # anywhere the reader can see them, prose included: a chapter that
 # still names them teaches an API that no longer exists.
 REMOVED_API_NAMES = (
+    # 0.7.0: roles left the model, calibration became per claim.
+    # Patterns are anchored so ordinary prose survives: "the value
+    # premium" is the subject of the course, `.value_premium` was an
+    # attribute; ClaimParams.from_loading is the new spelling of the
+    # old LongRunRisksModel.from_loading.
+    r"\.value_premium",
+    r"\.long_short_premium",
+    r"\.legs",
+    "from_cashflows",
+    "LongRunRisksModel.from_loading",
+    "calibrate_from_data",
+    "DividendParams",
+    "resolve_legs",
+    "get_table_ii_dividends",
+    r"params\.dividends",
+    # 0.6.0: the flat function pipeline
     "ModelSolver",
     "solve_analytical",
     "simulate_table_vii",

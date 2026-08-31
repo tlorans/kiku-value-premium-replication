@@ -33,7 +33,7 @@ print()
 print("Cash-flow processes (per claim)")
 hdr = f"  {'claim':8s} {'mu_d':>8s} {'phi':>5s} {'phi_sigma':>10s} {'alpha':>6s}"
 print(hdr)
-for name, d in p.dividends.items():
+for name, d in p.claims.items():
     print(f"  {name:8s} {d.mu:8.4f} {d.phi:5.1f} {d.phi_sigma:10.1f} {d.alpha:6.2f}")
 print()
 print("phi is the long-run leverage: the loading of dividend growth on x_t.")

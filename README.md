@@ -29,15 +29,20 @@ import lrrcs as lrr
 
 model = lrr.LongRunRisksModel()      # the Table II calibration
 res = model.solve()                  # solve on the paper's state grid
-print(res.summary())                 # expected returns, betas, log P/D
-res.value_premium                    # 5.18
+print(res.summary())                 # expected returns, Sharpe, log P/D
+
+res.compare("value", "growth", market="market").premium   # 5.18
 ```
+
+The model prices a set of named claims. Which two of them make a spread
+is a question you ask afterwards, so any pair works and so does any
+reference claim for the betas.
 
 Change one number and solve again. Nothing else needs re-tuning:
 
 ```python
-lrr.LongRunRisksModel(gamma=7.5).solve().value_premium
-lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().value_premium
+lrr.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
+lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
 ```
 
 Table VII, the paper's own model column, is one call:

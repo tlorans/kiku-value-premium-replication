@@ -22,7 +22,8 @@ BASE = lrr.LongRunRisksModel()
 
 def spread_and_market(model) -> tuple[float, float]:
     res = model.solve(method="analytical")
-    return res.long_run_premium["market"], res.value_premium
+    return (res.long_run_premium["market"],
+            res.compare("value", "growth").premium)
 
 
 # Each entry maps a label to the keyword that builds the varied model.

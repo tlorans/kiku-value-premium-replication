@@ -4,10 +4,11 @@ aliases:
   - /api.html
 ---
 
-The package has one main object. You build a `LongRunRisksModel`, you
-solve it, and you read the results. Everything else on this page is
-either a way to build the model from data or a way to get the raw data
-in the first place.
+The package works in three layers. A **claim** has cash-flow dynamics,
+which you either measure from data or write down. A **model** prices a
+set of named claims. A **comparison** sets two priced claims side by
+side. Keeping them separate is deliberate: the model prices claims, and
+which two of them make a spread is your question, not the model's.
 
 ```python
 import numpy as np
@@ -17,55 +18,52 @@ import lrrcs as lrr
 
 model = lrr.LongRunRisksModel()      # the Table II calibration
 res = model.solve()                  # solve on the state grid
-print(res.summary())                 # returns, betas, log P/D
-res.value_premium                    # 5.18
+print(res.summary())                 # returns, Sharpe, log P/D
+
+cmp = res.compare("value", "growth", market="market")
+cmp.premium                          # 5.18
 ```
 
-<!-- API page cross-checked against `lrr.__all__` (20 names)
+<!-- API page cross-checked against `lrr.__all__` (26 names)
      via `python -c "import lrrcs as lrr; print(*lrr.__all__)"`. Sections below
      cover all of them. New public names must be added here in the same PR. -->
 
-`market` is the time-series claim. `long` and `short` are the two legs
-of a sort. `value` and `growth` remain aliases, so the paper's names
-keep working without any extra arguments.
+## Claims
+
+A claim is anything with a cash-flow stream to price: a portfolio, a
+firm, or something synthetic. `ClaimParams` holds its four parameters,
+of which only $\phi$, the loading on persistent consumption growth,
+varies the economics across a cross-section.
+
+| Function | Signature | Returns |
+|:---|:---|:---|
+| `ClaimParams` | `(mu, phi, phi_sigma, alpha)` | the parameters of one claim |
+| `ClaimParams.from_loading` | `(phi, *, mu=0.0015, phi_sigma=7.5, alpha=0.5)` | a synthetic claim that differs from another only in $\phi$ |
+| `calibrate_claim` | `(dc, dd, *, frequency="annual", window=2, default_phi_sigma=7.5)` | one `ClaimParams` measured from cash flows |
+| `calibrate_claims` | `(dc, claims, **kw)` | a whole cross-section, one `calibrate_claim` each |
+
+Neither calibration function has an argument that could accept a return,
+which is the paper's identification discipline made structural: the
+premium the model produces later is a prediction, not a fit.
+
+```python
+value = lrr.calibrate_claim(dc, dd_value)
+claims = lrr.calibrate_claims(dc, {"value": dd_v, "growth": dd_g,
+                                   "market": dd_m})
+mine = lrr.ClaimParams.from_loading(1.5)
+```
 
 ## The model
 
 | Member | Signature | What it does |
 |:---|:---|:---|
-| `LongRunRisksModel` | `(params=None, *, delta=None, gamma=None, psi=None, mu=None, rho=None, phi_x=None, sigma=None, nu=None, sigma_w=None, claims=None, long=None, short=None, market=None, residual_corr=None)` | The model specification. Defaults to Table II. |
+| `LongRunRisksModel` | `(params=None, *, delta=None, gamma=None, psi=None, mu=None, rho=None, phi_x=None, sigma=None, nu=None, sigma_w=None, claims=None, residual_corr=None)` | The model specification. Defaults to Table II. |
 | `.solve` | `(method="grid", *, n_x=30, n_s=4, max_iter=200_000, tol=1e-10, pd_anchor=None, pd_anchor_c=None)` | `GridResults` or `AnalyticalResults` |
 | `.simulate` | `(n_samples=1000, years=74, *, seed=0, burn_in_years=5, n_x=30, n_s=4)` | `SimulationResults`: the paper's Table VII |
 | `.simulate_cashflows` | `(n_sims=200, years=74, seed=42)` | cash-flow moments only, no prices (Tables III to V) |
 | `.simulate_paths` | `(months, *, seed=None)` | one simulated path of $x_t$, $\sigma_t^2$, and growth rates |
 | `.replace` | `(**kwargs)` | a new model with some arguments changed |
-| `.from_loading` | `(phi, *, mu=0.0015, phi_sigma=7.5, alpha=0.5, name="claim", params=None)` | one synthetic claim from its cash-flow loading ([Chapter 11](../chapters/11-price-your-own-claim.qmd)) |
-| `.from_cashflows` | `(dc, claims=None, *, long=None, short=None, market=None, frequency="annual", window=2, default_phi_sigma=7.5, params=None)` | calibrate the claims from growth series ([Chapter 8](../chapters/08-calibrating-cash-flows.qmd)) |
-
-`from_cashflows` is how measured cash flows become claim dynamics. Give
-it consumption growth and one growth series per claim, and it estimates
-$\mu$, $\phi$, $\varphi_\sigma$, and $\alpha$ for each of them and hands
-back a model. A role argument takes either a series or a name:
-
-```python
-# the paper's legs, named by their role
-lrr.LongRunRisksModel.from_cashflows(dc, long=dd_value, short=dd_growth,
-                                     market=dd_market)
-
-# your own names, with the roles pointed at them
-lrr.LongRunRisksModel.from_cashflows(
-    dc,
-    claims={"quality": dd_q, "junk": dd_j, "market": dd_m},
-    long="quality", short="junk",
-)
-```
-
-To see the estimated parameters before you commit to them, call
-`lrr.calibration.calibrate_from_data` with the same arguments. It
-returns a plain dict of `DividendParams`, which you can inspect, edit,
-and pass to the constructor as `claims=`. Claims outside the paper's
-three portfolios correlate at zero unless you also pass
-`residual_corr={("quality", "junk"): 0.2}`.
+| `.compare` | `(long, short, *, market=None)` | a `Comparison` of two priced claims |
 
 The two methods answer different questions. `method="grid"` solves the
 Euler equations on the Tauchen-Hussey state space and is where the
@@ -77,8 +75,8 @@ Solving never changes the model, so a counterfactual is a new model
 rather than an edited one:
 
 ```python
-lrr.LongRunRisksModel(gamma=7.5).solve().value_premium
-model.replace(claims={"value": {"phi": 2.6}}).solve().value_premium
+lrr.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
+model.replace(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
 ```
 
 A claim given only some of its four fields keeps the rest of the
@@ -94,36 +92,66 @@ and rates are annualized and in percent.
 
 | Attribute | On | Meaning |
 |:---|:---|:---|
-| `expected_returns`, `volatility`, `sharpe_ratios`, `capm_betas` | grid, simulation | annual return moments by claim |
+| `expected_returns`, `volatility`, `sharpe_ratios` | grid, simulation | annual return moments by claim |
 | `mean_log_pd`, `price_dividend` / `pd_levels` | all three | valuation ratios by claim |
-| `risk_free`, `value_premium` | all three | the rate and the long-short spread |
-| `log_pd_spread` | grid | long leg minus short leg log P/D |
+| `risk_free` | all three | the rate, which follows from the SDF and needs no claim |
+| `capm_betas(market)` | grid, simulation | betas of every claim against the reference you name |
+| `beta_matrix`, `return_cov` | grid, simulation | betas and covariances for every pair |
 | `converged`, `n_x`, `n_s` | grid | how the solve went |
 | `z_c`, `z`, `stationary`, `x_nodes`, `s2_nodes`, `states()` | grid | the solved valuation functions and the grid under them |
 | `A1`, `A2`, `long_run_premium`, `expected_growth`, `gordon_return` | analytical | loadings and the long-run piece of compensation |
 | `risk_prices`, `Lambda_eta`, `Lambda_eps`, `Lambda_w` | analytical | prices of the three shocks |
-| `expected_returns_se`, `volatility_se`, `mean_log_pd_se`, `beta_ratio` | simulation | cross-sample dispersion and the beta ratio |
+| `expected_returns_se`, `volatility_se`, `mean_log_pd_se` | simulation | cross-sample dispersion |
 | `summary()` | all three | a formatted table you can print |
 | `to_frame()` | all three | a tidy frame, one row per claim |
 
-`long_short_premium` is an alias of `value_premium` for cross-sections
-that are not value and growth. `to_frame()` and `states()` follow the
-`tidyfinance` backend, so they return polars frames when you set it.
+`capm_betas` is a method rather than an attribute because a beta needs a
+reference claim, and picking one is an analysis choice. For the same
+reason betas are not in the default `summary()` or `to_frame()`. Any
+claim can be the reference, and the reference's own beta is one.
+
+`to_frame()` and `states()` follow the `tidyfinance` backend, so they
+return polars frames when you set it.
+
+## Comparison
+
+`res.compare(long, short, market=None)` sets two priced claims side by
+side. The market is only needed for betas.
+
+| Attribute | Meaning |
+|:---|:---|
+| `premium` | long minus short: expected return on a grid or simulated solve, long-run risk premium on an analytical one |
+| `log_pd_spread` | long minus short mean log P/D |
+| `volatility_spread` | long minus short volatility; NaN on analytical results |
+| `betas`, `beta_ratio` | the two legs' betas against `market`, and their ratio |
+| `label` | "Value premium" for a value and growth pair, else "Long-short premium" |
+| `summary()` | the two legs and the spreads between them |
+| `to_frame()` | one tidy row, for stacking across a sweep |
+
+On simulated results `beta_ratio` is the cross-sample mean of the
+per-sample ratio, which is the paper's object. It is not the ratio of
+the reported mean betas, and the two differ by about a hundredth.
+
+```python
+cmp = res.compare("value", "growth", market="market")
+print(cmp.summary())
+
+pd.concat([
+    model.replace(gamma=g).solve().compare("value", "growth").to_frame()
+    for g in (5, 10, 15)
+])
+```
 
 ## Measure loadings from cash flows
 
-These stay separate because they are the step that must not see
-returns. Nothing here has an argument that could accept one.
+The pieces behind `calibrate_claim`, for when you want the intermediate
+steps rather than the finished parameters.
 
 | Function | Signature | Returns |
 |:---|:---|:---|
 | `expected_growth_proxy` | `(dc, window=2) -> ndarray` | moving average of lagged consumption growth (the $x_t$ proxy) |
 | `filter_expected_growth` | `(dc) -> dict` | Kalman/MLE $\hat x_t$; `mu, rho, q, r, loglik, x` |
-| `estimate_long_run_leverage` | `(dc, dd, window=2) -> float` | $\tilde\phi$: slope of dividend growth on the MA |
-| `lrr.calibration.calibrate_from_data` | `(dc, dd_dict=None, frequency="annual", window=2, default_phi_sigma=7.5, *, long=None, short=None, market=None) -> dict[str, DividendParams]` | monthly dividend parameters from annual data |
-
-`LongRunRisksModel.from_cashflows` wraps the last one and hands back a
-model you can solve directly.
+| `estimate_long_run_leverage` | `(dc, dd, window=2) -> float` | $\tilde\phi$: slope of cash-flow growth on the MA |
 
 ## Data construction
 
@@ -156,8 +184,9 @@ their own plots with plotnine.
 ## Parameters and errors
 
 `ModelParams`, `PreferencesParams`, `ConsumptionParams`, and
-`DividendParams` are the parameter dataclasses. `ModelParams()` is the
-Table II calibration, so you rarely need to build one by hand.
+`ClaimParams` are the parameter dataclasses. `ModelParams()` is the
+Table II calibration, so you rarely need to build one by hand, and its
+claims live in `ModelParams().claims`.
 `SolverDivergenceError` is raised when a fixed point leaves the
 plausible range, which usually means the grid is too coarse for the
 calibration. `EmpiricalDataError` is raised when WRDS credentials are
@@ -170,7 +199,8 @@ above are the only places the documented path reaches into them.
 
 ## A new sort, end to end
 
-Consumption and two dividend legs go in. No returns enter.
+Consumption growth and one cash-flow series per claim go in. No returns
+enter at any point.
 
 ```python
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()
@@ -183,16 +213,19 @@ def dd(claim):
         .to_numpy()
     )
 
-model = lrr.LongRunRisksModel.from_cashflows(
+claims = lrr.calibrate_claims(
     dc,
-    long=dd("Value"),
-    short=dd("Growth"),
-    market=dd("Market"),
+    {"value": dd("Value"), "growth": dd("Growth"), "market": dd("Market")},
     frequency="annual",
     window=2,
 )
-print(model.solve().summary())
+res = lrr.LongRunRisksModel(claims=claims).solve()
+print(res.compare("value", "growth", market="market").summary())
 ```
+
+Your own cross-section works the same way, under whatever names you
+give it, because no step above needed to know which claim was the long
+leg until the last line.
 
 The premium that comes out was never targeted, which is what makes the
 comparison with the data a test rather than a fit.

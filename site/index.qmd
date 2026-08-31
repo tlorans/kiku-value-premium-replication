@@ -46,6 +46,7 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
 
 model = lrr.LongRunRisksModel()
 sim = model.simulate(n_samples=300, years=74, seed=0)
+vg = sim.compare("value", "growth", market="market")
 
 data_er = {"growth": 7.81, "value": 13.88, "market": 8.56}   # Kiku, Table I
 names = ("growth", "value", "market")
@@ -60,9 +61,9 @@ df = pd.DataFrame({
     .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
     .fmt_number(columns=["data", "model"], decimals=2)
     .tab_source_note(f"The value premium is about 6 points in the data and "
-                     f"{sim.value_premium:.1f} points in the model.")
+                     f"{vg.premium:.1f} points in the model.")
     .tab_source_note(f"The CAPM beta ratio of value to growth is "
-                     f"{sim.beta_ratio:.2f}, so value has the lower beta "
+                     f"{vg.beta_ratio:.2f}, so value has the lower beta "
                      f"and the higher return.")
     .tab_options(**KIKU_GT)
 )

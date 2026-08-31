@@ -127,17 +127,36 @@ hundreds of 74-year samples with statistics estimated sample by sample
 and then averaged ([Chapter 9](09-the-market-test.qmd) explained why
 sample statistics are the right comparison). The code path, seed, and
 grid are the same as in the market test, and the value and growth rows
-simply come along:
+simply come along.
+
+It is worth being clear about how we ask. The model prices a set of
+named claims, and it does not know that one of them is the value
+portfolio and another the growth portfolio. Asking for the value
+premium is therefore a step we take after the solve. We name the two
+claims we want to set side by side, and the comparison gives us the
+return spread, the valuation spread, and the ratio of the two CAPM
+betas. We wrap that call in a small helper because the chapter asks
+for the same pair many times.
 
 ```{python}
 model = lrr.LongRunRisksModel()
 sim = model.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)
 
-print(f"risk-free rate : {sim.risk_free:.2f}%  (SE {sim.risk_free_se:.2f})")
-print(f"value premium  : {sim.value_premium:.2f}%")
-print(f"CAPM beta ratio (value/growth): {sim.beta_ratio:.2f}")
 
-order = [sim.legs.short, sim.legs.long, sim.legs.market]
+def value_growth(res):
+    """Value against growth, with the market as the beta reference."""
+    return res.compare("value", "growth", market="market")
+
+
+cmp = value_growth(sim)
+print(f"risk-free rate : {sim.risk_free:.2f}%  (SE {sim.risk_free_se:.2f})")
+print(f"value premium  : {cmp.premium:.2f}%")
+print(f"CAPM beta ratio (value/growth): {cmp.beta_ratio:.2f}")
+
+# The row order below is ours to choose. The model prices the claims as
+# a set, so nothing in it says growth comes before value.
+order = ["growth", "value", "market"]
+betas = sim.capm_betas("market")
 (
     GT(pd.DataFrame({
         "portfolio": order,
@@ -145,7 +164,7 @@ order = [sim.legs.short, sim.legs.long, sim.legs.market]
         "se": [sim.expected_returns_se[n] for n in order],
         "vol": [sim.volatility[n] for n in order],
         "sharpe": [sim.sharpe_ratios[n] for n in order],
-        "beta": [sim.capm_betas[n] for n in order],
+        "beta": [betas[n] for n in order],
         "pd_level": [sim.pd_levels[n] for n in order],
         "log_pd": [sim.mean_log_pd[n] for n in order],
     }))
@@ -228,11 +247,12 @@ analytical long-run compensation of
 [Chapter 6](06-log-linear-solution.qmd):
 
 ```{python}
-phi_growth = model.params.dividends["growth"].phi  # 2.6
+phi_growth = model.params.claims["growth"].phi  # 2.6
 model_eq = model.replace(claims={"value": {"phi": phi_growth}})
 res_eq = model_eq.solve(method="analytical")
 
-print(f"value-growth spread from long-run risks: {res_eq.value_premium:.2f}%")
+spread_eq = value_growth(res_eq).premium
+print(f"value-growth spread from long-run risks: {spread_eq:.2f}%")
 
 claims = list(res_eq.claims)
 (
@@ -264,8 +284,8 @@ same question:
 
 ```{python}
 sim_eq = model_eq.simulate(n_samples=300, years=74, seed=0, n_x=30, n_s=4)
-print(f"simulated value premium, equal phi : {sim_eq.value_premium:5.2f}%")
-print(f"simulated value premium, Table II  : {sim.value_premium:5.2f}%")
+print(f"simulated value premium, equal phi : {value_growth(sim_eq).premium:5.2f}%")
+print(f"simulated value premium, Table II  : {value_growth(sim).premium:5.2f}%")
 ```
 
 The premium falls from 5.38 to 0.03 percent, and the household never
@@ -302,7 +322,7 @@ for attr, (label, values) in grids.items():
         res = variant.solve(method="analytical")
         rows.append({"parameter": label, "value": v,
                      "market": res.long_run_premium["market"],
-                     "spread": res.value_premium})
+                     "spread": value_growth(res).premium})
 
 (
     GT(pd.DataFrame(rows), rowname_col="value", groupname_col="parameter")
@@ -334,8 +354,9 @@ calibration and the same seed:
 grid_rows = []
 for n_x in (30, 60, 100):
     t = model.simulate(n_samples=300, years=74, seed=0, n_x=n_x, n_s=4)
-    grid_rows.append({"n_x": n_x, "vp": t.value_premium,
-                      "rf": t.risk_free, "ratio": t.beta_ratio})
+    c = value_growth(t)
+    grid_rows.append({"n_x": n_x, "vp": c.premium,
+                      "rf": t.risk_free, "ratio": c.beta_ratio})
 
 (
     GT(pd.DataFrame(grid_rows))
@@ -446,7 +467,7 @@ Answer from memory before opening.
 # Exercise 1: raise growth's loading instead
 t_hi = model.replace(claims={"growth": {"phi": 6.2}}).simulate(
     n_samples=300, years=74, seed=0, n_x=30, n_s=4)
-print(f"premium with both phi = 6.2: {t_hi.value_premium:.2f}")
+print(f"premium with both phi = 6.2: {value_growth(t_hi).premium:.2f}")
 print(f"market E[R]: {t_hi.expected_returns['market']:.2f} "
       f"(Table VII chapter: {sim.expected_returns['market']:.2f})")
 
@@ -456,7 +477,7 @@ print(pd.DataFrame(rows).sort_values("spread", ascending=False).head(3))
 # Exercise 3: refining the volatility dimension at n_x = 60
 t6 = model.simulate(n_samples=300, years=74, seed=0, n_x=60, n_s=6)
 print(f"vp, n_x=60 n_s=4: {grid_rows[1]['vp']:.2f}")
-print(f"vp, n_x=60 n_s=6: {t6.value_premium:.2f}")
+print(f"vp, n_x=60 n_s=6: {value_growth(t6).premium:.2f}")
 ```
 
 Equalizing from above kills the value premium just as equalizing from

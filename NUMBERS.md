@@ -11,10 +11,17 @@ still say where each number comes from. The findings F1 to F4 below are
 kept verbatim as history, including their original 0.5.0 call names in
 the narrative.
 
-The seeded numbers themselves did not move in the 0.6.0 migration: the
-solver, moments, and simulation engines were reused unchanged behind the
-new `LongRunRisksModel` facade, and every value in this file was checked
-against the 0.5.0 output before the old API was removed.
+The seeded numbers themselves did not move in the 0.6.0 migration, nor
+in the 0.7.0 one that followed it. The solver, moments, and simulation
+engines have been reused unchanged behind each new surface, and every
+value in this file was checked against the previous release's output
+before the old API was removed. The 0.7.0 check compared 194 values
+exactly.
+
+In 0.7.0 the long/short/market roles left the model: it prices a set of
+named claims, and a spread is asked for afterwards with
+`.compare(long, short, market=...)`. Entries below that used to name
+`.value_premium` now name that call.
 
 Baseline captured 2026-08-28 at `lrrcs` 0.5.0, commit `cf344ac`, Python 3.12 (uv env).
 Live site: https://tlorans.github.io/kiku-value-premium-replication/
@@ -79,12 +86,12 @@ All numbers below are printed by `examples/dcf_counterfactual.py` (TRACED, run 2
 
 ## Price your own claim (`docs/price-your-own-claim.md`) — added by Issue 5
 
-All numbers below are printed by `examples/two_firms.py` via `LongRunRisksModel.from_loading` (TRACED, run 2026-08-28).
+All numbers below are printed by `examples/two_firms.py` via `ClaimParams.from_loading` (TRACED, run 2026-08-28).
 
 | Number | Status | Reproduces via |
 |---|---|---|
-| Firm A (φ=0.5): A1 −3.0, premium_lr −0.03%, g_eff 3.20%, gordon 6.89% | TRACED | `LongRunRisksModel.from_loading(0.5).solve(method="analytical")` |
-| Firm B (φ=1.5): A1 15.2, premium_lr 0.14%, g_eff 3.32%, gordon 7.01% | TRACED | `LongRunRisksModel.from_loading(1.5).solve(method="analytical")` |
+| Firm A (φ=0.5): A1 −3.0, premium_lr −0.03%, g_eff 3.20%, gordon 6.89% | TRACED | `ClaimParams.from_loading(0.5)` in a model, solved analytically |
+| Firm B (φ=1.5): A1 15.2, premium_lr 0.14%, g_eff 3.32%, gordon 7.01% | TRACED | `ClaimParams.from_loading(1.5)` in a model, solved analytically |
 | Anchor mean log P/D 3.30 (linearization point, not a fitted level) | TRACED | `.solve(method="analytical")` default for custom claims |
 | "Gordon column puts the two firms 0.12 points apart" | CHUNK | 7.01 − 6.89 |
 
@@ -94,13 +101,13 @@ All numbers below are printed by `examples/two_firms.py` via `LongRunRisksModel.
 |---|---|---|
 | θ = −27; δ, γ, ψ = 0.999, 10.0, 1.5; 1/ψ = 0.667 | TRACED | params dump + chunk arithmetic |
 | μ_c, ρ, φ_x, σ = 0.0015, 0.98, 0.032, 0.0064 | TRACED | `ModelParams().cons` |
-| φ dict {growth 2.6, value 6.2, market 2.8} | TRACED | `ModelParams().dividends` |
+| φ dict {growth 2.6, value 6.2, market 2.8} | TRACED | `ModelParams().claims` |
 | Quickstart block (0.39 / 0.80 / 0.34; spread 0.40; A1 43.1 / 88.9; Λ_ε 5.95) | TRACED | `LongRunRisksModel().solve(method="analytical").summary()` |
 | Results table (same as Home) + Risk-free 0.91 (0.39) / 1.58 (0.01) | 0.91 GOLDEN (Kiku Table I print, not in goldens.py); 1.58 **UNTRACED (F1)** | — |
 | "mean price-dividend levels … 24.7 on value versus 39.8 on growth" | **UNTRACED (F1)** — Kiku Table VII levels; analytical exp(3.10/3.65) = 22.2 / 38.5 | — |
 | "safe rate, about seventy basis points too high" | UNTRACED (rests on 1.58, F1) | 1.58 − 0.91 |
 | "ratio of value to growth CAPM betas is 0.92" / "premium is five points higher" | UNTRACED (F1) | — |
-| Equal-φ block (0.39 / 0.39 / 0.34; spread 0.00) | **STALE (F2)** — code now prints 0.28 / −0.12 | `params.dividends[*].phi = 2.6` then solve |
+| Equal-φ block (0.39 / 0.39 / 0.34; spread 0.00) | **STALE (F2)** — code now prints 0.28 / −0.12 | `model.replace(claims={'value': {'phi': 2.6}})` then solve |
 | P/D = 25 at r−g = 4%; "price jumps by a third" | CHUNK | 1/0.04; 1/0.03 |
 | "six-percent gap" | GOLDEN | 13.88 − 7.81 |
 
@@ -114,7 +121,7 @@ All numbers below are printed by `examples/two_firms.py` via `LongRunRisksModel.
 | A1 growth 43.1, market 37.5, value 88.9; Λ_ε 5.95 | TRACED | `.solve(method="analytical")` |
 | κ₁ ≈ 0.96 | TRACED | 0.962 at z̄ = 3.24 |
 | Sim chunk inputs (μ 0.0015, σ 0.0064, φ_x 0.032, ρ 0.98) | TRACED | `ModelParams().cons` |
-| φ_G = 2.6, φ_m = 2.8, φ_V = 6.2 | TRACED | `ModelParams().dividends` |
+| φ_G = 2.6, φ_m = 2.8, φ_V = 6.2 | TRACED | `ModelParams().claims` |
 
 ## Measuring leverage (`docs/measuring-leverage.md`)
 
@@ -174,8 +181,8 @@ All grid values are printed by `examples/robustness.py` (TRACED, run 2026-08-28)
 | ρ ∈ {0.95, 0.98, 0.99}: market 0.14/0.34/0.51%, spread 0.19/0.40/0.55% | TRACED | grid, `cons.rho` |
 | ψ ∈ {1.2, 1.5, 2.0}: market 0.31/0.34/0.37%, spread 0.41/0.40/0.40% | TRACED | grid, `prefs.psi` |
 | γ ∈ {5, 10, 15}: market 0.16/0.34/0.52%, spread 0.19/0.40/0.62% | TRACED | grid, `prefs.gamma` |
-| φ_V ∈ {5.0, 6.2, 7.4}: spread 0.23/0.40/0.58% (market flat) | TRACED | grid, `dividends[value].phi` |
-| φ_G ∈ {2.0, 2.6, 3.2}: spread 0.52/0.40/0.28% (market flat) | TRACED | grid, `dividends[growth].phi` |
+| φ_V ∈ {5.0, 6.2, 7.4}: spread 0.23/0.40/0.58% (market flat) | TRACED | grid, `claims['value'].phi` |
+| φ_G ∈ {2.0, 2.6, 3.2}: spread 0.52/0.40/0.28% (market flat) | TRACED | grid, `claims['growth'].phi` |
 
 ## Installation (`docs/installation.md`)
 

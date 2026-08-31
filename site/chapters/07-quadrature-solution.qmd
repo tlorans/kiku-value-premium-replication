@@ -138,7 +138,7 @@ c = params.cons
 is_mid = int(np.argmin(np.abs(res60.s2_nodes - c.sigma**2)))
 mid = res60.n_x // 2
 rows = []
-for name, d in params.dividends.items():
+for name, d in params.claims.items():
     z2d = res60.z[name].reshape(res60.n_x, res60.n_s)
     slope = ((z2d[mid + 1, is_mid] - z2d[mid - 1, is_mid])
              / (res60.x_nodes[mid + 1] - res60.x_nodes[mid - 1]))
@@ -190,7 +190,8 @@ sizes = (20, 30, 40, 60, 100)
 grid_rows = []
 for n_x in sizes:
     r = model.solve(n_x=n_x, n_s=4, tol=1e-8)
-    grid_rows.append({"n_x": n_x, "vp": r.value_premium, "rf": r.risk_free})
+    vg = r.compare("value", "growth")
+    grid_rows.append({"n_x": n_x, "vp": vg.premium, "rf": r.risk_free})
 
 conv = pd.DataFrame(grid_rows)
 (
@@ -332,8 +333,8 @@ from lrrcs.model import StateGrid
 
 # Exercise 1: more volatility states
 res8 = model.solve(n_x=30, n_s=8)
-print(f"value premium, n_s = 4: {res.value_premium:.2f}")
-print(f"value premium, n_s = 8: {res8.value_premium:.2f}")
+print(f"value premium, n_s = 4: {res.compare('value', 'growth').premium:.2f}")
+print(f"value premium, n_s = 8: {res8.compare('value', 'growth').premium:.2f}")
 
 # Exercise 2: implied one-month persistence one sd out.
 # This is a property of the chain alone, so we build the grid without

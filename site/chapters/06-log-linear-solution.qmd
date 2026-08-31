@@ -119,7 +119,8 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
 model = lrr.LongRunRisksModel()
 res = model.solve(method="analytical")
 
-print(f"value-growth spread from long-run risks: {res.value_premium:.2f} %")
+vg = res.compare("value", "growth")
+print(f"value-growth spread from long-run risks: {vg.premium:.2f} %")
 print(f"price of long-run risk Lambda_eps = {res.Lambda_eps:.2f}")
 
 claims = list(res.claims)
@@ -175,7 +176,8 @@ from plotnine import (ggplot, aes, geom_line, geom_point, geom_text, labs,
 
 def long_run_premium(phi):
     """Solve the log-linear model for one synthetic claim of leverage phi."""
-    one = lrr.LongRunRisksModel.from_loading(float(phi))
+    one = lrr.LongRunRisksModel(
+        claims={"claim": lrr.ClaimParams.from_loading(float(phi))})
     return one.solve(method="analytical").long_run_premium["claim"]
 
 phis = np.linspace(0.5, 7.5, 40)
@@ -257,7 +259,7 @@ Answer from memory before opening.
 2. Set $\psi = 0.9$ and recompute the market's $A_1$. What happens to
    the sign, and what does the sign change mean economically for how
    prices react to good news about growth?
-3. Use `lrr.LongRunRisksModel.from_loading` to find the leverage $\phi$
+3. Use `lrr.ClaimParams.from_loading` to find the leverage $\phi$
    at which a claim's long-run premium equals zero. Why is it $1/\psi$
    and not 0?
 
@@ -277,7 +279,9 @@ print(f"A1 market, psi = 0.9: {res09.A1['market']:.1f}")
 
 # Exercise 3: the zero-premium loading
 for phi_v in (0.5, 1/1.5, 0.8):
-    one = lrr.LongRunRisksModel.from_loading(phi_v).solve(method="analytical")
+    one = lrr.LongRunRisksModel(
+        claims={"claim": lrr.ClaimParams.from_loading(phi_v)}
+    ).solve(method="analytical")
     print(f"phi = {phi_v:.3f}:  A1 = {one.A1['claim']:7.2f}   "
           f"long-run premium = {one.long_run_premium['claim']:+.3f} %/yr")
 ```

@@ -346,9 +346,9 @@ for sd in (1, 2):
 # Exercise 2: more samples
 s1000 = model.simulate(n_samples=1000, years=74, seed=0)
 print(f"n=300:  market E[R] = {sim.expected_returns['market']:.2f}, "
-      f"premium = {sim.value_premium:.2f}")
+      f"premium = {sim.compare('value', 'growth').premium:.2f}")
 print(f"n=1000: market E[R] = {s1000.expected_returns['market']:.2f}, "
-      f"premium = {s1000.value_premium:.2f}")
+      f"premium = {s1000.compare('value', 'growth').premium:.2f}")
 
 # Exercise 3: dividend moments from the chapter's own cash-flow table
 for name in ("growth", "value"):
