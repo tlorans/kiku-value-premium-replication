@@ -14,11 +14,11 @@ The two attitudes are different, one about risk and the other about
 smoothing over time, and there is no economic reason a person's answer
 to the first should be the reciprocal of her answer to the second.
 
-The coupling is quantitatively fatal. An investor risk-averse enough
+The coupling produces the quantitative failures. An investor risk-averse enough
 to generate premia, with a large $\gamma$, is forced to have a tiny
 elasticity of intertemporal substitution of $1/\gamma$. An investor
 with a tiny elasticity dislikes a growing consumption path so much
-that the model prints an absurd risk-free rate, which was the second
+that the model prints an implausibly high risk-free rate, which was the second
 failure in Chapter 3. Moreover, persistent good news about growth
 would raise interest rates so much that valuations fall on good news.
 The interest-rate response becomes a central problem once the endowment
@@ -287,9 +287,10 @@ print(f"gamma = 1/psi = {1/1.5:.3f}:  theta = "
       f"{lrr.PreferencesParams(gamma=1/1.5, psi=1.5).theta:.2f}")
 ```
 
-The sign of theta flips at psi = 1, and its magnitude explodes as psi
-approaches 1 from either side. Theta reaches 1 exactly at gamma = 1/psi,
-where the recursivity is silent about the timing of resolution.
+The sign of theta flips at psi = 1, and its magnitude grows without
+bound as psi approaches 1 from either side. Theta reaches 1 exactly at
+gamma = 1/psi, where the investor is indifferent to the timing of
+resolution.
 
 Exercise 3 is an algebra proof, not a computation. The step that uses
 gamma = 1/psi is the one where the continuation value inside the certainty

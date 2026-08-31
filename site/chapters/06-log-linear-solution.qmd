@@ -94,7 +94,7 @@ Short-run consumption news $\eta$ carries the price $\gamma$.
 The long-run news price $\Lambda_\epsilon$ drives the model's results.
 It contains the same $1/(1 - \kappa \rho)$ factor as $A_1$, and it is
 zero under power utility ($\gamma = 1/\psi$), so persistence risk is
-priced only because Epstein-Zin preferences care about when
+priced only because Epstein-Zin investors care about when
 uncertainty resolves. The premium on any claim is then loadings
 times prices (paper eq. 16), and the value-growth spread is, to first
 order, the spread in long-run loadings times $\Lambda_\epsilon$
@@ -239,7 +239,7 @@ Answer from memory before opening.
 2. It magnifies them into large differences in price sensitivity and a
    large spread in premia.
 3. Power utility: $\Lambda_\epsilon$ is zero there, which is why the
-   Epstein-Zin separation is load-bearing.
+   Epstein-Zin separation is essential.
 
 :::
 
@@ -284,10 +284,10 @@ About two thirds of the elasticity survives the drop in persistence, and the
 robustness grid of Chapter 10 shows the spread shrinking with rho for the
 same reason. The market elasticity stays positive at psi = 0.9 but shrinks,
 because the numerator phi - 1/psi narrows. The premium crosses zero between
-phi = 0.5 and phi = 0.8, at the household's 1/psi: a claim whose cash flows
+phi = 0.5 and phi = 0.8, at the household's 1/psi. A claim whose cash flows
 grow with expected consumption exactly as the household's own consumption
-does is riskless in the long run, so it earns no long-run compensation,
-while a claim below the threshold is a hedge and earns a discount.
+does is riskless in the long run, so it earns no long-run compensation.
+A claim below the threshold is a hedge and earns a discount.
 
 :::
 

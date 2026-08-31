@@ -8,8 +8,8 @@ aliases:
 Every discounted cash flow valuation rests on two numbers you made up.
 The growth forecast comes from one model, and the discount rate comes
 from another. Neither is obliged to agree with the other. The course
-teaches an alternative that answers one of asset pricing's oldest
-questions. You derive both numbers from a single description of the
+teaches an alternative that answers the question the DCF assumes away,
+which is why risky cash flows earn high expected returns, and how high. You derive both numbers from a single description of the
 economy, meaning one consumption process and one set of preferences,
 and the same model then prices every claim, from the aggregate stock
 market to a portfolio you bring yourself.

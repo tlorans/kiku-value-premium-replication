@@ -47,8 +47,9 @@ $M_{t+1}$ is the **pricing kernel** (also called the stochastic
 discount factor, or the intertemporal marginal rate of substitution).
 It is the rate at which the investor is willing to exchange consumption
 at $t$ for consumption in each state at $t+1$. The kernel is high in
-states where marginal utility is high, so the investor is desperate,
-and low in states where she is flush. Equation @eq-euler says that once
+states where marginal utility is high, which are states where
+consumption is scarce, and low in states where consumption is
+plentiful. Equation @eq-euler says that once
 payoffs are weighted by the state-by-state exchange rate, every asset
 earns exactly its price. No claim earns extra return for free, relative
 to the investor's own marginal utility.
@@ -93,8 +94,8 @@ $$ {#eq-premium}
 
 Every risk premium is a covariance with the kernel. A claim commands a
 high expected return if and only if it pays badly in the states where
-$M$ is high, which are the states where the investor is already
-hurting. A claim that pays well in those states is insurance, and its
+$M$ is high, which are the states where the investor's consumption is
+already low. A claim that pays well in those states is insurance, and its
 premium is negative, whatever its volatility. Volatility by itself
 earns nothing, because only the covariance is priced. The CAPM
 approximates @eq-premium with the market return standing in for $-M$,
@@ -357,8 +358,8 @@ The kernel bound demands a gamma of 13 for the spread alone, above
 the 10 the chapter used. The
 predicted-premia ratio never moves with gamma because gamma multiplies both
 covariances, which is exactly why power utility cannot fix the cross
-section. The reconciling delta is implausibly small, the risk-free rate
-puzzle again.
+section. The reconciling delta is implausibly small, which is the
+risk-free rate puzzle again.
 
 :::
 

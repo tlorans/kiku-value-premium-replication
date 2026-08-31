@@ -4,7 +4,7 @@ aliases:
   - /objections.html
 ---
 
-A model that claims to resolve a long-standing puzzle should expect
+A model that claims to resolve a long-standing puzzle will get
 pushback, and the same five objections come up wherever the model is
 presented. The first half of this chapter states each objection in the
 reader's voice and answers it, with links to the chapters that hold the
@@ -14,7 +14,7 @@ The second half covers where the model misses, which a paper abstract
 never tells you. Every model is wrong somewhere, and you can only use a
 model safely if you know where it is wrong. If you take one chapter of
 the course into a meeting where someone proposes to act on the model's
-numbers, take chapter 12.
+numbers, take Chapter 12.
 
 ## "Epstein-Zin preferences are exotic."
 

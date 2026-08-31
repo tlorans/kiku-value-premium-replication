@@ -7,7 +7,7 @@ You already know how to price a stock. You forecast the cash flows and discount 
 
 Choosing the two numbers separately is the problem. A firm whose cash flows collapse in bad times should carry a high discount rate, because the rate is compensation for the risk in the cash flows. If you choose the numerator and the denominator separately, you assume away the question the course answers, which is why risky cash flows earn high expected returns, and how high.
 
-The rest of this chapter makes that cost visible on a napkin. Two plants, one common rate, Gordon's formula. The names already tell you which plant should grow faster. The arithmetic can follow the names and still produce no value premium. Chapter 2 records the two facts the napkin misses. Chapters 3 to 10 build the model that produces the forecast and the rate from one consumption process.
+The rest of this chapter makes that cost visible on a napkin, with two plants, one common rate, and Gordon's formula. The names already tell you which plant should grow faster. The arithmetic can follow the names and still produce no value premium. Chapter 2 records the two facts the napkin misses. Chapters 3 to 10 build the model that produces the forecast and the rate from one consumption process.
 
 ## Two plants
 
@@ -100,7 +100,7 @@ print(f"data premium: {table_i.loc[1, 'ret'] - table_i.loc[0, 'ret']:.2f} pp/yr"
 )
 ```
 
-A DCF that copies the names can match the cheap-versus-expensive ranking. It cannot match both facts at once, because the cheap claim also has to earn more, and a common rate has no slot for that.
+A DCF that copies the names can match the cheap-versus-expensive ranking. It cannot match both facts at once, because the cheap claim also has to earn more, and a common rate has no term for cash-flow risk.
 
 ```{python}
 #| fig-cap: "The names put the high g on growth, so Gordon prices growth at 50 and value at 20. The ranking matches the labels. Both implied expected returns still equal 8 percent."
@@ -157,19 +157,19 @@ $$
 r_i = r_f + \beta_i\,(\mathbb{E}[R_m] - r_f).
 $$
 
-That repair only works if the beta that shows up in monthly returns is the cash-flow risk that needs to be priced. It is not. High-frequency returns are dominated by transitory price moves. The extra risk in value lives in the low-frequency behavior of its cash flows. Chapter 2 measures the data version of this failure: value's market beta is not large enough to explain six points, and on the paper's vintage the two betas sit near one. Chapter 10 shows the same wrong sign inside the model, once the cash flows exist.
+The repair works only if the beta that shows up in monthly returns is the cash-flow risk that needs to be priced. It is not. High-frequency returns are dominated by transitory price moves. The extra risk in value is in the low-frequency behavior of its cash flows. Chapter 2 measures the data version of this failure: value's market beta is not large enough to explain six points, and on the paper's vintage the two betas sit near one. Chapter 10 shows the same wrong sign inside the model, once the cash flows exist.
 
-A discount rate built from market betas therefore need not reflect the risk the premium pays for. The failure is structural. The DCF has no slot where the riskiness of the cash flows enters the rate.
+A discount rate built from market betas therefore need not reflect the risk the premium pays for. The failure is structural. Nothing in the DCF lets the riskiness of the cash flows enter the rate.
 
 ### C. Shock the forecast, hold the rate
 
-News arrives that value's cash flows are more tied to bad times than the committee thought. Two reactions.
+News arrives that value's cash flows are more tied to bad times than the committee thought. A DCF and a consistent valuation react to the news differently.
 
-In a DCF the rate is an input, so it does not move. If the committee treats the news as a growth revision, $g$ changes, the Gordon price changes, and the implied expected return is unchanged. That is a forecast update.
+In a DCF the rate is an input, so it does not move. If the committee treats the news as a growth revision, $g$ changes, the Gordon price changes, and the implied expected return is unchanged. The committee has only updated a forecast.
 
-In a consistent valuation the same news is risk. The required return has to move with the forecast, so the price response is not only a new numerator. The gap between those two answers is the premium.
+In a consistent valuation the same news is risk. The required return has to move with the forecast, so the price response includes a new rate as well as a new numerator. The gap between those two answers is the premium.
 
-The course will derive both numbers from one consumption process. Value and growth will differ by one loading on the persistent part of consumption. That single difference will move the forecast and the rate together. That calculation lives in [Chapter 10](10-value-premium-resolved.qmd), after the process and the preference exist. The script that prints it on the Table II economy is `examples/dcf_counterfactual.py`.
+The course will derive both numbers from one consumption process. Value and growth will differ by one loading on the persistent part of consumption. That single difference will move the forecast and the rate together. That calculation is in [Chapter 10](10-value-premium-resolved.qmd), after the process and the preference exist. The script that prints it on the Table II economy is `examples/dcf_counterfactual.py`.
 
 ::: {.callout-note collapse="true" title="Later in the course"}
 Chapter 5 writes the dividend process. Chapter 6 solves for the valuation elasticities. Chapter 8 measures the loadings from cash flows alone. Chapter 10 then hands those cash flows back to a DCF and to the equilibrium solver, and compares the two answers. Nothing in that machinery is required to follow the napkin arithmetic on this page.
