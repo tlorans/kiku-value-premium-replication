@@ -28,7 +28,9 @@ data = [
     "plotnine",
     "great-tables>=0.24.0",
 ]
-dev = ["pytest", "matplotlib", "numba>=0.56"]
+# Enough to run the whole suite: pyyaml and polars are imported by the
+# site lint and the backend round-trip tests.
+dev = ["pytest", "matplotlib", "numba>=0.56", "pyyaml", "polars"]
 
 [dependency-groups]
 docs = [

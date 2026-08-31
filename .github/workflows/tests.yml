@@ -27,8 +27,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      # The dev extra is meant to be enough to run the whole suite.
+      # Installing only it here is what keeps that true.
       - name: Install environment
-        run: uv sync --extra dev --extra data
+        run: uv sync --extra dev
 
       - name: Run tests
         run: uv run pytest -q
