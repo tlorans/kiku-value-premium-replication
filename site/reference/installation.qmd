@@ -40,12 +40,19 @@ model = lrr.LongRunRisksModel()
 print(model.solve(method="analytical").summary())
 ```
 
-Solving the model numerically is the same three lines with the default
+Solving the model numerically is the same two lines with the default
 method. It takes a few seconds:
 
 ```{python}
 res = model.solve()
 print(res.summary())
+```
+
+The model prices the claims as a set. To read the value premium off it,
+name the two claims you want to compare:
+
+```{python}
+print(res.compare("value", "growth", market="market").summary())
 ```
 
 ## Verified from a clean environment

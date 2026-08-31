@@ -157,7 +157,7 @@ REMOVED_API_NAMES = (
     "DividendParams",
     "resolve_legs",
     "get_table_ii_dividends",
-    r"params\.dividends",
+    r"\.dividends\b",
     # 0.6.0: the flat function pipeline
     "ModelSolver",
     "solve_analytical",

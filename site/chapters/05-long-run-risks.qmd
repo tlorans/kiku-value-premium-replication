@@ -190,7 +190,7 @@ calib_df = pd.DataFrame({
 cash_df = pd.DataFrame(
     [{"claim": name, "mu": d.mu, "phi": d.phi,
       "phi_sigma": d.phi_sigma, "alpha": d.alpha}
-     for name, d in p.dividends.items()]
+     for name, d in p.claims.items()]
 )
 (
     GT(cash_df)
