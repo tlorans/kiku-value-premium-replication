@@ -42,6 +42,31 @@ keep working without any extra arguments.
 | `.from_loading` | `(phi, *, mu=0.0015, phi_sigma=7.5, alpha=0.5, name="claim", params=None)` | one synthetic claim from its cash-flow loading ([Chapter 11](../chapters/11-price-your-own-claim.qmd)) |
 | `.from_cashflows` | `(dc, claims=None, *, long=None, short=None, market=None, frequency="annual", window=2, default_phi_sigma=7.5, params=None)` | calibrate the claims from growth series ([Chapter 8](../chapters/08-calibrating-cash-flows.qmd)) |
 
+`from_cashflows` is how measured cash flows become claim dynamics. Give
+it consumption growth and one growth series per claim, and it estimates
+$\mu$, $\phi$, $\varphi_\sigma$, and $\alpha$ for each of them and hands
+back a model. A role argument takes either a series or a name:
+
+```python
+# the paper's legs, named by their role
+lrr.LongRunRisksModel.from_cashflows(dc, long=dd_value, short=dd_growth,
+                                     market=dd_market)
+
+# your own names, with the roles pointed at them
+lrr.LongRunRisksModel.from_cashflows(
+    dc,
+    claims={"quality": dd_q, "junk": dd_j, "market": dd_m},
+    long="quality", short="junk",
+)
+```
+
+To see the estimated parameters before you commit to them, call
+`lrr.calibration.calibrate_from_data` with the same arguments. It
+returns a plain dict of `DividendParams`, which you can inspect, edit,
+and pass to the constructor as `claims=`. Claims outside the paper's
+three portfolios correlate at zero unless you also pass
+`residual_corr={("quality", "junk"): 0.2}`.
+
 The two methods answer different questions. `method="grid"` solves the
 Euler equations on the Tauchen-Hussey state space and is where the
 paper's numbers come from. `method="analytical"` is the log-linear

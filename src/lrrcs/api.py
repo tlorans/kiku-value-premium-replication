@@ -273,22 +273,51 @@ class LongRunRisksModel:
         """Calibrate the dividend claims from consumption and dividend growth.
 
         Returns never enter the calibration, which is the paper's
-        identification discipline: pass growth *series*, not premia.
-        ``long``, ``short``, and ``market`` take series and produce claims
-        named after those roles; ``claims`` takes a mapping of your own
-        names to series.
+        identification discipline: only ``dc`` and the dividend growth
+        series are used.
+
+        Parameters
+        ----------
+        dc : array-like
+            Consumption growth.
+        claims : mapping of str to array-like, optional
+            Dividend growth by claim name, when you want your own names.
+        long, short, market : array-like or str, optional
+            A growth series names that leg and calibrates it, so
+            ``long=dd_value`` produces a claim called ``long``. A string
+            instead picks which of ``claims`` plays the role, the same
+            way it does on the constructor.
 
         Examples
         --------
         ```python
         import lrrcs as lrr
+
+        # the paper's three legs, named by role
         model = lrr.LongRunRisksModel.from_cashflows(
             dc, long=dd_value, short=dd_growth, market=dd_market
         )
-        model.solve().summary()
+
+        # your own names, with the roles named too
+        model = lrr.LongRunRisksModel.from_cashflows(
+            dc,
+            claims={"quality": dd_q, "junk": dd_j, "market": dd_m},
+            long="quality", short="junk",
+        )
+        print(model.solve().summary())
         ```
         """
         from .calibration.from_data import calibrate_from_data
+
+        def role(value):
+            """A role is either a claim name or a growth series."""
+            if value is None or isinstance(value, str):
+                return None, value
+            return value, None
+
+        long_series, long_name = role(long)
+        short_series, short_name = role(short)
+        market_series, market_name = role(market)
 
         dividends = calibrate_from_data(
             dc,
@@ -296,15 +325,21 @@ class LongRunRisksModel:
             frequency=frequency,
             window=window,
             default_phi_sigma=default_phi_sigma,
-            long=long,
-            short=short,
-            market=market,
+            long=long_series,
+            short=short_series,
+            market=market_series,
         )
         base = params if params is not None else ModelParams()
         stripped = ModelParams(
             prefs=base.prefs, cons=base.cons, dividends=dividends
         )
-        return cls(stripped, **overrides)
+        return cls(
+            stripped,
+            long=long_name,
+            short=short_name,
+            market=market_name,
+            **overrides,
+        )
 
     def replace(self, **kwargs) -> "LongRunRisksModel":
         """A new model with some constructor arguments changed.

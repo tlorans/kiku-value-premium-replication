@@ -254,3 +254,49 @@ def test_from_cashflows_builds_a_model_from_growth_series():
     assert model.legs == ("long", "short", "market")
     # Preferences still come from the paper unless overridden.
     assert model.params.prefs.gamma == 10.0
+
+
+def _growth_series(n=74, seed=42):
+    rng = np.random.default_rng(seed)
+    x = np.zeros(n)
+    for t in range(1, n):
+        x[t] = 0.6 * x[t - 1] + 0.01 * rng.standard_normal()
+    dc = 0.02 + x + 0.015 * rng.standard_normal(n)
+    return (
+        dc,
+        0.025 + 3.5 * x + 0.12 * rng.standard_normal(n),
+        0.015 + 0.4 * x + 0.18 * rng.standard_normal(n),
+        0.020 + 1.5 * x + 0.10 * rng.standard_normal(n),
+    )
+
+
+def test_from_cashflows_with_custom_claim_names():
+    """A role argument may name one of `claims` instead of carrying a series."""
+    dc, high, low, market = _growth_series()
+    model = lrr.LongRunRisksModel.from_cashflows(
+        dc,
+        claims={"quality": high, "junk": low, "market": market},
+        long="quality",
+        short="junk",
+    )
+    assert set(model.params.dividends) == {"quality", "junk", "market"}
+    assert model.legs == ("quality", "junk", "market")
+    assert np.isfinite(model.solve(method="analytical").value_premium)
+
+
+def test_from_cashflows_roles_may_be_series_or_names():
+    """Both spellings reach the same calibrated parameters."""
+    dc, high, low, market = _growth_series()
+    by_series = lrr.LongRunRisksModel.from_cashflows(
+        dc, long=high, short=low, market=market
+    )
+    by_name = lrr.LongRunRisksModel.from_cashflows(
+        dc,
+        claims={"long": high, "short": low, "market": market},
+        long="long",
+        short="short",
+        market="market",
+    )
+    assert by_series.legs == by_name.legs
+    for claim in ("long", "short", "market"):
+        assert by_series.params.dividends[claim] == by_name.params.dividends[claim]
