@@ -13,3 +13,10 @@ site/.quarto/
 # the source paper, kept locally at the repo root
 2006 Kiku is The Value Premium a Puzzle.pdf
 docs/
+
+# scratch directories written by coding agents. Plans, specs, and audit
+# output belong to the session that produced them, not to the repo.
+.superpowers/
+.hermes/
+.issue0/
+.claude/settings.local.json
