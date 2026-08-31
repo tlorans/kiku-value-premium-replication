@@ -73,3 +73,10 @@ around. Numbers that come from Kiku's paper rather than from the site's
 code are always attributed as such ("Table IX reports…"). If a cell's
 output and the surrounding prose ever disagree, the cell is right and
 the prose is a bug, so please report it.
+
+## If a page is wrong, or you are stuck
+
+Each chapter closes with the primary source for its topic. If a cell's
+output and the prose disagree, or a step will not run, open an issue at the
+[repository](https://github.com/tlorans/kiku-value-premium-replication/issues),
+or ask your agent to walk through the chapter with you.
