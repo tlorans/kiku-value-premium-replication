@@ -8,6 +8,7 @@ must never silently skip an executed chapter).
 """
 from pathlib import Path
 
+import pytest
 import re
 import yaml
 
@@ -96,27 +97,53 @@ def _chapter_files():
     return [p for p in _qmd_files() if "chapters" in p.parts]
 
 
-def test_exercises_have_answer_checks():
-    """Chapters with exercises ship a collapsed answer-check callout."""
-    for path in _chapter_files():
-        text = path.read_text(encoding="utf-8")
-        if "## Exercises" in text:
-            assert 'title="Check your answer"' in text, (
-                f"exercises without answer check: {path.name}"
-            )
+CHAPTERS = sorted((SITE / "chapters").glob("*.qmd"))
+PROSE_BUDGET = 1300
+
+_FENCE = re.compile(r"^\s*```")
+_FRONT_MATTER = re.compile(r"^---\n.*?\n---\n", flags=re.S)
 
 
-def test_chapters_have_recall_callout():
-    """Every chapter ships a collapsed Recall callout before its exercises."""
-    for path in _chapter_files():
-        text = path.read_text(encoding="utf-8")
-        assert 'title="Recall"' in text, f"missing recall callout: {path.name}"
-        if "## Exercises" in text:
-            recall = text.find('title="Recall"')
-            exercises = text.find("## Exercises")
-            assert recall < exercises, (
-                f"recall callout must precede exercises: {path.name}"
-            )
+def _prose_words(path: Path) -> int:
+    """Words a reader has to read: everything outside code fences.
+
+    Code cells are folded, skimmable, and are the point of the page, so
+    they are not part of the reading budget.
+    """
+    text = _FRONT_MATTER.sub("", path.read_text(encoding="utf-8"))
+    in_code = False
+    words = 0
+    for line in text.splitlines():
+        if _FENCE.match(line):
+            in_code = not in_code
+            continue
+        if not in_code:
+            words += len(line.split())
+    return words
+
+
+@pytest.mark.parametrize("path", CHAPTERS, ids=lambda p: p.stem)
+def test_chapter_ships_check_yourself(path):
+    """One collapsed self-check per chapter, replacing Recall and Exercises."""
+    text = path.read_text(encoding="utf-8")
+    assert 'title="Check yourself"' in text, (
+        f"missing 'Check yourself' callout: {path.name}"
+    )
+    for dead in ('title="Recall"', "## Exercises", 'title="Check your answer"',
+                 'title="Where to go next"'):
+        assert dead not in text, (
+            f"retired block {dead!r} still present: {path.name}"
+        )
+
+
+@pytest.mark.parametrize("path", CHAPTERS, ids=lambda p: p.stem)
+def test_chapter_prose_within_budget(path):
+    """A chapter page is at most PROSE_BUDGET words outside code fences."""
+    count = _prose_words(path)
+    assert count <= PROSE_BUDGET, (
+        f"{path.name}: {count} prose words, budget {PROSE_BUDGET} "
+        f"(over by {count - PROSE_BUDGET})"
+    )
 
 
 def test_chapters_link_references_page():
