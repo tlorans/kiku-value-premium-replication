@@ -349,8 +349,8 @@ Refining the volatility dimension moves the premium far less than refining
 x did, because the price of volatility risk is small next to the price of
 persistence risk. The chain's implied persistence at one standard deviation
 sits above rho on the coarse grid (0.992) and close to rho on the fine
-grid (0.982), the same coarse-grid distortion direction as the
-over-dispersion check. The
+grid (0.982), so the coarse grid distorts in the same direction as the
+over-dispersion check showed. The
 iteration estimate from the modulus is the right order of magnitude for a
 timed run: thousands of cheap iterations.
 

@@ -363,15 +363,15 @@ print(f"post-war spread: {prem['Value'] - prem['Growth']:.2f} points")
 ```
 
 At the household's own loading the claim is long-run riskless, so both the
-elasticity and the premium are zero; the threshold is 1/psi rather than 0
+elasticity and the premium are zero. The threshold is 1/psi rather than 0
 because a claim growing with expected consumption moves exactly as the
-household's consumption does. The window change is not innocuous: at window 3 the value slope turns
+household's consumption does. The window change is not innocuous. At window 3 the value slope turns
 negative, the same fragility the Chapter 8 check showed, so treat the
 level of any single-window leverage estimate with caution. The pre-war years carry a large share of the identifying
 variation, so the post-war slopes and the spread shrink, a warning about
 how much data the loading estimates need.
 
-Exercise 4 is yours: run the four steps on a series you bring, and note
+Exercise 4 is yours. Run the four steps on a series you bring, and note
 that a DCF of the same portfolio would have shown you only the Gordon
 return, never the loading or the premium decomposition.
 

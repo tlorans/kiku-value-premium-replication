@@ -6,7 +6,7 @@ aliases:
 
 [Chapter 4](04-epstein-zin-preferences.qmd) built an investor whose
 marginal utility responds to news about future consumption. The
-preferences are worthless if there is no such news. If consumption
+preferences add nothing if there is no such news. If consumption
 growth is white noise, there is nothing persistent to learn about, and
 the Epstein-Zin kernel prices almost exactly like the power-utility
 kernel it replaced. The chapter supplies the other half, an endowment
@@ -28,7 +28,7 @@ meaningful way, which is how strongly their dividends load on the
 persistent component. The loading, called cash-flow leverage, is the
 model's characteristic and serves the purpose the CAPM assigns to
 beta. It is a property of dividends, and it is measurable without
-ever touching a return.
+using any returns.
 
 ## Four equations
 
@@ -91,7 +91,7 @@ print(f"rho = {cons.rho} (monthly)  =>  "
       f"half-life of x_t = {half_life:.1f} months")
 ```
 
-A piece of news about expected growth still has half its force three
+A piece of news about expected growth still has half its effect three
 years later. The persistence is what separates @eq-x from noise. The
 innovation to $x_t$ is on the order of $\varphi_x \sigma \approx$ two
 hundredths of a percent per month, which is invisible next to the
@@ -256,7 +256,7 @@ plot.show()
 
 The gray series is what an econometrician observes, and the dark line
 is the state the investor is afraid of. Distinguishing the second
-inside the first from a few decades of data is genuinely hard, and the
+inside the first from a few decades of data is hard, and the
 paper does not claim otherwise. The model claims that prices respond
 to the dark line, which is why valuations will turn out to be
 informative about $x_t$ in a way realized consumption is not.
@@ -310,7 +310,7 @@ to reproduce Table III.
   inside consumption growth, slowly moving uncertainty
   $\sigma_t^2$, and dividends levered to $x_t$ claim by claim.
 - $x_t$ is small but long lasting. With $\rho = 0.98$ monthly, a shock
-  keeps half its force after 34 months, and long-run news is what the
+  keeps half its effect after 34 months, and long-run news is what the
   Chapter 4 investor prices.
 - The data reject white-noise consumption growth. Annual AC1 is 0.41 in
   74 years, and the calibrated model reproduces it (0.43) under the
@@ -325,7 +325,7 @@ to reproduce Table III.
 Answer from memory before opening.
 
 1. Name the four equations of the endowment in words.
-2. How long does a shock to expected growth keep half its force at
+2. How long does a shock to expected growth keep half its effect at
    $\rho = 0.98$ monthly?
 3. Across the three claims, exactly one parameter differs in an
    economically central way. Which, and what does it measure?
@@ -385,7 +385,7 @@ print(f"AC1, log convention:    {np.corrcoef(g_log[:-1], g_log[1:])[0,1]:.2f}")
 
 ```{python}
 #| code-fold: true
-#| fig-cap: "The expected-growth state at rho = 0.98 (dark red) against rho = 0.90 (gray). Lower persistence turns the slow swings into quick fades."
+#| fig-cap: "The expected-growth state at rho = 0.98 (dark red) against rho = 0.90 (gray). At the lower persistence the state decays much faster."
 from plotnine import ggplot, aes, geom_line, labs, scale_color_manual, \
     theme_minimal, theme, element_blank, element_line, element_text
 
@@ -416,7 +416,7 @@ paths = pd.DataFrame({
 ```
 
 The half-life falls from 34 months to about 14 at rho = 0.95 and about 7 at
-rho = 0.90, and the claim that loses most is value, whose phi puts the most
+rho = 0.90, and the claim that loses most is value, whose phi puts most
 of its valuation on the persistent state. With phi_x = 0 the log
 convention prints a near-zero AC1 but the level convention still prints
 0.24, so the overlap in the level construction adds persistence on its

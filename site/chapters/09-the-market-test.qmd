@@ -44,7 +44,7 @@ moments. Each entry is the average, across 1,000 artificial samples,
 of a statistic estimated on 74 years of annual data. Each artificial
 sample is simulated at the monthly frequency and aggregated to years,
 so it has exactly the length of the 1930 to 2003 sample. The
-construction matters for grading, because a 74-year sample average is
+construction affects the grading, because a 74-year sample average is
 a noisy draw. The model is asked whether the data look like a typical
 sample from it, and the cross-sample standard deviation says how far a
 typical sample strays. `lrr.simulate_table_vii` reproduces the same

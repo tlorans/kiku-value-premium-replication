@@ -10,7 +10,7 @@ support them.
 
 Background material is taught in the chapters rather than on this page.
 [Chapter 3](../chapters/03-pricing-by-euler-equation.qmd) builds the
-Euler equation and the discipline it imposes.
+Euler equation and the restriction it puts on every claim's price.
 [Chapter 4](../chapters/04-epstein-zin-preferences.qmd) covers
 Epstein-Zin preferences and the separation of risk aversion from
 intertemporal substitution, and
@@ -26,7 +26,7 @@ puzzle is resolved.
 |:---|:---|
 | loading ($\phi$) | how strongly a claim's dividend growth moves with the persistent component of consumption; the model's characteristic, measured from cash flows |
 | persistent component ($x_t$) | the slow-moving deviation of expected consumption growth from its mean |
-| half-life | time for a shock to $x_t$ to lose half its force: $\log(0.5)/\log(\rho)$, about 34 months at $\rho = 0.98$ ([Ch. 5](../chapters/05-long-run-risks.qmd)) |
+| half-life | time for a shock to $x_t$ to decay by half: $\log(0.5)/\log(\rho)$, about 34 months at $\rho = 0.98$ ([Ch. 5](../chapters/05-long-run-risks.qmd)) |
 | P/D ratio | price per unit of annual dividend; its log is the valuation measure the course uses |
 | beta | slope of a claim's return on the market's return (CAPM) |
 | EIS ($\psi$) | elasticity of intertemporal substitution: response of consumption plans to interest rates |

@@ -11,7 +11,7 @@ persistent component of consumption growth. A regression whose
 right-hand side contains only consumption measures the loading, so
 there is no return anywhere on the page.
 
-The no-returns rule is the point of the exercise.
+Keeping returns out is the point of the exercise.
 [Chapter 1](01-two-free-numbers.qmd) showed that a DCF can rationalize
 any premium because its discount rate is a free number fitted to the
 returns it claims to explain. Here the household was calibrated to
@@ -201,7 +201,7 @@ slopes = pd.DataFrame({
 )
 ```
 
-The risk sits in the cash flows, where the model said it would be.
+The risk sits in the cash flows, where the model needs it.
 Value's dividend growth rises steeply with the slow component of
 consumption. Growth's dividend growth barely responds, and on the
 reconstruction here the slope is even slightly negative. The market
@@ -247,15 +247,15 @@ slope moves a lot with the data vintage and with the two masked
 depression years, which fall exactly where consumption swings were
 largest. The reliable output of the regression is the ordering, in
 which value loads heavily on long-run consumption news and growth does
-not. Do not read a third decimal, or even a first one, into the value
-slope.
+not. Do not read precision into the value slope. Even its first digit
+is not reliable.
 
 The package wraps the same arithmetic.
 `lrr.estimate_long_run_leverage` is the one-claim slope, and
 `lrr.calibrate_from_data` turns consumption and dividend-growth series
 into a full set of cash-flow parameters. Look at the signatures. There
 is no argument that accepts a return, so the functions cannot take
-one. The API itself enforces the no-returns rule of the calibration.
+one. The API itself keeps returns out of the calibration.
 
 ```{python}
 print(round(lrr.estimate_long_run_leverage(y, dgrowth("Market"), window=2), 3))
@@ -395,15 +395,15 @@ except TypeError as err:
     print(f"TypeError: {err}")
 ```
 
-The window change does not preserve the slopes: at window 3 the value
+The window change does not preserve the slopes. At window 3 the value
 slope turns negative (-5.50), so the level of the annual leverage
 estimate is fragile to the proxy window. The post-war sample keeps the
 value-above-growth ordering but collapses the value slope from 12.13 to
 0.60, and the growth slope stays negative throughout. Levels are fragile
 here, which is why the chapter leans on the paper's Table VI numbers for
 magnitudes. And
-there is no returns argument to pass: the signature rejects the keyword
-outright.
+there is no returns argument to pass, because the signature rejects the
+keyword outright.
 
 :::
 

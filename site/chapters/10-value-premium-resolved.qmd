@@ -176,7 +176,7 @@ from $\phi_V - \phi_G$ and the pricing framework of Chapters 4 to 7.
 
 **The valuation ranking.** Mean log P/D prints 2.81 for value, 3.01
 for the market, and 3.19 for growth (the paper prints 3.10, 3.24, and
-3.65 on the same ranking). Value is cheapest and growth is dearest,
+3.65 on the same ranking). Value is the cheapest and growth is the most expensive,
 which is the data's ordering. The claim that earns more is the claim
 that costs less, because the long-run loading drives both. A high
 $\phi$ makes dividends riskier in the state investors fear, so the
@@ -188,7 +188,7 @@ while the model derives both from the same loading.
 value's CAPM beta prints 0.72, below growth's 0.90, while value's mean
 return is more than five points higher. The beta ratio is 0.81 (the
 paper prints 0.92, and both vintages of the data put the ratio near or
-above one). The model reproduces the very anomaly that
+above one). The model reproduces the anomaly that
 [Chapter 1](01-two-free-numbers.qmd) used to argue against the CAPM.
 It can do so because a single market beta is a one-factor projection
 of three separately priced risks, namely short-run consumption shocks,
@@ -207,10 +207,10 @@ percent because the short-run piece is negative. A beta regression
 captures only the sum of the covariances and prices none of the parts.
 
 Two shorthand terms used across the course name the two ways a price
-can move, and this is the chapter where both are in view at once.
+can move, and the chapter puts both in view at once.
 Cash-flow news is a revision in expected dividends, the quantity the
 loadings measure. Discount-rate news is a revision in expected
-returns. The value premium is a cash-flow-news story: value's
+returns. The value premium comes from cash-flow news. Value's
 dividends move with long-run consumption news, so holding value is
 bearing cash-flow news about the next decade. Growth's price is
 sensitive to discount-rate news instead, because a long-duration claim
@@ -401,7 +401,7 @@ compensation is paid in returns.
 
 - With nothing re-tuned, the simulated Table VII prints a value premium
   of 5.38 percent (paper: 5.3; data: about 6) and the data's valuation
-  ranking, value cheapest and growth dearest.
+  ranking, with value the cheapest and growth the most expensive.
 - The model reproduces the CAPM anomaly. Value's beta prints 0.72
   against growth's 0.90 (ratio 0.81; paper 0.92) while value earns five
   points more. A one-factor projection mixes three separately priced
@@ -477,7 +477,7 @@ print(f"vp, n_x=60 n_s=6: {t6['value_premium']:.2f}")
 
 Equalizing from above kills the value premium just as equalizing from
 below did (0.10 percent), and the market row is untouched at 8.93
-because the market's own cash-flow process never moved: the cross-section
+because the market's own cash-flow process never moved. The cross-section
 breaks while the aggregate stays put. The biggest spread in the tested
 ranges sits at the highest risk aversion (0.62 at gamma = 15), with the
 high value loading and high persistence just behind, and all three scale

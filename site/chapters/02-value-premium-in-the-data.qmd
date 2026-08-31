@@ -171,7 +171,7 @@ p.show()
 
 ### Returns comove more than cash flows
 
-The rest of the course builds on the following clue. If value and growth returns moved independently, a six-point spread would be less surprising, because some difference in exposures would be doing visible work. Compare how the two portfolios comove in returns and in cash flows:
+The rest of the course builds on the following clue. If value and growth returns moved independently, a six-point spread would be less surprising, because a visible difference in exposures could then explain it. Compare how the two portfolios comove in returns and in cash flows:
 
 ```{python}
 print(f"return correlation, value & growth          : "
@@ -231,7 +231,7 @@ Answer from memory before opening.
 2. Rank the claim by Sharpe ratio: is value's above or below growth's?
 3. Returns on the two portfolios correlate at 0.72 while their dividend
    growth correlates at 0.29. What does that gap say about where the
-   distinguishing risk lives?
+   distinguishing risk appears?
 
 **Answers.**
 
