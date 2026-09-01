@@ -86,7 +86,7 @@ $\theta$ before iterating. The episode also motivates a policy. A
 solver should raise an error on divergence, and it should never clamp.
 :::
 
-## Hands-on: solve the paper grid
+## Solve the paper grid
 
 The grid method of `model.solve()` builds the chain and runs the fixed
 points. It returns a `GridResults` object, which carries the solved
@@ -163,10 +163,10 @@ The two methods agree within ten percent, claim by claim.
 
 The chain's stationary distribution should reproduce the unconditional
 dispersion of $x$. If it does not, the discretized economy carries a
-different quantity of long-run risk than the one you calibrated. Few
-replications print the check below. The `states()` method of the
-results gives one row per grid state, with the expected-growth node
-and its stationary weight, which is all the check needs:
+different quantity of long-run risk than the one you calibrated. The
+`states()` method of the results gives one row per grid state, with
+the expected-growth node and its stationary weight, which is all the
+check needs:
 
 ```{python}
 sd_true = c.phi_x * c.sigma / np.sqrt(1 - c.rho**2)
@@ -239,21 +239,16 @@ p = (
 p.show()
 ```
 
-The mechanism survives at every grid size. Dispersion in long-run
-cash-flow risk produces a large positive value premium on every grid
-in the figure. The level the paper prints, a 5.3 percent premium,
-reflects the 30-point discretization it was computed on. The converged
-chain gives about 3.4 percent, with a risk-free rate near 1.8 rather
-than 1.0. When you replicate a quadrature-solved model, the grid
-specification is as much a part of the result as the preference
-parameters. [Chapter 10](10-value-premium-resolved.qmd) runs the full
-comparison with Table VII, including simulated samples, standard
-errors, and CAPM betas, using `model.simulate()`.
+The mechanism survives at every grid size: dispersion in long-run
+cash-flow risk produces a large positive value premium in the figure.
+The level the paper prints, a 5.3 percent premium, reflects the
+30-point discretization it was computed on. [Chapter 10](10-value-premium-resolved.qmd)
+runs the full comparison with Table VII, including simulated samples,
+standard errors, and CAPM betas, using `model.simulate()`.
 
-One more behavior is useful to know. On a very coarse grid the
-over-dispersion is so large that the value claim's dividend growth
-exceeds its discount rate. The price is then infinite, and the
-solve raises an error rather than returning a made-up number:
+On a very coarse grid the over-dispersion is large enough that the
+value claim's dividend growth exceeds its discount rate, so the price
+is infinite:
 
 ```{python}
 try:
@@ -262,112 +257,64 @@ except lrr.SolverDivergenceError as err:
     print(f"SolverDivergenceError: {err}")
 ```
 
-::: {.firewall}
-**Where each number comes from.** Every figure in this chapter is
-printed by the cells above at build time. They all come from one
-`LongRunRisksModel()` on the Table II calibration, solved with
-`model.solve()`: the grid method builds the Tauchen-Hussey chain,
-runs the Euler fixed points, and averages the moments under the
-stationary distribution. Download the chapter as a notebook (top of
-the page) to rerun everything.
-:::
-
 ## Takeaways
 
-- Tauchen-Hussey quadrature replaces the continuous state with a
-  Markov chain whose rows are quadrature approximations of the true
-  conditional densities. Pricing then reduces to a contraction, with
-  one matrix-vector product per iteration.
-- Iterate the Euler equation in its contraction form, because the
-  algebraically equivalent undivided form diverges at rate
-  $1 - \theta$. A solver should raise an error on divergence instead
-  of clamping.
-- The exact solution confirms the log-linear elasticities on a fine
-  grid. It also shows that the grid itself changes the quantity of
-  long-run risk, so check the chain's stationary dispersion against
-  the process you calibrated.
+- Tauchen-Hussey quadrature replaces the continuous state space with a
+  finite Markov chain over $(x_t, \sigma_t^2)$, reducing pricing to a
+  contraction solved by one matrix-vector product per iteration.
+- The Euler equation must be iterated in its contraction form, since
+  the undivided form has local slope $1 - \theta = 28$ and diverges
+  within a few steps.
+- The exact solution matches the log-linear elasticities of
+  [Chapter 6](06-log-linear-solution.qmd) within ten percent on a fine
+  grid.
+- The paper's 30-point grid over-disperses expected growth by about a
+  fifth, pushing premia high and prices low, and the converged chain
+  settles near a 3.4 percent value premium with a 1.8 percent
+  risk-free rate.
+- On a grid coarse enough that value's dividend growth exceeds its
+  discount rate the price is infinite, and the solver raises a
+  `SolverDivergenceError` instead of returning a clamped number.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
-1. What does the quadrature method put in place of the continuous state
-   space, and what reduces pricing to?
-2. The Euler equation has an algebraically equivalent form whose
-   iteration diverges. Which step keeps iteration stable?
-3. The 30-point grid over-disperses expected growth. In which direction
-   does that push computed premia and prices?
+1. What replaces the continuous state space under quadrature, and what
+   does that reduce pricing to?
+2. The Euler equation has an equivalent form whose iteration diverges.
+   Which single step keeps iteration stable, and what is the unstable
+   form's local slope?
+3. Rebuild the chain with 8 volatility states (`n_x = 30`) and
+   recompute the value premium. Does it move as much as refining $x$
+   did?
 
 **Answers.**
 
-1. A finite Markov chain over $(x_t, \sigma_t^2)$; a contraction solved
-   by matrix-vector products.
-2. Dividing by $\theta$ before iterating: the undivided form has local
-   slope $1 - \theta = 28$ and diverges.
-3. Premia run high and prices run low relative to the continuous model,
-   because more dispersion in $x$ is more long-run risk.
+1. It replaces the continuous state space with a finite Markov chain
+   over $(x_t, \sigma_t^2)$, which reduces pricing to a contraction.
+2. Dividing by $\theta$ before iterating keeps the map stable. The
+   undivided form has local slope $1 - \theta = 28$ and diverges
+   quickly.
+3. It barely moves, because the price of volatility risk is small next
+   to the price of persistence risk, so refining $\sigma$ matters far
+   less than refining $x$.
+
+   ```{python}
+   #| code-fold: true
+   res8 = model.solve(n_x=30, n_s=8)
+   print(f"value premium, n_s = 4: {res.compare('value', 'growth').premium:.2f}")
+   print(f"value premium, n_s = 8: {res8.compare('value', 'growth').premium:.2f}")
+   ```
 
 :::
 
-## Exercises
-
-1. Rebuild the chain with `n_s = 8` volatility states (keep
-   `n_x = 30`) and recompute the population value premium. Adding
-   volatility states changes the answer much less than adding $x$
-   states. Explain why, given the prices of risk in
-   [Chapter 6](06-log-linear-solution.qmd).
-2. Compute the chain's implied one-month persistence
-   $E[x_{t+1} \mid x_t]/x_t$ at a node one standard deviation out, for
-   `n_x = 30` and `n_x = 60`. How does the deviation from
-   $\rho = 0.98$ line up with the over-dispersion you measured?
-3. The consumption claim converges in thousands of iterations because
-   $\kappa_1 \approx 0.999$. Estimate the iteration count needed for a
-   sup-norm tolerance of $10^{-10}$ from the contraction modulus, and
-   check it against a timed run.
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-from lrrcs.model import StateGrid
-
-# Exercise 1: more volatility states
-res8 = model.solve(n_x=30, n_s=8)
-print(f"value premium, n_s = 4: {res.compare('value', 'growth').premium:.2f}")
-print(f"value premium, n_s = 8: {res8.compare('value', 'growth').premium:.2f}")
-
-# Exercise 2: implied one-month persistence one sd out.
-# This is a property of the chain alone, so we build the grid without
-# solving on it.
-for label, n_x in (("n_x = 30", 30), ("n_x = 60", 60)):
-    g = StateGrid(params, n_x=n_x, n_s=4)
-    ix = int(np.argmin(np.abs(g.x_nodes - sd_true)))
-    i = ix * g.n_s + is_mid
-    pers = float(g.Pi[i] @ g.x_grid) / g.x_nodes[ix]
-    print(f"{label}:  E[x'|x]/x one sd out = {pers:.4f}  (rho = {c.rho})")
-
-# Exercise 3: iterations implied by the contraction modulus
-zb = float(np.dot(res60.stationary, res60.z["market"]))
-k1 = np.exp(zb) / (1 + np.exp(zb))
-print(f"kappa1 = {k1:.6f}  =>  iterations for 1e-10: "
-      f"{np.log(1e-10) / np.log(k1):,.0f}")
-```
-
-Refining the volatility dimension moves the premium far less than refining
-x did, because the price of volatility risk is small next to the price of
-persistence risk. The chain's implied persistence at one standard deviation
-sits above rho on the coarse grid (0.992) and close to rho on the fine
-grid (0.982), so the coarse grid distorts in the same direction as the
-over-dispersion check showed. The
-iteration estimate from the modulus is the right order of magnitude for a
-timed run: thousands of cheap iterations.
-
+::: {.firewall}
+The paper's 30-point grid and its printed 5.3 percent value premium
+are Table VII figures quoted from Kiku (2006), and every other number
+on this page, including the convergence and divergence results, is
+computed here by the cells above.
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Tauchen and Hussey (1991)
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Tauchen and Hussey (1991), on the quadrature method.
+[References](../reference/references.qmd).
