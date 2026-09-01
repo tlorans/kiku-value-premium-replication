@@ -131,13 +131,12 @@ print(f"first autocorrelation (AC1): {dc.autocorr(1):.2f}")
 ```
 
 An AC1 of 0.41 in 74 years of data is a clear rejection of white
-noise. Growth in one year carries information about growth in the
-next. The AC1 does not by itself prove the two-component structure of
+noise. The AC1 does not by itself prove the two-component structure of
 @eq-cons and @eq-x. A persistent component of the calibrated size is
 hard to detect, and the difficulty is the standing objection to the
-whole approach, taken up in [Chapter 9](09-the-market-test.qmd). The
-AC1 is, however, one of the moments the calibration below is fit to,
-and the simulation at the end of the chapter reproduces it.
+whole approach. The AC1 is, however, one of the moments the
+calibration below is fit to, and the simulation at the end of the
+chapter reproduces it.
 
 ## The calibration in one table
 
@@ -256,10 +255,10 @@ plot.show()
 
 The gray series is what an econometrician observes, and the dark line
 is the state the investor is afraid of. Distinguishing the second
-inside the first from a few decades of data is hard, and the
-paper does not claim otherwise. The model claims that prices respond
-to the dark line, which is why valuations will turn out to be
-informative about $x_t$ in a way realized consumption is not.
+inside the first from a few decades of data is hard. The model
+claims that prices respond to the dark line, which is why valuations
+will turn out to be informative about $x_t$ in a way realized
+consumption is not.
 
 ## Simulation to annual data: a warning about aggregation
 
@@ -291,150 +290,72 @@ print(f"  AC1, aggregating levels (NIPA convention): {ac1(g_levels):.2f}")
 print(f"  AC1, summing log growth rates:             {ac1(g_logs):.2f}")
 ```
 
-::: {.callout-warning title="Time-aggregate levels, not log growth"}
-The same simulated economy prints an annual AC1 of 0.43 when monthly
-levels are summed within the year, and only 0.20 when monthly log
-growth rates are summed. The 0.43 matches the model AC1 in the paper's
-Table III and sits next to the 0.41 measured in the data above.
-Summing levels within the year overlaps adjacent years' information
-and adds persistence that the log-growth aggregation throws away. A
-simulation that sums log growth will understate the paper's annual
-autocorrelation every time. It is the single most common way to fail
-to reproduce Table III.
-:::
+The same simulated economy prints 0.43 when monthly levels are summed
+within the year and 0.20 when monthly log growth rates are summed. The
+0.43 matches the model AC1 in the paper's Table III and sits next to the
+0.41 measured in the data above, so a simulation that sums log growth will
+understate the paper's annual autocorrelation every time.
 
 ## Takeaways
 
-- The endowment is four equations: persistent expected growth $x_t$
-  inside consumption growth, slowly moving uncertainty
-  $\sigma_t^2$, and dividends levered to $x_t$ claim by claim.
-- $x_t$ is small but long lasting. With $\rho = 0.98$ monthly, a shock
-  keeps half its effect after 34 months, and long-run news is what the
-  Chapter 4 investor prices.
-- The data reject white-noise consumption growth. Annual AC1 is 0.41 in
-  74 years, and the calibrated model reproduces it (0.43) under the
-  correct level aggregation.
-- The cross section enters through one parameter, the cash-flow
-  leverage $\phi_i$ (growth 2.6, market 2.8, value 6.2). It is a
-  property of dividends, estimated in
-  [Chapter 8](08-calibrating-cash-flows.qmd) without returns.
+- With $\rho = 0.98$ monthly, a shock to $x_t$ keeps half its effect
+  after 34 months, which is what Chapter 4's investor prices.
+- Annual U.S. consumption growth has an AC1 of 0.41 in 74 years,
+  rejecting white noise, and the calibrated model reproduces the same
+  0.43 only by summing monthly levels before taking log growth.
+- Table II's calibration matches aggregate consumption moments for
+  the preferences and consumption process, and dividends alone for
+  the cash-flow leverage $\phi_i$: 2.6 for growth, 2.8 for market,
+  6.2 for value.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
-1. Name the four equations of the endowment in words.
-2. How long does a shock to expected growth keep half its effect at
-   $\rho = 0.98$ monthly?
-3. Across the three claims, exactly one parameter differs in an
-   economically central way. Which, and what does it measure?
+1. In the simulated path, the expected-growth line is far smaller
+   than realized monthly growth. Why does the model say prices
+   respond to it?
+2. Name the four equations of the endowment in words, and say which
+   parameter is the only one that differs across claims.
+3. Why does summing monthly levels before taking log growth give a
+   different AC1 than summing monthly log growth rates, and which
+   matches Table III?
 
 **Answers.**
 
-1. Consumption growth carries a persistent expected-growth component
-   plus noise; expected growth drifts with persistence $\rho$; volatility
-   itself moves slowly; and each claim's dividend growth loads on the
-   persistent component with leverage $\phi_i$.
-2. About 34 months, three years.
-3. The cash-flow leverage $\phi_i$: how strongly the claim's dividend
-   growth moves with the persistent component of consumption (2.6
-   growth, 2.8 market, 6.2 value).
+1. The paper does not claim the state is easy to see in noisy data.
+   The investor prices news by how long it lasts, not its size, so
+   the small line carries the risk.
+2. Consumption growth is a trend plus $x_t$ plus noise. $x_t$ drifts
+   with persistence $\rho$. Volatility is a second, slower state.
+   Dividend growth loads on $x_t$ with leverage $\phi_i$, which is
+   the one parameter that differs across claims.
+3. Summing levels first keeps persistence across the year boundary
+   that summing log growth throws away:
 
-:::
+   ```{python}
+   #| code-fold: true
+   # No persistent component at all: the level convention alone still
+   # adds persistence that the log convention does not.
+   dc0 = (lrr.LongRunRisksModel(phi_x=0.0)
+          .simulate_paths(12 * 20000, seed=0)["dc"].to_numpy())
+   level0 = np.exp(np.cumsum(dc0))
+   ann0 = level0.reshape(-1, 12).sum(axis=1)
+   g_lvl = np.diff(np.log(ann0))
+   g_log = dc0.reshape(-1, 12).sum(axis=1)[1:]
+   print(f"AC1, level convention:  {np.corrcoef(g_lvl[:-1], g_lvl[1:])[0,1]:.2f}")
+   print(f"AC1, log convention:    {np.corrcoef(g_log[:-1], g_log[1:])[0,1]:.2f}")
+   ```
 
-## Exercises
-
-1. Recompute the half-life of $x_t$ for $\rho = 0.95$ and
-   $\rho = 0.90$. Then look ahead to the elasticity
-   $A_1 = (\phi - 1/\psi)/(1 - \kappa_1 \rho)$ of
-   [Chapter 6](06-log-linear-solution.qmd) and say, before computing
-   anything, which claim's valuation loses more when persistence falls.
-2. Rerun the aggregation cell with `phi_x = 0` (rebuild the parameters
-   with `lrr.ConsumptionParams(phi_x=0.0)` inside a `ModelParams`).
-   With no persistent component at all, what AC1 does each aggregation
-   convention print, and what does the gap between them tell you about
-   the level convention on its own?
-3. Simulate two economies with `model.simulate_paths(..., seed=7)`, identical
-   except $\rho = 0.98$ versus $\rho = 0.90$, and plot
-   $\mu_c + x_t$ for both. How does the figure change, and at which
-   frequency would you now look for the state in the data?
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-# Exercise 1: half-lives at lower persistence
-for rho in (0.95, 0.90):
-    print(f"rho = {rho}:  half-life = "
-          f"{np.log(0.5) / np.log(rho):.1f} months")
-
-# Exercise 2: no persistent component at all
-dc0 = (lrr.LongRunRisksModel(phi_x=0.0)
-       .simulate_paths(12 * 20000, seed=0)["dc"].to_numpy())
-level0 = np.exp(np.cumsum(dc0))
-ann0 = level0.reshape(-1, 12).sum(axis=1)
-g_lvl = np.diff(np.log(ann0))
-g_log = dc0.reshape(-1, 12).sum(axis=1)[1:]
-print(f"AC1, level convention:  {np.corrcoef(g_lvl[:-1], g_lvl[1:])[0,1]:.2f}")
-print(f"AC1, log convention:    {np.corrcoef(g_log[:-1], g_log[1:])[0,1]:.2f}")
-```
-
-```{python}
-#| code-fold: true
-#| fig-cap: "The expected-growth state at rho = 0.98 (dark red) against rho = 0.90 (gray). At the lower persistence the state decays much faster."
-from plotnine import ggplot, aes, geom_line, labs, scale_color_manual, \
-    theme_minimal, theme, element_blank, element_line, element_text
-
-T = 480
-x98 = lrr.LongRunRisksModel().simulate_paths(T, seed=7)["x"].to_numpy()
-x90 = (lrr.LongRunRisksModel(rho=0.90)
-       .simulate_paths(T, seed=7)["x"].to_numpy())
-paths = pd.DataFrame({
-    "years": np.arange(T) / 12,
-    "rho = 0.98": 100 * (cons.mu + x98),
-    "rho = 0.90": 100 * (cons.mu + x90),
-}).melt(id_vars="years", var_name="rho", value_name="expected")
-
-(
-    ggplot(paths, aes("years", "expected", color="rho"))
-    + geom_line(size=0.8)
-    + scale_color_manual(values={"rho = 0.98": "#7a1f1f",
-                                 "rho = 0.90": "#b0aca6"})
-    + labs(x="years", y="expected growth (%)")
-    + theme_minimal(base_size=11)
-    + theme(figure_size=(6.5, 2.8), text=element_text(color="#2d2926"),
-            panel_grid_minor=element_blank(),
-            panel_grid_major=element_line(color="#e2d6c4", size=0.4),
-            axis_line=element_line(color="#1b1714", size=0.5),
-            legend_title=element_blank(), legend_position="top")
-)
-```
-
-The half-life falls from 34 months to about 14 at rho = 0.95 and about 7 at
-rho = 0.90, and the claim that loses most is value, whose phi puts most
-of its valuation on the persistent state. With phi_x = 0 the log
-convention prints a near-zero AC1 but the level convention still prints
-0.24, so the overlap in the level construction adds persistence on its
-own. Reaching the 0.43 the paper reports needs the persistent component
-on top of the convention.
-The figure shows the state decaying quickly at rho = 0.90, so you would
-look for it in shorter moving averages.
+   With no persistent component the level convention prints about
+   0.24 against the log convention's near zero, so 0.43 needs both
+   the component and the convention.
 
 :::
 
 ::: {.firewall}
-**Where each number comes from.** The half-life, the calibration tables,
-the simulated figure, and both AC1 prints come from
-`lrr.ModelParams()` and `LongRunRisksModel.simulate_paths`
-in the cells above. The data AC1 of 0.41 is computed from
-`data/consumption_annual.csv`. Download the chapter as a notebook (top
-of the page) to rerun everything.
+This chapter quotes the paper's Table II calibration values and the
+Table III moments the simulations above reproduce.
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Bansal and Yaron (2004)
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Bansal and Yaron (2004). [References](../reference/references.qmd).
