@@ -10,19 +10,18 @@ jobs. The curvature $\gamma$ sets how much the investor would pay to
 avoid a gamble over consumption, which is an attitude about states.
 The same curvature also sets how strongly she rearranges consumption
 over time when interest rates move, which is an attitude about dates.
-The two attitudes are different, one about risk and the other about
-smoothing over time, and there is no economic reason a person's answer
-to the first should be the reciprocal of her answer to the second.
+There is no economic reason a person's answer to the risk
+question should be the reciprocal of her answer to the timing question.
 
 The coupling produces the quantitative failures. An investor risk-averse enough
 to generate premia, with a large $\gamma$, is forced to have a tiny
 elasticity of intertemporal substitution of $1/\gamma$. An investor
 with a tiny elasticity dislikes a growing consumption path so much
-that the model prints an implausibly high risk-free rate, which was the second
-failure in Chapter 3. Moreover, persistent good news about growth
-would raise interest rates so much that valuations fall on good news.
-The interest-rate response becomes a central problem once the endowment
-of [Chapter 5](05-long-run-risks.qmd) contains persistent news.
+that the model prints an implausibly high risk-free rate, which was
+Chapter 3's second failure. Persistent good news about growth also
+raises interest rates so much that valuations fall on good news. That
+response becomes central once the endowment of
+[Chapter 5](05-long-run-risks.qmd) contains persistent news.
 
 Epstein and Zin (1989) remove the coupling with a recursive
 formulation in which risk aversion and the elasticity of intertemporal
@@ -30,10 +29,7 @@ substitution are two free parameters. The cost of the separation is
 that marginal utility stops being a function of consumption alone. It
 comes to depend on the return to total wealth, which is the market's
 forward-looking assessment of the entire future consumption stream.
-The course relies on the wealth-return dependence throughout. With
-power utility, only consumption growth next year enters the kernel,
-while with Epstein-Zin preferences, news about the future is priced
-today.
+The course relies on the wealth-return dependence throughout.
 
 ## The recursion
 
@@ -104,8 +100,6 @@ R_{c,t+1}^{\,\theta-1},
 $$
 
 whose log is @eq-kernel. Epstein and Zin (1989) give the full argument.
-The step to remember is that $R_{c,t+1}$ enters as the observable
-stand-in for continuation utility.
 :::
 
 Read @eq-kernel term by term. The middle term is the familiar
@@ -117,38 +111,28 @@ switches the channel off exactly. Setting $\gamma = 1/\psi$ forces
 $\theta = 1$, so the exponent $\theta - 1$ vanishes. The kernel
 @eq-kernel then reduces to $\log\delta - \gamma\,\Delta c_{t+1}$, which
 is Chapter 3's kernel, and the reduced kernel ignores any news that has
-not yet reached realized consumption. With $\theta \ne 1$, a revision
-in expected future growth moves $r_{c,t+1}$ and therefore moves
-marginal utility today. News about the future has become a priced state
-variable, and the mechanism is all the course needs.
-[Chapter 6](06-log-linear-solution.qmd) computes the price the news
-commands.
+not yet reached realized consumption. With $\theta \ne 1$ that channel
+stays open. News about the future is a priced state variable, and the
+mechanism is all the course needs. That price is computed once the
+model is solved in full.
 
 ## Timing of resolution: why $\gamma > 1/\psi$
 
-The sign of the wealth-return exposure has a behavioral reading.
 Epstein-Zin preferences are sensitive to when uncertainty resolves.
-When $\gamma > 1/\psi$, meaning risk aversion is above the reciprocal
-of the substitution elasticity and hence $\theta < 1$, the investor
-prefers early resolution of uncertainty. She would pay to learn the
-path of future consumption sooner, even though the path itself would
-not change. Such an investor treats bad news about consumption in the
-distant future as a loss now, and demands compensation for holding
-claims that deliver their bad news bundled with bad long-run prospects.
-A power-utility investor ($\gamma = 1/\psi$) is exactly indifferent to
-timing, which is another way of saying long-run news carries a zero
-risk price for her.
+When $\gamma > 1/\psi$, so $\theta < 1$, the investor prefers early
+resolution of uncertainty. She treats bad news about distant
+consumption as a loss now and demands compensation for claims that
+bundle it with bad long-run prospects. A power-utility investor
+($\gamma = 1/\psi$) is exactly indifferent to timing.
 
 The preference for early resolution is why the paper pairs $\gamma = 10$
 with $\psi = 1.5$ in the calibration of [Chapter 5](05-long-run-risks.qmd).
 The gap between $\gamma$ and $1/\psi \approx 0.67$ makes persistent
-consumption risk expensive. Setting $\psi > 1$ also keeps the
-interest-rate channel from overwhelming the cash-flow channel. When
-expected growth rises, an investor with a high elasticity does not need
-a large rate rise to accept the steeper consumption path, so valuations
-can rise on good long-run news rather than fall.
+consumption risk expensive, and setting $\psi > 1$ stops the
+interest-rate channel from swamping the cash-flow channel, so
+valuations can rise on good long-run news instead of falling.
 
-## Hands-on: $\theta$ for the Table II preferences
+## $\theta$ for the Table II preferences
 
 The package carries the paper's preference block. Read it and compute
 $\theta$:
@@ -221,26 +205,27 @@ prints the risk price attached to each shock.
 
 ## Takeaways
 
-- Power utility ties two distinct attitudes together. Epstein-Zin
-  preferences (@eq-ez) make risk aversion $\gamma$ and the substitution
-  elasticity $\psi$ separate parameters, with
-  $\theta = (1-\gamma)/(1-1/\psi)$ measuring their gap.
-- The kernel (@eq-kernel) contains the return on total wealth. Because
-  the wealth return is forward-looking, news about future consumption
-  moves marginal utility today, so long-run news is priced.
-- Power utility is the $\theta = 1$ special case. The wealth-return
-  term vanishes and only realized consumption growth matters, which is
-  why Chapter 3's kernel misses the risk that value stocks carry.
-- With $\gamma > 1/\psi$ the investor prefers early resolution of
-  uncertainty and fears persistent risks. Table II's
-  $\delta = 0.999$, $\gamma = 10$, $\psi = 1.5$ give $\theta = -27$.
+- Power utility forces one curvature parameter to price risk and
+  govern time substitution at once, and Epstein-Zin preferences
+  (@eq-ez) split it into risk aversion $\gamma$, the elasticity of
+  intertemporal substitution $\psi$, and their gap
+  $\theta = (1-\gamma)/(1-1/\psi)$.
+- The kernel (@eq-kernel) adds the forward-looking return on total
+  wealth $r_{c,t+1}$ to the consumption-growth term, so news about
+  future consumption moves marginal utility today.
+- When $\gamma > 1/\psi$ the investor prefers early resolution of
+  uncertainty and treats bad news about distant consumption as a loss
+  now, which is why the paper pairs $\gamma = 10$ with $\psi = 1.5$.
+- Reading $\gamma = 10$ and $\psi = 1.5$ off the Table II preferences
+  gives $\theta = -27$ and splits the kernel's exposure into about
+  $+18$ on consumption growth and $-28$ on the wealth return.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
 1. Power utility ties two attitudes together that Epstein-Zin
-   preferences separate. Name both.
+   preferences separate. Name both, and say what $\theta$ measures.
 2. Whose return appears in the Epstein-Zin kernel, and why does news
    about *future* consumption move marginal utility *today*?
 3. The Table II investor has $\gamma = 10$ and $\psi = 1.5$. Does she
@@ -250,68 +235,32 @@ Answer from memory before opening.
 **Answers.**
 
 1. Risk aversion $\gamma$ and the elasticity of intertemporal
-   substitution $\psi$.
+   substitution $\psi$. Their gap is
+   $\theta = (1-\gamma)/(1-1/\psi)$.
 2. The return on total wealth. It is forward-looking, so revisions to
-   expected future consumption change the kernel now.
-3. Early: $\gamma > 1/\psi$, and her $\theta = (1-\gamma)/(1-1/\psi)
-   = -27$.
+   expected future consumption change marginal utility now.
+3. Early, because $\gamma > 1/\psi$. Her
+   $\theta = (1-\gamma)/(1-1/\psi) = -27$.
 
-:::
+   ```{python}
+   #| code-fold: true
+   for psi in (0.5, 0.9, 1.1, 1.5, 2.0):
+       print(f"psi = {psi:.1f}:  theta = "
+             f"{lrr.PreferencesParams(gamma=10.0, psi=psi).theta:8.2f}")
+   print(f"gamma = 1/psi = {1/1.5:.3f}:  theta = "
+         f"{lrr.PreferencesParams(gamma=1/1.5, psi=1.5).theta:.2f}")
+   ```
 
-## Exercises
-
-1. Compute $\theta$ for $\gamma = 10$ and $\psi \in
-   \{0.5,\, 0.9,\, 1.1,\, 1.5,\, 2.0\}$ using
-   `lrr.PreferencesParams(gamma=10.0, psi=...)`. Where does the sign
-   flip, and what happens as $\psi \to 1$?
-2. Hold $\psi = 1.5$ and lower $\gamma$ toward $1/\psi$. At what
-   $\gamma$ does $\theta$ reach 1, and what does @eq-kernel look like
-   there? Interpret the investor's attitude to the timing of
-   resolution at that point.
-3. Substitute $\theta = 1$ into @eq-ez and show, line by line, that the
-   recursion reduces to expected power utility
-   $V_t^{1-\gamma} \propto E_t \sum_j \delta^j C_{t+j}^{1-\gamma}$ (up
-   to a monotone transformation). Which step uses $\gamma = 1/\psi$?
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-# Exercise 1: theta as psi moves, gamma fixed at 10
-for psi in (0.5, 0.9, 1.1, 1.5, 2.0):
-    print(f"psi = {psi:.1f}:  theta = "
-          f"{lrr.PreferencesParams(gamma=10.0, psi=psi).theta:8.2f}")
-
-# Exercise 2: theta = 1 at gamma = 1/psi
-print(f"gamma = 1/psi = {1/1.5:.3f}:  theta = "
-      f"{lrr.PreferencesParams(gamma=1/1.5, psi=1.5).theta:.2f}")
-```
-
-The sign of theta flips at psi = 1, and its magnitude grows without
-bound as psi approaches 1 from either side. Theta reaches 1 exactly at
-gamma = 1/psi, where the investor is indifferent to the timing of
-resolution.
-
-Exercise 3 is an algebra proof, not a computation. The step that uses
-gamma = 1/psi is the one where the continuation value inside the certainty
-equivalent becomes a power of the linear aggregator, so the recursion
-collapses to a sum of expected power utilities.
+   The sign of theta flips at psi = 1, and theta reaches 1 exactly at
+   gamma = 1/psi, the point where the investor is indifferent to
+   timing.
 
 :::
 
 ::: {.firewall}
-**Where each number comes from.** The values $\delta = 0.999$,
-$\gamma = 10$, $\psi = 1.5$, and $\theta = -27$ come from the tables
-above, read from `lrr.ModelParams().prefs`, and the
-power-utility check uses `lrr.PreferencesParams(gamma=10.0, psi=0.1)`.
-No number on this page is typed by hand. Download the chapter as a
-notebook (top of the page) to rerun everything.
+This chapter quotes only the preference parameters and the $\theta$
+figures from the paper's Table II ($\delta = 0.999$, $\gamma = 10$,
+$\psi = 1.5$, $\theta = -27$).
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Epstein and Zin (1989)
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Epstein and Zin (1989). [References](../reference/references.qmd).
