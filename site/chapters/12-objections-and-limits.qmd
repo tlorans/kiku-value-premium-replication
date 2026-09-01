@@ -121,46 +121,45 @@ more than its levels.
 
 ## Takeaways
 
-- The five standing objections have answers, and each answer is a
-  measurement, not a rhetorical move, e.g., preferences are the minimal
-  separation ([Chapter 4](04-epstein-zin-preferences.qmd)), the
-  loadings are in the dividend data
-  ([Chapter 8](08-calibrating-cash-flows.qmd)), and any claim can be
-  priced by the same steps
+- The first three objections each get a measurement, not rhetoric:
+  minimal preference separation prices long-run risk
+  ([Chapter 4](04-epstein-zin-preferences.qmd)), the loadings show up
+  in the dividend data ([Chapter 8](08-calibrating-cash-flows.qmd)),
+  and any claim you bring is priced by the same steps
   ([Chapter 11](11-price-your-own-claim.qmd)).
+- The other two turn on scope, not mechanism: one calibrated discount
+  rate cannot generate a cross-section
+  ([Chapter 1](01-two-free-numbers.qmd)), and every number in the
+  course runs from committed data in ten seconds.
 - The model's reliable outputs are cross-sectional: which claim earns
-  more, ordered by measured leverage, and roughly by how much relative
-  to the others.
-- Its unreliable outputs are levels and comovements: return
-  correlations too low (0.44 model, 0.75 data), value's dividend
-  persistence too high (0.29 against 0.06), a premium level that moves
-  from 5.3 to roughly 3.5 under grid refinement, and a risk-free rate
-  of 1.58 against 0.91.
-- The course proves existence only. The value premium can be
-  compensation for long-run consumption risk in one disciplined
-  economy. The claim is strong, and it is the only claim the course
-  makes.
+  more, ordered by measured leverage.
+- Its unreliable outputs are levels and comovements: a return
+  correlation of 0.44 against 0.75, value's dividend persistence of
+  0.29 against 0.06, a premium of 5.3 down to roughly 3.5 under grid
+  refinement, and a risk-free rate of 1.58 against 0.91.
 
-::: {.callout-note collapse="true" title="Recall"}
-Answer from memory before opening.
+::: {.callout-note collapse="true" title="Check yourself"}
 
-1. What kind of answers does the chapter give to the standing
-   objections: rhetorical or something else?
-2. Where does the chapter say the model is genuinely vulnerable, and
-   what should you accordingly trust?
+Answer from memory, then open the answers.
+
+1. What kind of answer does the chapter give to each standing
+   objection?
+2. Name the four places the chapter says the model is measurably
+   wrong.
+3. Is the course's claim general or narrow, and which outputs should
+   you trust more, orderings or levels?
 
 **Answers.**
 
-1. Measurements, each one a computation rather than a rhetorical move.
-2. The magnitude depends on the method (finer grids print smaller
-   premia) and short samples leave the loadings imprecise. Trust the
-   ordering and the channel; treat exact levels as uncertain.
+1. A measurement: a link to the chapter that computes or observes the
+   fact in question, not a rhetorical move.
+2. The return correlation, value's dividend persistence, the premium
+   level, and the risk-free rate.
+3. Narrow: one economy where the value premium can be compensation for
+   measured risk, not a general truth claim. Trust the orderings and
+   the channel over the exact levels.
+
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is the [references page](../reference/references.qmd) as a whole, and the working papers behind each objection
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: the references page as a whole, and the working papers behind
+each objection. [References](../reference/references.qmd).
