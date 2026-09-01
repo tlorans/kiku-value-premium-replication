@@ -5,115 +5,38 @@ aliases:
   - /getting-started.html
 ---
 
-Every discounted cash flow valuation rests on two numbers you made up.
-The growth forecast comes from one model, and the discount rate comes
-from another. Neither is obliged to agree with the other. The course
-teaches an alternative that answers the question the DCF assumes away,
-which is why risky cash flows earn high expected returns, and how high. You derive both numbers from a single description of the
-economy, meaning one consumption process and one set of preferences,
-and the same model then prices every claim, from the aggregate stock
-market to a portfolio you bring yourself.
+## What is the problem?
 
-The course is built around Kiku (2006), *Is the Value Premium a
-Puzzle?*, which the site replicates in code.
-Value firms out-earned growth firms by about six percentage points a
-year over 1930 to 2003, while their market betas are nearly identical.
-Under the CAPM, a higher return requires a higher beta, so the CAPM
-cannot price the premium. By the end of the course you will have
-rebuilt the general equilibrium model that resolves the puzzle, and you
-will have tested it against seventy-four years of data. You will also
-have used the model to price a claim of your own.
+A price depends on expected cash-flows and on a risk premium. Expected
+cash-flows are the money the asset is expected to pay. The risk premium
+is the extra return an investor requires because those expected
+cash-flows are risky.
 
-## The main result
+In a discounted cash flow, the two objects come from different
+models. One model forecasts the expected cash-flows. Another model
+supplies the premium used to turn those expected cash-flows into a
+price. The two models do not have to agree about when times are bad,
+or about how expected cash-flows behave when times are bad.
 
-The table below is the result the course builds toward. The model is
-calibrated to consumption and dividends alone, with no return data used
-anywhere in the calibration, and is then compared with the returns it
-was never shown. Data columns come from the paper (Table I and
-Table VII), and the code cell computes the model columns when the page
-builds.
+## Why should the risk premium come from the same model as the cash-flows?
 
-```{python}
-#| code-fold: true
-import lrrcs as lrr
-import pandas as pd
-from great_tables import GT
+The risk premium is payment for the risk in the expected cash-flows.
+It should depend on how expected cash-flows move when times are bad,
+and on whether the investor already dislikes those times.
 
-KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
-               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
-               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
-               data_row_padding="4px")
+## What is the solution?
 
-model = lrr.LongRunRisksModel()
-sim = model.simulate(n_samples=300, years=74, seed=0)
-vg = sim.compare("value", "growth", market="market")
+Use a general equilibrium asset pricing model. General equilibrium
+here means that prices come from one economy and one investor. Every
+asset is a claim on that economy. Expected cash-flows and the risk
+premium then come from how much the asset's expected cash-flows move
+with the economy. If that movement changes, both the expected
+cash-flows and the extra return required to hold the asset change
+with it.
 
-data_er = {"growth": 7.81, "value": 13.88, "market": 8.56}   # Kiku, Table I
-names = ("growth", "value", "market")
-df = pd.DataFrame({
-    "claim": names,
-    "data": [data_er[k] for k in names],
-    "model": [sim.expected_returns[k] for k in names],
-})
-(
-    GT(df)
-    .tab_header(title="Average annual returns in the data and in the model")
-    .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
-    .fmt_number(columns=["data", "model"], decimals=2)
-    .tab_source_note(f"The value premium is about 6 points in the data and "
-                     f"{vg.premium:.1f} points in the model.")
-    .tab_source_note(f"The CAPM beta ratio of value to growth is "
-                     f"{vg.beta_ratio:.2f}, so value has the lower beta "
-                     f"and the higher return.")
-    .tab_options(**KIKU_GT)
-)
-```
+The course builds one model of this kind and uses it to price claims,
+including a claim you bring yourself.
 
-## The course outline
-
-**Part I: The puzzle.** A DCF has
-[two free numbers](chapters/01-two-free-numbers.qmd), and fixing them
-honestly requires a model of risk. The
-[data chapter](chapters/02-value-premium-in-the-data.qmd) documents a
-premium of about six percentage points that the CAPM cannot price.
-
-**Part II: The toolkit.**
-[The Euler equation](chapters/03-pricing-by-euler-equation.qmd) prices
-every claim in the model.
-[Epstein-Zin preferences](chapters/04-epstein-zin-preferences.qmd) make
-news about future growth affect prices today, and the
-[long-run risks consumption process](chapters/05-long-run-risks.qmd)
-supplies the news.
-
-**Part III: Solving the model.** The
-[log-linear solution](chapters/06-log-linear-solution.qmd) gives closed
-form answers, and the
-[quadrature solution](chapters/07-quadrature-solution.qmd) avoids the
-approximation. Each chapter also explains what its method leaves out.
-
-**Part IV: Testing against the data.** You
-[calibrate the cash flows](chapters/08-calibrating-cash-flows.qmd)
-without using any return data. You then test the model on the
-[aggregate market](chapters/09-the-market-test.qmd), and you check
-whether the
-[value premium comes out right](chapters/10-value-premium-resolved.qmd)
-with nothing re-tuned.
-
-**Part V: Applying the model.** You
-[price a claim of your own](chapters/11-price-your-own-claim.qmd), and
-then you read the
-[objections and the model's limits](chapters/12-objections-and-limits.qmd).
-
-If you are new, start with [How to read this course](how-to-read.qmd).
-The course does not claim the model is true. The course claims a
-valuation should get its forecast and its discount rate from one place,
-and the model is a clean working example of how to do so.
-
-::: {.firewall}
-**Where each number comes from.** The code cell above each model number
-computes it at build time, by running the [`lrrcs`](reference/api.qmd)
-package on the paper's calibration. Data numbers are the paper's
-published values, reproduced offline in
-[Chapter 2](chapters/02-value-premium-in-the-data.qmd). You can
-download each chapter as a runnable notebook.
-:::
+Start with [two free numbers](chapters/01-two-free-numbers.qmd).
+Then [price a claim of your own](chapters/11-price-your-own-claim.qmd).
+[How to read this course](how-to-read.qmd) maps the rest.
