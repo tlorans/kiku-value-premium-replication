@@ -83,12 +83,11 @@ the model's slopes match the data's slopes. The match is Table VI's
 model panel. Cash flows are matched to cash flows at both frequencies,
 and returns enter neither panel.
 
-## Hands-on: measuring the loadings
+## Measuring the loadings
 
-The reconstruction of the 1930 to 2003 series (consumption growth,
-and portfolio dividend growth from the book-to-market sort) was built
-in [Chapter 2](02-value-premium-in-the-data.qmd), so here we only load
-the committed CSVs.
+The reconstruction of the 1930 to 2003 series (consumption and
+dividend growth) was built in [Chapter 2](02-value-premium-in-the-data.qmd),
+so here we only load the committed CSVs.
 
 ```{python}
 #| code-fold: true
@@ -171,10 +170,9 @@ p = (
 p.show()
 ```
 
-Now we run @eq-nineteen once per claim. The value portfolio's dividend
-series has two missing depression years, so the regression masks
-non-finite observations, and the cell prints the count so nothing is
-silently dropped.
+The value portfolio's dividend series has two missing depression years,
+so the regression masks non-finite observations, and the cell prints
+the count so nothing is silently dropped.
 
 ```{python}
 def dgrowth(claim):
@@ -201,11 +199,10 @@ slopes = pd.DataFrame({
 )
 ```
 
-The risk sits in the cash flows, where the model needs it.
-Value's dividend growth rises steeply with the slow component of
-consumption. Growth's dividend growth barely responds, and on the
-reconstruction here the slope is even slightly negative. The market
-sits in between.
+The risk sits where the model needs it: value's dividend growth rises
+steeply with the slow component of consumption, growth's dividend
+growth barely responds and is even slightly negative here, and the
+market sits between the two.
 
 ```{python}
 #| code-fold: true
@@ -237,28 +234,22 @@ p = (
 p.show()
 ```
 
-Compare the estimates with the paper. The paper's Table VI reports
-$-0.38$ for growth, $2.16$ for value, and $0.66$ for the market, and
-the reconstruction estimates $-0.267$, $12.129$, and $0.722$. The market
-slope lands close, and the growth slope is small and negative in both.
-The value point estimate is far larger in the reconstruction than in
-the paper. Seventy-odd annual observations explain the gap. A claim's
-slope moves a lot with the data vintage and with the two masked
-depression years, which fall exactly where consumption swings were
-largest. The reliable output of the regression is the ordering, in
-which value loads heavily on long-run consumption news and growth does
-not. Do not read precision into the value slope. Even its first digit
-is not reliable.
+The paper's Table VI reports $-0.38$ for growth, $2.16$ for value, and
+$0.66$ for the market, and the reconstruction estimates $-0.267$,
+$12.129$, and $0.722$. The market slope lands close, and the growth
+slope is small and negative in both. Seventy-odd annual observations
+explain the gap: a claim's slope moves a lot with the data vintage and
+with the two masked depression years, which fall exactly where
+consumption swings were largest. The reliable output of the regression
+is the ordering, so do not read precision into the value slope, since
+even its first digit is not reliable.
 
-The package wraps the same arithmetic.
 `lrr.estimate_long_run_leverage` is the one-claim slope,
 `lrr.calibrate_claim` turns one claim's consumption and dividend-growth
 series into a full set of cash-flow parameters, and
-`lrr.calibrate_claims` does the same for a cross-section, one claim at
-a time, and returns the parameters under the names you gave the claims.
-Look at the signatures. Neither function has an argument that accepts a
-return, so neither can be handed one. The API itself keeps returns out
-of the calibration.
+`lrr.calibrate_claims` does the same for a cross-section and returns
+them by claim name. Neither function has an argument that accepts a
+return, so the API itself keeps returns out of the calibration.
 
 ```{python}
 print(round(lrr.estimate_long_run_leverage(y, dgrowth("Market"), window=2), 3))
@@ -287,11 +278,10 @@ cal = pd.DataFrame({
 
 The table shows the same 0.722 as the manual regression, plus the
 volatility loading $\varphi_\sigma$ and the short-run correlation
-$\alpha$, both estimated from the residuals of the same regression. No
-returns enter here either.
+$\alpha$, both from the same regression's residuals.
 
-Finally, we map the annual estimates to the solver's monthly frequency.
-Table II's monthly loadings are the inputs to everything downstream:
+Table II's monthly loadings, mapped from these annual estimates, are
+the inputs to everything downstream:
 
 ```{python}
 params = lrr.ModelParams()
@@ -311,127 +301,77 @@ mphi = pd.DataFrame({
 The monthly $\phi$ are larger than the annual slopes because time
 aggregation and the noisy proxy attenuate the annual regression (see
 the derivation callout above). Table VI's model panel pins the monthly
-values down. First, simulate the economy at the monthly loadings.
-Second, aggregate the simulated data to years. Third, rerun
-@eq-nineteen and require the simulated slopes to look like the data's
-slopes. The ordering, with $\phi_V = 6.2$ far above $\phi_G = 2.6$ and
-the market at $2.8$, is the annual regression's ordering carried to
-the monthly frequency.
+values down by simulating the economy at those loadings, aggregating
+the simulated data to years, and rerunning @eq-nineteen until the
+simulated slopes match the data's. The ordering, $\phi_V = 6.2$ above
+$\phi_G = 2.6$ and the market at $2.8$, carries the annual regression's
+ranking to the monthly frequency.
 
 ## Takeaways
 
-- The characteristic is cash-flow leverage: the slope of dividend
-  growth on a two-year moving average of lagged consumption growth
-  (paper eq. 19). Returns appear nowhere in the calibration, and
-  neither `calibrate_claim` nor `calibrate_claims` has an argument that
-  could accept one.
-- On the reconstruction the slopes come out at $-0.267$ (growth), $12.129$
-  (value), and $0.722$ (market), and the paper's Table VI reports $-0.38$,
-  $2.16$, and $0.66$. The point estimates are noisy. The ordering,
-  with value far above growth and the market in between, is the
-  reliable result.
-- The annual slopes are not the solver's inputs. Table II's monthly
-  loadings ($2.6$, $6.2$, $2.8$) are chosen so the model's simulated
-  equation (19) slopes match the data's slopes. The annual regression
-  fixes the ordering and provides the check.
+- The characteristic is cash-flow leverage, the slope of dividend
+  growth on a two-year moving average of lagged consumption growth,
+  and `calibrate_claims` also estimates the volatility loading
+  $\varphi_\sigma$ and correlation $\alpha$ from the same residuals,
+  with no return accepted anywhere in the API.
+- On the reconstruction the annual slopes come out at $-0.267$ for
+  growth, $12.129$ for value, and $0.722$ for market, against the
+  paper's Table VI figures of $-0.38$, $2.16$, and $0.66$, and the
+  reliable result is the ordering rather than the levels.
+- Table II's monthly loadings, $2.6$ for growth, $6.2$ for value, and
+  $2.8$ for market, are the numbers that actually feed the solver,
+  chosen so the model's simulated slopes match the data's annual
+  slopes.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
-1. What is the model's characteristic, and from what is it measured?
-2. Which quantity is the reliable result of the equation (19)
-   regression: the slope levels or the ordering?
-3. Which loadings actually feed the solver, and what role do the annual
-   slopes play?
+1. What does equation (19) measure, and from which two series alone
+   does it estimate it?
+2. Is the reliable output of the annual regression the slope levels or
+   their ordering, and why?
+3. Drop the years 1930 to 1945 and re-estimate the three slopes. Does
+   value still carry the larger loading, and what happens to the
+   levels?
 
 **Answers.**
 
-1. Cash-flow leverage: the slope of dividend growth on a two-year
-   moving average of lagged consumption growth. Dividends alone; no
-   return enters.
-2. The ordering, value far above growth with the market between. The
-   point estimates are noisy.
-3. Table II's monthly loadings (2.6, 6.2, 2.8); the annual regression
-   fixes the ordering and provides the check.
+1. It measures cash-flow leverage, how much faster a claim's dividend
+   growth moves when consumption's slow component is one point
+   higher. It is estimated from dividends and consumption alone, with
+   no return in the regression.
+2. The ordering is reliable, with value far above growth and the
+   market between. The levels are not, because they move a lot with the
+   sample window and the years kept, as the cell below shows.
+3. Yes, the post-war sample keeps value's slope above growth's, but the
+   value slope collapses from $12.129$ to about $0.60$ and the growth
+   slope stays negative throughout.
 
-:::
+   ```{python}
+   #| code-fold: true
+   def slope(dd, proxy):
+       ok = np.isfinite(proxy) & np.isfinite(dd)
+       xx = proxy[ok] - proxy[ok].mean()
+       ee = dd[ok] - dd[ok].mean()
+       return float(xx @ ee / (xx @ xx))
 
-## Exercises
-
-1. Rerun the three regressions with
-   `lrr.expected_growth_proxy(y, window=3)`. Does the ordering of the
-   slopes survive a different window?
-2. Drop the years 1930 to 1945 from the sample and re-estimate. Does
-   value still carry the larger $\tilde\phi$? What happens to the
-   growth slope's sign?
-3. Call `lrr.calibrate_claims(y, {"Market": dgrowth("Market")})` and
-   then try to pass the market's returns to it in any argument. Try the
-   same with `lrr.calibrate_claim`. Confirm from the errors that
-   neither function has a place for them.
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-def slope(dd, proxy):
-    ok = np.isfinite(proxy) & np.isfinite(dd)
-    xx = proxy[ok] - proxy[ok].mean()
-    ee = dd[ok] - dd[ok].mean()
-    return float(xx @ ee / (xx @ xx))
-
-# Exercise 1: a different window
-ma3 = lrr.expected_growth_proxy(y, window=3)
-for claim in ("Growth", "Value", "Market"):
-    print(f"{claim:8s}  window 2: {slope(dgrowth(claim), ma):7.3f}"
-          f"   window 3: {slope(dgrowth(claim), ma3):7.3f}")
-
-# Exercise 2: dropping 1930-1945
-keep = dc["year"].to_numpy() >= 1946
-ma_post = lrr.expected_growth_proxy(y[keep], window=2)
-dg_post = {c: dgrowth(c)[keep] for c in ("Growth", "Value", "Market")}
-for claim in ("Growth", "Value", "Market"):
-    print(f"{claim:8s}  post-war slope: {slope(dg_post[claim], ma_post):7.3f}")
-
-# Exercise 3: no place for a return, in either function
-try:
-    lrr.calibrate_claims(y, {"Market": dgrowth("Market")},
-                         returns=dgrowth("Market"))
-except TypeError as err:
-    print(f"TypeError: {err}")
-try:
-    lrr.calibrate_claim(y, dgrowth("Market"), returns=dgrowth("Market"))
-except TypeError as err:
-    print(f"TypeError: {err}")
-```
-
-The window change does not preserve the slopes. At window 3 the value
-slope turns negative (-5.50), so the level of the annual leverage
-estimate is fragile to the proxy window. The post-war sample keeps the
-value-above-growth ordering but collapses the value slope from 12.13 to
-0.60, and the growth slope stays negative throughout. Levels are fragile
-here, which is why the chapter leans on the paper's Table VI numbers for
-magnitudes. And there is no returns argument to pass to either
-function. One claim at a time or a whole cross-section at once, both
-signatures reject the keyword outright, so a return cannot reach the
-calibration even by accident.
+   keep = dc["year"].to_numpy() >= 1946
+   ma_post = lrr.expected_growth_proxy(y[keep], window=2)
+   dg_post = {c: dgrowth(c)[keep] for c in ("Growth", "Value", "Market")}
+   for claim in ("Growth", "Value", "Market"):
+       print(f"{claim:8s}  post-war slope: {slope(dg_post[claim], ma_post):7.3f}")
+   ```
 
 :::
 
 ::: {.firewall}
-**Where each number comes from.** Every number above is printed by the
-cells on this page: the slopes by the eq.-19 OLS and
-`estimate_long_run_leverage` / `calibrate_claims` on
-`data/consumption_annual.csv` and `data/annual_panel.csv`, the monthly
-loadings by `lrr.ModelParams()`; Table VI's $-0.38$ / $2.16$ / $0.66$
-are the paper's prints. Download the chapter as a notebook (top of the
-page) to rerun everything.
+The paper's Table VI slopes ($-0.38$, $2.16$, $0.66$) and Table II's
+monthly loadings ($2.6$, $6.2$, $2.8$) are quoted from Kiku (2006),
+and every other number on this page, including the reconstructed
+annual slopes and the calibrated cash-flow parameters, is computed
+here by the cells above.
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Kiku (2006), the cash-flow estimation section
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Kiku (2006), the cash-flow estimation section.
+[References](../reference/references.qmd).
