@@ -239,8 +239,7 @@ $0.66$ for the market, and the reconstruction estimates $-0.267$,
 $12.129$, and $0.722$. The market slope lands close, and the growth
 slope is small and negative in both. Seventy-odd annual observations
 explain the gap: a claim's slope moves a lot with the data vintage and
-with the two masked depression years, which fall exactly where
-consumption swings were largest. The reliable output of the regression
+the masked depression years, where consumption swings were largest. The reliable output of the regression
 is the ordering, so do not read precision into the value slope, since
 even its first digit is not reliable.
 
@@ -276,9 +275,9 @@ cal = pd.DataFrame({
 )
 ```
 
-The table shows the same 0.722 as the manual regression, plus the
+The table reproduces the manual regression's market slope, plus the
 volatility loading $\varphi_\sigma$ and the short-run correlation
-$\alpha$, both from the same regression's residuals.
+$\alpha$, both from the same residuals.
 
 Table II's monthly loadings, mapped from these annual estimates, are
 the inputs to everything downstream:
@@ -342,8 +341,9 @@ Answer from memory, then open the answers.
    higher. It is estimated from dividends and consumption alone, with
    no return in the regression.
 2. The ordering is reliable, with value far above growth and the
-   market between. The levels are not, because they move a lot with the
-   sample window and the years kept, as the cell below shows.
+   market between. The levels are not: at a three-year proxy window
+   value's slope flips sign to about $-5.50$, and it also shifts with
+   the years kept, as the cell below shows.
 3. Yes, the post-war sample keeps value's slope above growth's, but the
    value slope collapses from $12.129$ to about $0.60$ and the growth
    slope stays negative throughout.
@@ -355,6 +355,11 @@ Answer from memory, then open the answers.
        xx = proxy[ok] - proxy[ok].mean()
        ee = dd[ok] - dd[ok].mean()
        return float(xx @ ee / (xx @ xx))
+
+   ma3 = lrr.expected_growth_proxy(y, window=3)
+   for claim in ("Growth", "Value", "Market"):
+       print(f"{claim:8s}  window 2: {slope(dgrowth(claim), ma):7.3f}"
+             f"   window 3: {slope(dgrowth(claim), ma3):7.3f}")
 
    keep = dc["year"].to_numpy() >= 1946
    ma_post = lrr.expected_growth_proxy(y[keep], window=2)
