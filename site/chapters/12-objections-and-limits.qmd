@@ -121,16 +121,15 @@ more than its levels.
 
 ## Takeaways
 
-- The first three objections each get a measurement, not rhetoric:
-  minimal preference separation prices long-run risk
-  ([Chapter 4](04-epstein-zin-preferences.qmd)), the loadings show up
-  in the dividend data ([Chapter 8](08-calibrating-cash-flows.qmd)),
-  and any claim you bring is priced by the same steps
+- The first three objections each get a measurement: minimal
+  preference separation prices long-run risk
+  ([Chapter 4](04-epstein-zin-preferences.qmd)), loadings show up in
+  the dividend data ([Chapter 8](08-calibrating-cash-flows.qmd)), and
+  any claim is priced by the same steps
   ([Chapter 11](11-price-your-own-claim.qmd)).
-- The other two turn on scope, not mechanism: one calibrated discount
-  rate cannot generate a cross-section
-  ([Chapter 1](01-two-free-numbers.qmd)), and every number in the
-  course runs from committed data in ten seconds.
+- The other two turn on scope: one calibrated discount rate cannot
+  generate a cross-section ([Chapter 1](01-two-free-numbers.qmd)), and
+  every number in the course runs from committed data in ten seconds.
 - The model's reliable outputs are cross-sectional: which claim earns
   more, ordered by measured leverage.
 - Its unreliable outputs are levels and comovements: a return
@@ -144,17 +143,20 @@ Answer from memory, then open the answers.
 
 1. What kind of answer does the chapter give to each standing
    objection?
-2. Name the four places the chapter says the model is measurably
-   wrong.
+2. Name the four places the model's outputs are measurably wrong, and
+   one reason to distrust its inputs.
 3. Is the course's claim general or narrow, and which outputs should
    you trust more, orderings or levels?
 
 **Answers.**
 
-1. A measurement: a link to the chapter that computes or observes the
-   fact in question, not a rhetorical move.
-2. The return correlation, value's dividend persistence, the premium
-   level, and the risk-free rate.
+1. Each answer is a measurement: a link to the chapter that computes
+   or observes the fact, not a rhetorical move.
+2. The model is wrong in four places: the return correlation, value's
+   dividend persistence, the premium level, and the risk-free rate.
+   [Chapter 8](08-calibrating-cash-flows.qmd)'s loadings are also
+   estimated on a short sample, so treat them as directional, not
+   precise.
 3. Narrow: one economy where the value premium can be compensation for
    measured risk, not a general truth claim. Trust the orderings and
    the channel over the exact levels.
