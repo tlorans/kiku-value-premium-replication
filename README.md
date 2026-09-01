@@ -1,18 +1,14 @@
-# Long-run risks
+# lrrcs
 
-Python package `lrrcs`. Kiku (2006) in code: cash-flow leverage on long-run consumption risk prices the value premium. Average returns never enter the cash-flow step.
+Python package for general-equilibrium long-run risks. Prices and risk
+premia come from one consumption process and one investor.
 
-A DCF takes expected cash flows and a discount rate as two independent inputs. This model derives both from one process, consumption growth. Dividends load on a small, highly persistent component of consumption growth; an Epstein-Zin household prices those loadings. Value firms are more exposed to that component than growth firms, so the same household returns value's high premium and low price-dividend ratio together.
+A discounted cash flow takes expected cash-flows from one model and a
+risk premium from another. This package prices every claim inside one
+economy. The default calibration is Kiku (2006), Table II. Average
+returns never enter the cash-flow step.
 
-**The course:** [Valuing Asset Claims in General Equilibrium](https://tlorans.github.io/kiku-value-premium-replication/) — twelve chapters from the puzzle to pricing your own claim. Every model number on the site is printed at build time by the code cell above it, and each chapter downloads as a runnable notebook.
-
-| Part | Chapters |
-| --- | --- |
-| I — The Puzzle | [Two free numbers](https://tlorans.github.io/kiku-value-premium-replication/chapters/01-two-free-numbers.html) · [The value premium in the data](https://tlorans.github.io/kiku-value-premium-replication/chapters/02-value-premium-in-the-data.html) |
-| II — The Toolkit | [Pricing by Euler equation](https://tlorans.github.io/kiku-value-premium-replication/chapters/03-pricing-by-euler-equation.html) · [Epstein–Zin preferences](https://tlorans.github.io/kiku-value-premium-replication/chapters/04-epstein-zin-preferences.html) · [Long-run risks](https://tlorans.github.io/kiku-value-premium-replication/chapters/05-long-run-risks.html) |
-| III — Solving | [Log-linear](https://tlorans.github.io/kiku-value-premium-replication/chapters/06-log-linear-solution.html) · [Quadrature](https://tlorans.github.io/kiku-value-premium-replication/chapters/07-quadrature-solution.html) |
-| IV — Confronting the Data | [Calibrating cash flows](https://tlorans.github.io/kiku-value-premium-replication/chapters/08-calibrating-cash-flows.html) · [The market test](https://tlorans.github.io/kiku-value-premium-replication/chapters/09-the-market-test.html) · [The value premium, resolved](https://tlorans.github.io/kiku-value-premium-replication/chapters/10-value-premium-resolved.html) |
-| V — Your Turn | [Price your own claim](https://tlorans.github.io/kiku-value-premium-replication/chapters/11-price-your-own-claim.html) · [Objections and limits](https://tlorans.github.io/kiku-value-premium-replication/chapters/12-objections-and-limits.html) |
+Docs: [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
 ## Install
 
@@ -27,35 +23,46 @@ uv pip install -e .
 ```python
 import lrrcs as lrr
 
-model = lrr.LongRunRisksModel()      # the Table II calibration
-res = model.solve()                  # solve on the paper's state grid
-print(res.summary())                 # expected returns, Sharpe, log P/D
+model = lrr.LongRunRisksModel()
+res = model.solve()
+print(res.summary())
 
-res.compare("value", "growth", market="market").premium   # 5.18
+res.compare("value", "growth", market="market").premium
 ```
 
-The model prices a set of named claims. Which two of them make a spread
-is a question you ask afterwards, so any pair works and so does any
-reference claim for the betas.
-
-Change one number and solve again. Nothing else needs re-tuning:
+Change one number and solve again.
 
 ```python
 lrr.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
 lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
 ```
 
-Table VII, the paper's own model column, is one call:
+Table VII, the paper's model column, is one call.
 
 ```python
 print(model.simulate(n_samples=1000, years=74, seed=0).summary())
 ```
 
-WRDS reconstruction: `uv pip install -e ".[data]"` then `tf.set_wrds_credentials()` (from the `tidyfinance` package). Details live on the [installation](https://tlorans.github.io/kiku-value-premium-replication/reference/installation.html) page.
+WRDS reconstruction: `uv pip install -e ".[data]"` then
+`tf.set_wrds_credentials()` from `tidyfinance`. See
+[installation](https://tlorans.github.io/kiku-value-premium-replication/reference/installation.html).
+
+## Examples
+
+| Script | What it prints |
+| --- | --- |
+| `examples/run_paper.py` | The paper in Kiku's order |
+| `examples/calibrate_any_portfolio.py` | Loadings from cash-flows you supply |
+| `examples/two_firms.py` | Two firms that differ only in phi |
+| `examples/dcf_counterfactual.py` | The same cash-flows in a DCF and in the model |
+| `examples/robustness.py` | The premium as one parameter varies |
 
 ## Site
 
-The site is a Quarto project in `site/`, rendered and deployed by `.github/workflows/publish.yml` (GitHub Pages, source: GitHub Actions). Chapters execute the package at render time; the committed `site/_freeze/` carries the executed outputs, and `.github/workflows/freshness.yml` re-executes everything weekly from scratch. Locally: `make preview` / `make site`.
+The site is a Quarto project in `site/`, rendered by
+`.github/workflows/publish.yml`. User-guide pages are static.
+Chapters that still execute the package at render time keep their
+outputs in `site/_freeze/`. Locally: `make preview` / `make site`.
 
 ## License
 

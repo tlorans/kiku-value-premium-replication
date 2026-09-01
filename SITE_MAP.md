@@ -13,24 +13,28 @@ one goes missing.
 
 | # | File | Title | Sidebar section | Legacy URL |
 |---|---|---|---|---|
-| 1 | `site/index.qmd` | Valuing Asset Claims in General Equilibrium | top level | `/`, `/getting-started.html` |
-| 2 | `site/how-to-read.qmd` | How to read this course | top level | — |
-| 3 | `site/chapters/01-two-free-numbers.qmd` | 1. Two free numbers | Part I, The Puzzle | `/two-free-numbers.html` |
-| 4 | `site/chapters/02-value-premium-in-the-data.qmd` | 2. The value premium in the data | Part I, The Puzzle | `/financial-data.html` |
-| 5 | `site/chapters/03-pricing-by-euler-equation.qmd` | 3. Pricing by Euler equation | Part II, The Toolkit | — |
-| 6 | `site/chapters/04-epstein-zin-preferences.qmd` | 4. Epstein-Zin preferences | Part II, The Toolkit | — |
-| 7 | `site/chapters/05-long-run-risks.qmd` | 5. Long-run risks: the endowment | Part II, The Toolkit | `/long-run-risks-model.html` |
-| 8 | `site/chapters/06-log-linear-solution.qmd` | 6. The log-linear solution | Part III, Solving the Model | — |
-| 9 | `site/chapters/07-quadrature-solution.qmd` | 7. The quadrature solution | Part III, Solving the Model | — |
-| 10 | `site/chapters/08-calibrating-cash-flows.qmd` | 8. Calibrating cash flows from data | Part IV, Confronting the Data | `/measuring-leverage.html` |
-| 11 | `site/chapters/09-the-market-test.qmd` | 9. The market test | Part IV, Confronting the Data | `/time-series.html` |
-| 12 | `site/chapters/10-value-premium-resolved.qmd` | 10. The value premium, resolved | Part IV, Confronting the Data | `/cross-section.html` |
-| 13 | `site/chapters/11-price-your-own-claim.qmd` | 11. Price your own claim | Part V, Your Turn | `/price-your-own-claim.html` |
-| 14 | `site/chapters/12-objections-and-limits.qmd` | 12. Objections and limits | Part V, Your Turn | `/objections.html` |
-| 15 | `site/reference/installation.qmd` | Installation | Reference | `/installation.html`, `/package.html` |
-| 16 | `site/reference/api.qmd` | API | Reference | `/api.html` |
-| 17 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
-| 18 | `site/reference/references.qmd` | References | Reference | `/references.html` |
+| 1 | `site/index.qmd` | lrrcs | top level | `/`, `/getting-started.html` |
+| 2 | `site/guide/model.qmd` | The model | User guide | — |
+| 3 | `site/guide/calibration.qmd` | Calibration | User guide | — |
+| 4 | `site/guide/solution.qmd` | Solution methods | User guide | — |
+| 5 | `site/guide/examples.qmd` | Examples | User guide | — |
+| 6 | `site/reference/installation.qmd` | Installation | Reference | `/installation.html`, `/package.html` |
+| 7 | `site/reference/api.qmd` | API | Reference | `/api.html` |
+| 8 | `site/how-to-read.qmd` | How to read this course | Course | — |
+| 9 | `site/chapters/01-two-free-numbers.qmd` | 1. Two free numbers | Course | `/two-free-numbers.html` |
+| 10 | `site/chapters/02-value-premium-in-the-data.qmd` | 2. The value premium in the data | Course | `/financial-data.html` |
+| 11 | `site/chapters/03-pricing-by-euler-equation.qmd` | 3. Pricing by Euler equation | Course | — |
+| 12 | `site/chapters/04-epstein-zin-preferences.qmd` | 4. Epstein-Zin preferences | Course | — |
+| 13 | `site/chapters/05-long-run-risks.qmd` | 5. Long-run risks: the endowment | Course | `/long-run-risks-model.html` |
+| 14 | `site/chapters/06-log-linear-solution.qmd` | 6. The log-linear solution | Course | — |
+| 15 | `site/chapters/07-quadrature-solution.qmd` | 7. The quadrature solution | Course | — |
+| 16 | `site/chapters/08-calibrating-cash-flows.qmd` | 8. Calibrating cash flows from data | Course | `/measuring-leverage.html` |
+| 17 | `site/chapters/09-the-market-test.qmd` | 9. The market test | Course | `/time-series.html` |
+| 18 | `site/chapters/10-value-premium-resolved.qmd` | 10. The value premium, resolved | Course | `/cross-section.html` |
+| 19 | `site/chapters/11-price-your-own-claim.qmd` | 11. Price your own claim | Course | `/price-your-own-claim.html` |
+| 20 | `site/chapters/12-objections-and-limits.qmd` | 12. Objections and limits | Course | `/objections.html` |
+| 21 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 22 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
 ## Conventions
 
@@ -38,20 +42,20 @@ Every page must appear in the sidebar, and every sidebar entry must exist on
 disk. Both directions are checked, so a new page that is not listed in
 `site/_quarto.yml` fails the suite.
 
-Each chapter carries a fixed set of parts. First comes a collapsed callout
-titled "Recall", which must appear before the exercises. Second come the
-exercises, and any chapter with an `## Exercises` heading must also ship a
-collapsed callout titled "Check your answer". Third comes a link to
+Each chapter under `site/chapters/` carries a fixed set of parts. First comes a
+collapsed callout titled "Recall", which must appear before the exercises.
+Second come the exercises, and any chapter with an `## Exercises` heading must
+also ship a collapsed callout titled "Check your answer". Third comes a link to
 `reference/references.qmd`. All three are enforced by `tests/test_site.py`.
+User-guide pages are not chapters and do not need those parts.
 
-Pages run their Python at build time, so a render is what checks the code.
-Quarto is configured with `freeze: auto`, and the cached output lives in
-`site/_freeze`. Continuous integration renders from the committed freeze, so
-after you change a page you run `make site` and commit the regenerated freeze
-along with it. A page that runs Python without a freeze entry fails
-`test_freeze_covers_every_executed_page`. Note that the freeze keys its figure
-files by cell number, so moving or removing a cell can leave an orphaned file
-behind, and you should delete it.
+Pages that run Python at build time need a freeze entry. Quarto is configured
+with `freeze: auto`, and the cached output lives in `site/_freeze`. Continuous
+integration renders from the committed freeze, so after you change an executed
+page you run `make site` and commit the regenerated freeze along with it. A
+page that runs Python without a freeze entry fails
+`test_freeze_covers_every_executed_page`. Guide pages use fenced examples
+rather than executed cells, so they do not need freeze entries.
 
 No number appears on a page unless one of the page's own cells prints it, or
 the page attributes it to the paper. See `NUMBERS.md` for the rule and for the

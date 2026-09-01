@@ -1,0 +1,69 @@
+---
+title: "The model"
+---
+
+`LongRunRisksModel` is one economy and a set of named claims. The
+economy is a consumption process and an Epstein-Zin investor. Each
+claim is a cash-flow stream that loads on that process. The Euler
+equation prices every claim in the set.
+
+```python
+import lrrcs as lrr
+
+model = lrr.LongRunRisksModel()
+res = model.solve()
+print(res.summary())
+```
+
+With no arguments the specification is Kiku (2006), Table II. That
+calibration includes three claims named `value`, `growth`, and
+`market`.
+
+## What the model takes as given
+
+Preferences are $(\delta, \gamma, \psi)$. Consumption growth has a
+small persistent component $x_t$ and a volatility component. A claim
+has four cash-flow parameters. Across a cross-section the parameter
+that changes the economics is $\phi$, the loading on $x_t$.
+
+`ModelParams()`, `PreferencesParams`, `ConsumptionParams`, and
+`ClaimParams` are the dataclasses. You rarely build them by hand.
+Override one field on the model instead.
+
+```python
+lrr.LongRunRisksModel(gamma=7.5)
+lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}})
+```
+
+`.replace(...)` returns a new model. The original object is not
+edited.
+
+## What the model produces
+
+`.solve()` and `.simulate()` return result objects with expected
+returns, volatilities, Sharpe ratios, price-dividend ratios, and the
+risk-free rate. Returns, premia, and rates are annualized and in
+percent. Quantities that vary by claim are series indexed by claim
+name.
+
+The model does not know that one claim is "value". A spread is a
+question you ask after the solve.
+
+```python
+res.compare("value", "growth", market="market").premium
+```
+
+`market` is only needed for CAPM betas. Any priced claim can be the
+reference.
+
+## Why expected cash-flows and the premium share a model
+
+The risk premium is payment for the risk in the expected cash-flows.
+It should depend on how expected cash-flows move when times are bad,
+and on whether the investor already dislikes those times. Both
+objects are readings of the same $\phi$.
+
+The [API](../reference/api.qmd) lists every public name.
+[Calibration](calibration.qmd) measures $\phi$ from cash-flows.
+[Solution methods](solution.qmd) describes the grid, the
+log-linear shortcut, and simulation.

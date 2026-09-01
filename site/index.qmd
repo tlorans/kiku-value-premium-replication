@@ -1,42 +1,100 @@
 ---
-title: "Valuing Asset Claims in General Equilibrium"
+title: "lrrcs"
 toc: false
 aliases:
   - /getting-started.html
 ---
 
-## What is the problem?
+General-equilibrium long-run risks. Prices and risk premia from one
+consumption process and one investor.
 
-A price depends on expected cash-flows and on a risk premium. Expected
-cash-flows are the money the asset is expected to pay. The risk premium
-is the extra return an investor requires because those expected
-cash-flows are risky.
+A discounted cash flow takes expected cash-flows from one model and a
+risk premium from another. The two models do not have to agree about
+when times are bad. This package prices every claim inside one
+economy, so expected cash-flows and the risk premium come from the
+same exposure.
 
-In a discounted cash flow, the two objects come from different
-models. One model forecasts the expected cash-flows. Another model
-supplies the premium used to turn those expected cash-flows into a
-price. The two models do not have to agree about when times are bad,
-or about how expected cash-flows behave when times are bad.
+Companion to [tidyfinance](https://www.tidy-finance.org/). The
+default calibration is Kiku (2006), Table II.
 
-## Why should the risk premium come from the same model as the cash-flows?
+## Install
 
-The risk premium is payment for the risk in the expected cash-flows.
-It should depend on how expected cash-flows move when times are bad,
-and on whether the investor already dislikes those times.
+Python 3.11+.
 
-## What is the solution?
+```bash
+git clone https://github.com/tlorans/kiku-value-premium-replication.git
+cd kiku-value-premium-replication
+uv pip install -e .
+```
 
-Use a general equilibrium asset pricing model. General equilibrium
-here means that prices come from one economy and one investor. Every
-asset is a claim on that economy. Expected cash-flows and the risk
-premium then come from how much the asset's expected cash-flows move
-with the economy. If that movement changes, both the expected
-cash-flows and the extra return required to hold the asset change
-with it.
+Details and the optional WRDS extras are on
+[Installation](reference/installation.qmd).
 
-The course builds one model of this kind and uses it to price claims,
-including a claim you bring yourself.
+## Basic example
 
-Start with [two free numbers](chapters/01-two-free-numbers.qmd).
-Then [price a claim of your own](chapters/11-price-your-own-claim.qmd).
-[How to read this course](how-to-read.qmd) maps the rest.
+```python
+import lrrcs as lrr
+
+model = lrr.LongRunRisksModel()
+res = model.solve()
+print(res.summary())
+
+res.compare("value", "growth", market="market").premium
+```
+
+Change one input and solve again.
+
+```python
+lrr.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
+lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
+```
+
+Table VII is one call.
+
+```python
+print(model.simulate(n_samples=1000, years=74, seed=0).summary())
+```
+
+## Models
+
+| Object | What it does |
+| --- | --- |
+| [`LongRunRisksModel`](reference/api.qmd#the-model) | Specification. Defaults to Table II. |
+| `.solve(method="grid")` | Euler equation on the state grid. |
+| `.solve(method="analytical")` | Log-linear solution. Loadings and prices of risk. |
+| `.simulate(...)` | Finite-sample moments, the paper's Table VII object. |
+| `.replace(...)` | A new model with named parameters changed. |
+| `.compare(long, short)` | Spread between two priced claims. |
+
+See the [model](guide/model.qmd) and [solution](guide/solution.qmd)
+pages.
+
+## Claims
+
+A claim is a cash-flow stream. The model prices a set of named
+claims. Which two of them make a spread is asked after the solve.
+
+| Object | What it does |
+| --- | --- |
+| [`ClaimParams`](reference/api.qmd#claims) | Four cash-flow parameters of one claim. |
+| [`calibrate_claim`](reference/api.qmd#claims) | Measure those parameters from consumption and dividends. Returns do not enter. |
+| [`calibrate_claims`](reference/api.qmd#claims) | The same step for a whole cross-section. |
+| [`ClaimParams.from_loading`](reference/api.qmd#claims) | A synthetic claim that differs only in $\phi$. |
+
+See [Calibration](guide/calibration.qmd).
+
+## Data
+
+| Object | What it does |
+| --- | --- |
+| `build_annual_panel` | Growth, value, and market panel, 1930 to 2003. |
+| `table_i` / `table_vi_data` | Paper tables from that panel. |
+| `load_consumption` | Real per-capita nondurables and services growth. |
+
+## Examples
+
+Worked scripts live in `examples/` and are listed on
+[Examples](guide/examples.qmd).
+
+The twelve chapters that used to be the site are under
+[Course](how-to-read.qmd).

@@ -1,0 +1,63 @@
+---
+title: "Calibration"
+---
+
+A claim is priced from its cash-flow parameters. Those parameters are
+measured from consumption growth and dividend growth. Returns do not
+enter this step. The premium the model prints later is a prediction,
+not a fit.
+
+```python
+import lrrcs as lrr
+
+value = lrr.calibrate_claim(dc, dd_value)
+claims = lrr.calibrate_claims(
+    dc,
+    {"value": dd_value, "growth": dd_growth, "market": dd_market},
+)
+res = lrr.LongRunRisksModel(claims=claims).solve()
+print(res.compare("value", "growth", market="market").summary())
+```
+
+`dc` is consumption growth. Each `dd_*` is dividend growth for one
+claim. Names in the dictionary become the claim names on the result.
+
+## What is measured
+
+`calibrate_claim` returns a `ClaimParams` with four fields. The field
+that varies the cross-section is $\phi$, the slope of cash-flow
+growth on a moving-average proxy for expected consumption growth.
+
+The pieces behind that call, if you want the intermediate objects,
+are `expected_growth_proxy`, `filter_expected_growth`, and
+`estimate_long_run_leverage`.
+
+## Synthetic claims
+
+To hold every cash-flow parameter fixed except $\phi$, use
+`ClaimParams.from_loading`.
+
+```python
+mine = lrr.ClaimParams.from_loading(1.5)
+model = lrr.LongRunRisksModel(claims={"mine": mine})
+```
+
+A partial override on an existing name keeps the rest of that claim's
+Table II values.
+
+```python
+lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}})
+```
+
+Naming a claim that Table II does not have replaces the whole
+cross-section, and then all four fields are required.
+
+## Data already in the repo
+
+`data/consumption_annual.csv` and `data/annual_panel.csv` are the
+1930 to 2003 series the paper uses. `lrr.build_annual_panel()`
+rebuilds the panel. `lrr.table_i` and `lrr.table_vi_data` reprint
+the paper's tables from that panel.
+
+A full walk-through on a cross-section you supply is
+`examples/calibrate_any_portfolio.py`.
