@@ -6,34 +6,29 @@ aliases:
 
 Everything in this course so far priced the paper's three claims: the market and
 the two legs of the book-to-market sort. This chapter shows you how to
-price a claim of your own. Bring a dividend process, e.g., a portfolio's
-dividends, a firm's distributable earnings, or any cash-flow stream you
-can put a growth series to. The model then reports how the claim's
-valuation responds to long-run growth news and what that exposure costs.
+price a claim of your own: a portfolio's dividends, a firm's
+distributable earnings, or any cash-flow stream you can put a growth
+series to. The model reports how the claim's valuation responds
+to long-run growth news and what that exposure costs.
 
 The contrast to remember is [Chapter 1](01-two-free-numbers.qmd). A DCF
 prices a claim from two free numbers, a growth rate and a discount rate,
 and nothing inside the method disciplines either one. Here the claim
-brings exactly one number of its own, the loading of its cash flows on
-the persistent component of consumption growth, and you measure that
-number from cash flows alone. Nobody chooses the discount rate. The
-household of [Chapter 4](04-epstein-zin-preferences.qmd) sets it, and
-the same household prices every claim. Returns never enter the
-estimation, so the premium that comes out is a prediction, not a fit.
-
-The point of building a general equilibrium model instead of a
-spreadsheet is exactly the arrangement above. One economy, with one set
-of preferences, prices every claim in the cross-section by where its
-cash flows fall when news arrives about the next decade of growth.
+brings exactly one number, the loading of its cash flows on the
+persistent component of consumption growth, measured from cash flows
+alone. Nobody chooses the discount rate: the household of
+[Chapter 4](04-epstein-zin-preferences.qmd) sets it and prices every
+claim in the cross-section from one economy and one set of preferences.
+Returns never enter the estimation, so the premium that comes out is a
+prediction, not a fit.
 
 ## The steps
 
 Pricing a claim takes four steps, and none of them uses a return.
 
 1. **Obtain your claim's cash-flow growth series.** Use annual log
-   dividend growth for a portfolio, or growth in distributable earnings
-   for a firm. The growth series is the only input the claim
-   contributes.
+   dividend growth for a portfolio, or growth in distributable
+   earnings for a firm; it is the only input the claim contributes.
 2. **Measure its long-run leverage.** Project the growth series on the
    two-year moving average of lagged consumption growth, as in equation
    (19) of the paper and
@@ -42,11 +37,11 @@ Pricing a claim takes four steps, and none of them uses a return.
 3. **Build a claim from the loading, put it in a model, and solve.**
    `lrr.ClaimParams.from_loading(phi)` describes the claim, and
    `lrr.LongRunRisksModel(claims={"claim": ...})` puts it in the Table
-   II economy. `.solve(method="analytical")` then solves the log-linear
+   II economy. `.solve(method="analytical")` solves the log-linear
    model of [Chapter 6](06-log-linear-solution.qmd) for that one claim.
-   A model that holds a single claim has no market claim to measure
-   against, so market betas are undefined and the analytical method is
-   the one to use.
+   A single-claim model has no market claim to measure against, so
+   market betas are undefined and the analytical method is the one to
+   use.
 4. **Read off the outputs.** `A1` is the elasticity of the
    price-dividend ratio to $x_t$, so it measures how the claim's
    valuation responds to growth news. `long_run_premium` is the
@@ -57,12 +52,11 @@ Pricing a claim takes four steps, and none of them uses a return.
 
 ## Two synthetic firms
 
-Before using real data, run the cleanest possible experiment. Price two
-firms that are identical in every respect except the loading. Nothing is
-estimated and nothing is re-tuned between the rows, so the loading is
-the only difference. Both firms go into one model, so a single solve
-prices the pair and the code shows the one field that changes between
-them.
+Before using real data, run the cleanest possible experiment: price two
+firms identical in every respect except the loading, with nothing
+estimated and nothing re-tuned between the rows. Both firms go into
+one model, so a single solve prices the pair and the code shows the
+one field that changes between them.
 
 ```{python}
 #| code-fold: true
@@ -127,31 +121,27 @@ rows = pd.DataFrame({
 ```
 
 Firm B's dividends track the persistent component of consumption, so
-its price-dividend ratio moves with long-run news ($A_1 = 15.2$) and its
-compensation for that news is positive, 0.14 percent a year. Firm A
-behaves in the opposite way. Its loading of 0.5 sits below the
-household's $1/\psi = 0.67$ threshold from
+its valuation moves with long-run news ($A_1 = 15.2$) and earns a
+positive premium, 0.14 percent a year. Firm A's loading of 0.5
+sits below the household's $1/\psi = 0.67$ threshold from
 [Chapter 6](06-log-linear-solution.qmd), so its valuation moves against
-the news ($A_1 = -3.0$) and its compensation for $x_t$ news is slightly
-negative, $-0.03$ percent. A hedge pays less, because the household
-will accept a lower return on a claim that does well precisely when
-long-run news is bad.
+the news instead ($A_1 = -3.0$) and earns a slightly negative premium,
+$-0.03$ percent. A hedge pays less, because the household accepts a
+lower return on a claim that does well precisely when long-run news is
+bad.
 
-Now look at the Gordon column. The Gordon formula uses only expected
-growth, so it puts the two firms 0.12 points apart (7.01 versus 6.89
-percent), which is almost entirely the mechanical difference in
-expected growth. The economics of the two rows is in the risk the
-Gordon formula omits. `long_run_premium` is the part of that risk that
-comes from $x_t$ news, and short-run and volatility news add more.
+The Gordon column uses only expected growth, so it puts the two firms
+0.12 points apart (7.01 versus 6.89 percent), which is almost entirely
+the mechanical growth difference. The economics is in the risk Gordon
+omits: `long_run_premium` is the part from $x_t$ news, and short-run
+and volatility news add more.
 
 ## Pricing the value and growth legs
 
 Now run the same steps on the 1930 to 2003 data that
-[Chapter 8](08-calibrating-cash-flows.qmd) built. Step 1 uses the
-panel's dividend growth series, and step 2 runs the equation (19)
-regression. The value leg is missing dividend growth in two depression
-years, so the regression masks non-finite pairs, which is the same
-arithmetic Chapter 8 ran:
+[Chapter 8](08-calibrating-cash-flows.qmd) built. The value leg is
+missing dividend growth in two depression years, so the regression
+masks non-finite pairs, the same arithmetic Chapter 8 ran:
 
 ```{python}
 import numpy as np
@@ -186,12 +176,11 @@ phi = {c: leverage(dividend_growth(c)) for c in ("Value", "Growth", "Market")}
 ```
 
 Value's dividends load heavily on the slow component of consumption,
-and growth's barely respond. On the reconstruction here, growth's slope
-is even slightly negative, and the market sits in between. For complete
-series, `lrr.calibrate_claims` runs the same regression for you and
-also estimates the short-run parameters ($\mu$, $\phi_\sigma$,
-$\alpha$). You hand it one growth series per claim, and you get back
-each claim's parameters under the name you gave it:
+and growth's barely respond; on the reconstruction here, growth's
+slope is even slightly negative. For complete series,
+`lrr.calibrate_claims` also estimates the short-run parameters
+($\mu$, $\phi_\sigma$, $\alpha$) from one growth series per claim,
+returning them under the name you gave each:
 
 ```{python}
 div = lrr.calibrate_claims(
@@ -217,26 +206,14 @@ div = lrr.calibrate_claims(
 )
 ```
 
-The slopes match the regression run by hand above. The signature has no
-argument for returns, by design, so the Euler equation stays a test
-rather than becoming a target. The dictionary that comes back is
-exactly what a model takes, so
-`lrr.LongRunRisksModel(claims=lrr.calibrate_claims(dc, {...}))` goes
-from cash-flow series to a model that is ready to solve in one line.
+The slopes match the regression above, and the signature takes no
+argument for returns, so the Euler equation stays a test, not a
+target.
 
-For steps 3 and 4, put both measured loadings into one model and solve
-it. Everything except the loading is held at the same values as the two
-synthetic firms above, so the only difference between the rows is the
-measured cash-flow exposure.
-
-The work comes in three layers, and the order matters. First you
-calibrate each claim from its own cash flows. Second you put the claims
-in a model, which prices all of them in one economy. Third, once the
-model is solved, you pick two of the priced claims and compare them,
-which is the `compare` call below. The third step stands apart because
-it asks a different kind of question. The model prices claims. Which
-pair of claims makes a spread worth reporting is your question, not the
-model's, and one solved model answers it for any pair you name:
+Steps 3 and 4 put both measured loadings into one model, held at the
+same values as the two synthetic firms above. The `compare` call below
+picks which pair of priced claims makes a spread worth reporting, for
+any pair you name:
 
 ```{python}
 legs = lrr.LongRunRisksModel(
@@ -267,179 +244,134 @@ leg_names = list(legs.claims)
 
 The premium ordering follows the measured leverage. The leg whose
 dividends load on long-run news earns compensation for that risk, and
-the leg whose dividends do not earns a small hedge discount. The spread
-is positive even though no return ever entered the calculation.
+the leg whose dividends do not earns a small hedge discount, though no
+return entered the calculation.
 
-Do not read the level literally. About seventy annual observations are
-enough to establish a ranking but not a third decimal. Table VI of the
-paper reports annual slopes of $-0.38$ for growth and $2.16$ for value,
-where the reconstruction here prints $-0.27$ and $12.13$, so the ranking
-survives and the point estimates do not. Moreover, an annual slope is
-not the monthly loading the full solution uses (Table II sets
-$\phi_V = 6.2$, $\phi_G = 2.6$), and at $\tilde\phi = 12.13$ the
-log-linear elasticity of 208.9 comes from applying the formula well
-past the region it was linearized for. The demonstration establishes
-the ordering and the mechanism, not the decimals.
+Seventy annual observations establish a ranking, not a third decimal.
+Table VI of the paper reports annual slopes of $-0.38$ for growth and
+$2.16$ for value, where the reconstruction here prints $-0.27$ and
+$12.13$, so the ranking survives and the point estimates do not. An
+annual slope is also not the monthly loading the full solution uses
+(Table II sets $\phi_V = 6.2$, $\phi_G = 2.6$), and at
+$\tilde\phi = 12.13$ the log-linear elasticity of 208.9 comes from
+applying the formula well past the region it was linearized for.
 
 ## When your claim is not a traded portfolio
 
-The steps do not require a traded portfolio, because any cash-flow
+The steps do not require a traded portfolio, since any cash-flow
 growth series can be projected on the consumption moving average.
-Outside traded portfolios, though, measurement error and the
-linearization anchor deserve extra caution.
+Measurement error and the linearization anchor still deserve extra
+caution outside one.
 
-First, the loading is measured with error. The regression above had
-seven decades of exchange-listed dividends, and the point estimate
-still moved from 2.16 to 12.13 across reconstructions. A firm's
-distributable earnings over 15 or 20 years measure $\tilde\phi$ with
-even more error, so the honest output is a range. Price the claim at
-the low and high ends of a confidence band for the loading rather than
-at the point estimate.
+First, the loading is measured with error: seven decades of
+exchange-listed dividends still moved the point estimate from 2.16 to
+12.13 across reconstructions. A firm's distributable earnings over 15
+or 20 years measure $\tilde\phi$ with even more error, so price it at
+the low and high ends of a confidence band, not at the point
+estimate.
 
-Second, the anchor is an assumption. A claim the model has no anchor
-for linearizes around a mean log price-dividend ratio of 3.30. The
-model does not know your claim's actual valuation, and the
-`mean_log_pd` attribute of the results repeats the assumption rather
-than predicting anything. If your claim's valuation ratio sits far from
-$e^{3.30} \approx 27$, the elasticities and the Gordon comparison drift
-with it, and you should move the anchor by passing `pd_anchor=` to
-`solve`. The sign and
-ordering logic survives. A loading above $1/\psi$ means the valuation
-rises on good long-run news and the claim owes a premium for it, and a
-loading below $1/\psi$ means the opposite.
+Second, the anchor is an assumption: a claim with no anchor in the
+model linearizes around a mean log price-dividend ratio of 3.30, and
+`mean_log_pd` repeats that assumption rather than predicting your
+claim's actual valuation. If your valuation ratio sits far from
+$e^{3.30} \approx 27$, the elasticities and the Gordon comparison
+drift with it, so move the anchor by passing `pd_anchor=` to `solve`.
+The sign and ordering logic survives: a loading above $1/\psi$ earns
+a premium for good long-run news, and a loading below it earns the
+opposite.
 
 ## Takeaways
 
 - Any claim is priced from one measured number, the loading of its
-  cash-flow growth on the two-year moving average of lagged consumption
-  growth. Returns never enter, so the premium is a prediction.
-- The analytical solve returns the valuation response to growth news
-  ($A_1$), the compensation that response commands
-  (`long_run_premium`), and the Gordon return, which is the number a
-  DCF would report from growth alone, with no adjustment for the risk
-  that separates the claims.
-- On the 1930 to 2003 data the measured leverages are 12.13 (value),
-  $-0.27$ (growth) and 0.72 (market), and the implied premium ordering
-  follows the leverage ordering.
-- Short samples measure the loading with substantial error, and the
-  anchor P/D of 3.30 is a linearization point, not a fitted level.
-  Trust the ordering and the sign, and do not trust the third decimal.
+  cash-flow growth on the two-year moving average of consumption
+  growth, and returns never enter, so the premium is a prediction.
+- The analytical solve returns three numbers: the valuation response to
+  growth news (`A1`), the compensation it commands
+  (`long_run_premium`), and the Gordon return a DCF would report
+  instead.
+- A loading above $1/\psi$ earns a premium for growth-news risk, and a
+  loading below it earns a small hedge discount.
+- On the 1930 to 2003 data the measured leverages order value above
+  growth, and the implied premium ordering follows.
+- Outside a traded portfolio the loading is measured with error and the
+  linearization anchor is an assumption, so trust the ordering and the
+  sign, not the third decimal.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
-1. What single measured number does your claim contribute, and how is
-   it measured?
-2. The analytical solve returns three numbers for your claim. Name
-   them, and say which one a DCF of the same claim would have reported.
-3. Why should you trust the ordering of your results and not the third
-   decimal?
+1. Price a claim with $\phi = 1/\psi$, the household's loading.
+   Explain why that threshold, not zero, is where `A1` and
+   `long_run_premium` cross zero.
+2. Re-run the equation (19) regression with `window=3` in
+   `expected_growth_proxy`. Does the value-growth leverage ranking
+   survive?
+3. Drop 1930 to 1945 from the sample and re-estimate $\tilde\phi$ for
+   both legs. How much does the spread move, and which years carry the
+   identifying variation?
 
 **Answers.**
 
-1. The loading of its cash-flow growth on the two-year moving average
-   of lagged consumption growth.
-2. The valuation response $A_1$, the compensation
-   `long_run_premium`, and the Gordon return. A DCF would have shown
-   only the Gordon return.
-3. Short samples measure the loading with substantial error, and the
-   anchor P/D is a linearization point, not a fitted level.
+1. At $\phi = 1/\psi$ the claim's dividends grow with expected
+   consumption, so the elasticity and the premium both go to zero. The
+   threshold is $1/\psi$ because that is the growth rate the household
+   expects.
+2. No. At window 3 the value slope turns negative, the same instability
+   the Chapter 8 check found, so trust no single-window estimate at
+   face value.
+3. The pre-war years carry most of the identifying variation, so the
+   post-war slopes and the value-growth spread shrink once 1930 to 1945
+   drops out.
 
-:::
+   ```{python}
+   #| code-fold: true
+   # Exercise 1: the riskless long-run loading
+   res0 = lrr.LongRunRisksModel(
+       claims={"claim": lrr.ClaimParams.from_loading(1 / 1.5)}
+   ).solve(method="analytical")
+   print(f"phi = 1/psi = {1/1.5:.3f}:  A1 = {res0.A1['claim']:.3f}, "
+         f"long-run premium = {res0.long_run_premium['claim']:+.3f} %/yr")
 
-## Exercises
+   # Exercise 2: a different proxy window
+   ma3 = lrr.expected_growth_proxy(dc, window=3)
+   def leverage_on(dd, proxy):
+       mask = np.isfinite(proxy) & np.isfinite(dd)
+       x = proxy[mask] - proxy[mask].mean()
+       e = dd[mask] - dd[mask].mean()
+       return float(np.dot(x, e) / np.dot(x, x))
+   for c in ("Value", "Growth"):
+       print(f"{c:6s}  window 2: {phi[c]:7.2f}"
+             f"   window 3: {leverage_on(dividend_growth(c), ma3):7.2f}")
 
-1. Price a claim with $\phi = 0.67$ (the household's $1/\psi$). Confirm
-   `A1` and `long_run_premium` are approximately zero, and explain why
-   the threshold is $1/\psi$ rather than 0.
-2. Re-run the equation (19) regression with `window=3` in
-   `expected_growth_proxy`. Does the value-growth leverage ranking
-   survive? Compare with exercise 1 of
-   [Chapter 8](08-calibrating-cash-flows.qmd).
-3. Drop 1930 to 1945 from the sample and re-estimate $\tilde\phi$ for
-   both legs, then re-price them. How much does the spread move, and
-   what does the answer tell you about which years supply the
-   identifying variation?
-4. Take any dividend-paying portfolio you can build a yearly
-   dividend-growth series for, run the four steps, and write down the
-   loading, the premium, and the Gordon return. Which of the three
-   numbers would a DCF valuation of the same portfolio have shown you?
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-# Exercise 1: the riskless long-run loading
-res0 = lrr.LongRunRisksModel(
-    claims={"claim": lrr.ClaimParams.from_loading(1 / 1.5)}
-).solve(method="analytical")
-print(f"phi = 1/psi = {1/1.5:.3f}:  A1 = {res0.A1['claim']:.3f}, "
-      f"long-run premium = {res0.long_run_premium['claim']:+.3f} %/yr")
-
-# Exercise 2: a different proxy window
-ma3 = lrr.expected_growth_proxy(dc, window=3)
-def leverage_on(dd, proxy):
-    mask = np.isfinite(proxy) & np.isfinite(dd)
-    x = proxy[mask] - proxy[mask].mean()
-    e = dd[mask] - dd[mask].mean()
-    return float(np.dot(x, e) / np.dot(x, x))
-for c in ("Value", "Growth"):
-    print(f"{c:6s}  window 2: {phi[c]:7.2f}"
-          f"   window 3: {leverage_on(dividend_growth(c), ma3):7.2f}")
-
-# Exercise 3: dropping 1930-1945
-years_c = (pl.read_csv(DATA / "consumption_annual.csv").sort("year")
-           ["year"].to_numpy())
-keep = years_c >= 1946
-ma_post = lrr.expected_growth_proxy(dc[keep], window=2)
-lev = {}
-for c in ("Value", "Growth"):
-    dd_post = (panel.filter(pl.col("claim") == c)
-               .filter(pl.col("year") >= 1946).sort("year")
-               ["dgrowth"].to_numpy())
-    lev[c] = leverage_on(dd_post, ma_post)
-post = lrr.LongRunRisksModel(
-    claims={c: lrr.ClaimParams.from_loading(lev[c]) for c in lev}
-).solve(method="analytical")
-for c in ("Value", "Growth"):
-    print(f"{c:6s}  post-war phi: {lev[c]:7.2f}   "
-          f"premium: {post.long_run_premium[c]:+.2f} %/yr")
-print(f"post-war spread: "
-      f"{post.compare('Value', 'Growth').premium:.2f} points")
-```
-
-At the household's own loading the claim is long-run riskless, so both the
-elasticity and the premium are zero. The threshold is 1/psi rather than 0
-because a claim growing with expected consumption moves exactly as the
-household's consumption does. The window change is not innocuous. At window 3 the value slope turns
-negative, the same fragility the Chapter 8 check showed, so treat the
-level of any single-window leverage estimate with caution. The pre-war years carry a large share of the identifying
-variation, so the post-war slopes and the spread shrink, a warning about
-how much data the loading estimates need.
-
-Exercise 4 is yours. Run the four steps on a series you bring, and note
-that a DCF of the same portfolio would have shown you only the Gordon
-return, never the loading or the premium decomposition.
+   # Exercise 3: dropping 1930-1945
+   years_c = (pl.read_csv(DATA / "consumption_annual.csv").sort("year")
+              ["year"].to_numpy())
+   keep = years_c >= 1946
+   ma_post = lrr.expected_growth_proxy(dc[keep], window=2)
+   lev = {}
+   for c in ("Value", "Growth"):
+       dd_post = (panel.filter(pl.col("claim") == c)
+                  .filter(pl.col("year") >= 1946).sort("year")
+                  ["dgrowth"].to_numpy())
+       lev[c] = leverage_on(dd_post, ma_post)
+   post = lrr.LongRunRisksModel(
+       claims={c: lrr.ClaimParams.from_loading(lev[c]) for c in lev}
+   ).solve(method="analytical")
+   for c in ("Value", "Growth"):
+       print(f"{c:6s}  post-war phi: {lev[c]:7.2f}   "
+             f"premium: {post.long_run_premium[c]:+.2f} %/yr")
+   print(f"post-war spread: "
+         f"{post.compare('Value', 'Growth').premium:.2f} points")
+   ```
 
 :::
 
 ::: {.firewall}
-**Where each number comes from.** The two-firm table and the leg
-pricing are `LongRunRisksModel(...).solve(method="analytical")` on the
-Table II economy; the measured leverages are the equation (19)
-regression on `data/consumption_annual.csv` and
-`data/annual_panel.csv` via `lrr.expected_growth_proxy`, with
-`lrr.calibrate_claims` wrapping the same arithmetic.
-Every cell runs when the site is built. Download
-the chapter as a notebook (Other Formats, top of the page) to rerun it
-on your own series.
+The two synthetic firms in this chapter are invented for the page and
+are priced, like the value and growth legs above, in the paper's Table
+II economy.
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Kiku (2006), equation (19) and the pricing steps
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Kiku (2006), equation (19) and the pricing steps.
+[References](../reference/references.qmd).
