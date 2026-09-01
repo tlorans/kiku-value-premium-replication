@@ -100,7 +100,7 @@ times prices (paper eq. 16), and the value-growth spread is, to first
 order, the spread in long-run loadings times $\Lambda_\epsilon$
 (paper eq. 18).
 
-## Hands-on: solving the equilibrium
+## Solving the equilibrium
 
 `model.solve(method="analytical")` computes every object above from the
 Table II calibration. No returns enter anywhere. The inputs are
@@ -211,96 +211,77 @@ p = (
 p.show()
 ```
 
-::: {.firewall}
-**Where each number comes from.** Every table and figure in this
-chapter is computed by the code cells above, which run when the site
-is built: `LongRunRisksModel().solve(method="analytical")` on the
-Table II calibration, and the same solve on one synthetic claim per
-point of the figure. Download the chapter as a notebook (top of the
-page) to rerun everything.
-:::
-
 ## Takeaways
 
 - A claim's valuation is close to a linear function of the two state
   variables, and the slope on expected growth is
   $A_1 = (\phi - 1/\psi)/(1 - \kappa_1\rho)$.
-- Persistence magnifies leverage. With $\rho$ near one, small leverage
-  differences become large differences in price sensitivity and a large
-  spread in premia.
-- Long-run risk is priced only under Epstein-Zin preferences, because
-  the price $\Lambda_\epsilon$ vanishes under power utility.
+- Persistence magnifies leverage: with $\rho$ near one, small leverage
+  differences become large differences in price sensitivity.
+- Growth's leverage of 2.6 and value's of 6.2 produce elasticities of
+  43.1 and 88.9, and the long-run premium rises with leverage across
+  the whole range plotted.
+- Long-run risk carries a positive price only under Epstein-Zin
+  preferences, because $\Lambda_\epsilon$ vanishes under power utility.
+- The linearization constant $\kappa_1$ must be computed, not guessed,
+  and the correct market $A_1$ is 37.5, not the 56.3 an earlier draft
+  of the site printed.
 
-::: {.callout-note collapse="true" title="Recall"}
+::: {.callout-note collapse="true" title="Check yourself"}
 
-Answer from memory before opening.
+Answer from memory, then open the answers.
 
-1. Write the valuation slope on expected growth, $A_1$, from memory.
-2. Persistence is near one. What does that do to small differences in
-   leverage?
-3. Under which preferences does the price of long-run risk vanish?
+1. Recompute $A_1$ for the value claim at $\rho = 0.95$. How much of
+   the elasticity survives, and how does that relate to the robustness
+   grid in [Chapter 10](10-value-premium-resolved.qmd)?
+2. Set $\psi = 0.9$ and recompute the market's $A_1$. What happens to
+   the sign, and what does that mean for how prices react to good
+   growth news?
+3. At what leverage $\phi$ does a claim's long-run premium equal zero,
+   and why is it $1/\psi$ rather than zero?
 
 **Answers.**
 
-1. $A_1 = (\phi - 1/\psi)/(1 - \kappa_1 \rho)$.
-2. It magnifies them into large differences in price sensitivity and a
-   large spread in premia.
-3. Power utility: $\Lambda_\epsilon$ is zero there, which is why the
-   Epstein-Zin separation is essential.
+1. About two thirds of the elasticity survives the drop in
+   persistence. The robustness grid in
+   [Chapter 10](10-value-premium-resolved.qmd) shows the same
+   shrinkage as $\rho$ falls.
+2. The market elasticity stays positive but shrinks, because the
+   numerator $\phi - 1/\psi$ narrows as $\psi$ drops.
+3. The premium crosses zero at $\phi = 1/\psi$, where a claim's cash
+   flows track expected consumption exactly and the claim is riskless
+   in the long run. The cell below reproduces all three answers.
+
+   ```{python}
+   #| code-fold: true
+   # Exercise 1: value elasticity at rho = 0.95
+   res95 = model.replace(rho=0.95).solve(method="analytical")
+   print(f"A1 value, rho = 0.98: {res.A1['value']:.1f}")
+   print(f"A1 value, rho = 0.95: {res95.A1['value']:.1f}")
+
+   # Exercise 2: market elasticity at psi = 0.9
+   res09 = model.replace(psi=0.9).solve(method="analytical")
+   print(f"A1 market, psi = 1.5: {res.A1['market']:.1f}")
+   print(f"A1 market, psi = 0.9: {res09.A1['market']:.1f}")
+
+   # Exercise 3: the zero-premium loading
+   for phi_v in (0.5, 1/1.5, 0.8):
+       one = lrr.LongRunRisksModel(
+           claims={"claim": lrr.ClaimParams.from_loading(phi_v)}
+       ).solve(method="analytical")
+       print(f"phi = {phi_v:.3f}:  A1 = {one.A1['claim']:7.2f}   "
+             f"long-run premium = {one.long_run_premium['claim']:+.3f} %/yr")
+   ```
 
 :::
 
-## Exercises
-
-1. Recompute $A_1$ for the value claim with $\rho = 0.95$ instead of
-   $0.98$ (keep everything else at Table II). How much of the elasticity
-   survives? Relate your answer to the robustness grid in
-   [Chapter 10](10-value-premium-resolved.qmd).
-2. Set $\psi = 0.9$ and recompute the market's $A_1$. What happens to
-   the sign, and what does the sign change mean economically for how
-   prices react to good news about growth?
-3. Use `lrr.ClaimParams.from_loading` to find the leverage $\phi$
-   at which a claim's long-run premium equals zero. Why is it $1/\psi$
-   and not 0?
-
-::: {.callout-note collapse="true" title="Check your answer"}
-
-```{python}
-#| code-fold: true
-# Exercise 1: value elasticity at rho = 0.95
-res95 = model.replace(rho=0.95).solve(method="analytical")
-print(f"A1 value, rho = 0.98: {res.A1['value']:.1f}")
-print(f"A1 value, rho = 0.95: {res95.A1['value']:.1f}")
-
-# Exercise 2: market elasticity at psi = 0.9
-res09 = model.replace(psi=0.9).solve(method="analytical")
-print(f"A1 market, psi = 1.5: {res.A1['market']:.1f}")
-print(f"A1 market, psi = 0.9: {res09.A1['market']:.1f}")
-
-# Exercise 3: the zero-premium loading
-for phi_v in (0.5, 1/1.5, 0.8):
-    one = lrr.LongRunRisksModel(
-        claims={"claim": lrr.ClaimParams.from_loading(phi_v)}
-    ).solve(method="analytical")
-    print(f"phi = {phi_v:.3f}:  A1 = {one.A1['claim']:7.2f}   "
-          f"long-run premium = {one.long_run_premium['claim']:+.3f} %/yr")
-```
-
-About two thirds of the elasticity survives the drop in persistence, and the
-robustness grid of Chapter 10 shows the spread shrinking with rho for the
-same reason. The market elasticity stays positive at psi = 0.9 but shrinks,
-because the numerator phi - 1/psi narrows. The premium crosses zero between
-phi = 0.5 and phi = 0.8, at the household's 1/psi. A claim whose cash flows
-grow with expected consumption exactly as the household's own consumption
-does is riskless in the long run, so it earns no long-run compensation.
-A claim below the threshold is a hedge and earns a discount.
-
+::: {.firewall}
+The claim leverages (growth 2.6, market 2.8, value 6.2) are Table II's
+calibration inputs quoted from Kiku (2006), and every price elasticity
+this chapter reports, including the corrected market $A_1 = 37.5$ where
+an earlier draft of this site misprinted 56.3, is computed on the page
+from that calibration.
 :::
 
-::: {.callout-note title="Where to go next"}
-The canonical treatment of this chapter's topic is Campbell and Shiller (1988), on the log-linear return
-([references](../reference/references.qmd)). Stuck, or spot an
-error? Open an issue at the
-[repository](https://github.com/tlorans/kiku-value-premium-replication/issues), or ask your agent to walk through it with
-you.
-:::
+Source: Campbell and Shiller (1988), on the log-linear return.
+[References](../reference/references.qmd).
