@@ -251,12 +251,14 @@ changed. The leftover three basis points reflect value's remaining
 parameter differences together with 300-sample noise. The premium is the
 price of one measured cash-flow characteristic.
 
+## Robustness
+
 The spread stays positive at every point of a one-parameter-at-a-time
 grid over $\rho$, the EIS, risk aversion, and both loadings. Its size
 scales with the persistence of $x_t$, with risk aversion, and with the
-gap between the loadings, and it barely moves with the EIS, which is
-what the theory predicts: persistence and risk aversion price long-run
-news, the loading gap sets its quantity. Run
+gap between the loadings, and it barely moves with the EIS. That is
+what the theory predicts. Persistence and risk aversion price long-run
+news, and the loading gap sets its quantity. Run
 `uv run python examples/robustness.py` for the grid.
 
 ::: {.callout-warning title="The grid size affects the printed numbers"}
@@ -296,9 +298,9 @@ grid prints, not as the model's last decimal.
 
 ## Takeaways
 
-- Chapter 1's two free numbers and the CAPM's failure on the value
-  premium give way to one household pricing every claim from consumption
-  and measured cash flows alone.
+- Chapter 1's two free numbers and the CAPM's failure give way to one
+  household pricing every claim from consumption and measured cash flows
+  alone.
 - With nothing re-tuned, the simulated Table VII prints a 5.38 percent
   value premium against roughly six in the data, and it puts value
   cheapest and growth most expensive, as the data do.
@@ -308,8 +310,10 @@ grid prints, not as the model's last decimal.
 - Equalizing the two long-run loadings collapses the simulated premium
   from 5.38 to 0.03 percent, so it is the price of one measured
   cash-flow characteristic.
-- The spread stays positive across the one-parameter grid, and its size
-  scales with persistence, risk aversion, and the loading gap.
+- The spread stays positive across the one-parameter grid and scales with
+  persistence, risk aversion, and the loading gap, but finer grids print
+  a smaller premium, so trust the ordering and treat the level as
+  uncertain.
 
 ::: {.callout-note collapse="true" title="Check yourself"}
 
@@ -340,8 +344,6 @@ Answer from memory, then open the answers.
        print(f"n_x={r['n_x']:3d}  premium {r['vp']:.2f}%  "
              f"risk-free {r['rf']:.2f}%  beta ratio {r['ratio']:.2f}")
    ```
-
-   The ordering and the channel survive, and only the magnitude moves.
 
 :::
 
