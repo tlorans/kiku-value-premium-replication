@@ -118,18 +118,18 @@ model is solved in full.
 
 ## Timing of resolution: why $\gamma > 1/\psi$
 
-Epstein-Zin preferences are sensitive to when uncertainty resolves.
 When $\gamma > 1/\psi$, so $\theta < 1$, the investor prefers early
 resolution of uncertainty. She treats bad news about distant
-consumption as a loss now and demands compensation for claims that
-bundle it with bad long-run prospects. A power-utility investor
-($\gamma = 1/\psi$) is exactly indifferent to timing.
+consumption as a loss now and demands compensation for claims
+bundling it with bad long-run prospects. A power-utility investor
+($\gamma = 1/\psi$) is indifferent to timing.
 
-The preference for early resolution is why the paper pairs $\gamma = 10$
-with $\psi = 1.5$ in the calibration of [Chapter 5](05-long-run-risks.qmd).
-The gap between $\gamma$ and $1/\psi \approx 0.67$ makes persistent
-consumption risk expensive, and setting $\psi > 1$ stops the
-interest-rate channel from swamping the cash-flow channel, so
+That preference is why the paper pairs $\gamma = 10$ with $\psi = 1.5$
+in [Chapter 5](05-long-run-risks.qmd)'s calibration. The gap between
+$\gamma$ and $1/\psi \approx 0.67$ makes persistent consumption risk
+expensive. A high-$\psi$ investor needs no large rate rise to accept a
+steeper consumption path, so setting $\psi > 1$ also stops the
+interest-rate channel from swamping the cash-flow channel, and
 valuations can rise on good long-run news instead of falling.
 
 ## $\theta$ for the Table II preferences
