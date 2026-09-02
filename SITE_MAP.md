@@ -30,8 +30,13 @@ goes missing.
 | 15 | `site/habit/examples.qmd` | Examples | Habit | — |
 | 16 | `site/habit/math.qmd` | Mathematical detail | Habit | — |
 | 17 | `site/habit/api.qmd` | Module reference | Habit | — |
-| 18 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
-| 19 | `site/reference/references.qmd` | References | Reference | `/references.html` |
+| 18 | `site/gmm/index.qmd` | GMM | GMM | — |
+| 19 | `site/gmm/user-guide.qmd` | User guide | GMM | — |
+| 20 | `site/gmm/examples.qmd` | Examples | GMM | — |
+| 21 | `site/gmm/math.qmd` | Mathematical detail | GMM | — |
+| 22 | `site/gmm/api.qmd` | Module reference | GMM | — |
+| 23 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 24 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
 ## Conventions
 

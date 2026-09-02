@@ -163,6 +163,15 @@ class PowerUtilityModel(AssetPricingModel):
     def claims(self) -> tuple[str, ...]:
         return ("equity", "bill") + tuple(self._extras)
 
+    def sdf(self, growth=None) -> np.ndarray:
+        """Power-utility SDF ``m = δ g^{-γ}``.
+
+        Default ``growth`` is the two-state chain. Pass a series of
+        gross consumption growth to evaluate the kernel on a sample.
+        """
+        g = self._g if growth is None else np.asarray(growth, dtype=float)
+        return self.delta * np.asarray(g, dtype=float) ** (-self.gamma)
+
     def replace(self, **kwargs) -> "PowerUtilityModel":
         merged = {k: v for k, v in self._kwargs.items() if v is not None}
         merged.update(kwargs)

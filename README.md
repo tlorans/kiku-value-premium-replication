@@ -58,6 +58,11 @@ premium puzzle.
 **Habit** (`CampbellCochraneModel`): Campbell and Cochrane (1999)
 external surplus. Time-varying risk aversion at $\gamma = 2$.
 
+**GMM** (`geap.gmm`): Hansen GMM on moment conditions. Linear factor
+GMM is OLS of average excess returns on betas. SDF GMM sets
+$E[m(\theta) R^e] = 0$. This is not the cash-flow calibration: returns
+never enter `calibrate_claim`.
+
 ## Examples
 
 | Script | What it prints |
@@ -69,6 +74,8 @@ external surplus. Time-varying risk aversion at $\gamma = 2$.
 | `examples/robustness.py` | The premium as one parameter varies |
 | `examples/mehra_prescott.py` | Power-utility CCAPM, Mehra and Prescott (1985) |
 | `examples/campbell_cochrane.py` | External habit, Campbell and Cochrane (1999) |
+| `examples/gmm_linear_factor.py` | Linear-factor GMM on means and betas |
+| `examples/gmm_power_utility.py` | Power-utility SDF GMM on a three-moment toy |
 
 ## License
 

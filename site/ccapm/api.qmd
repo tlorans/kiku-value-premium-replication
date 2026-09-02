@@ -24,6 +24,7 @@ res.compare("equity", "bill").premium
 | `.claims` | property | `equity`, `bill`, then any extra levered names. |
 | `.consumption_growth` | property | The two gross growth rates. |
 | `.transition` | property | 2×2 transition matrix. |
+| `.sdf` | `(growth=None)` | Power-utility kernel $m=\delta g^{-\gamma}$. Default growth is the two-state chain. |
 
 You can add extra levered consumption claims with the `claims` argument.
 For example, `claims={"high": {"phi": 3}}` adds a claim named `high` whose dividend growth is consumption growth to the power $\phi=3$.

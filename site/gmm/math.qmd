@@ -1,0 +1,65 @@
+---
+title: "Mathematical detail"
+---
+
+The notation follows Hansen (1982) and Cochrane (2005), chapter 11.
+
+## Sample analog
+
+A model supplies a $k$-vector of moment conditions $E[g_t(\theta)]=0$
+in a $p$-vector of parameters, with $k\ge p$. The sample analog is
+
+$$
+g_T(\theta)=\frac{1}{T}\sum_{t=1}^T g_t(\theta).
+$$
+
+GMM minimises the quadratic $g_T(\theta)' W g_T(\theta)$. Just-identified
+problems ($k=p$) set $g_T=0$ when a root exists. Over-identified
+problems ($k>p`) cannot zero every moment, and $W$ decides which errors
+count.
+
+## Linear factor
+
+$E[R^e]=\beta\lambda$ has the closed form
+$\hat\lambda=(\beta' W \beta)^{-1}\beta' W \bar R^e$. Identity $W$ is
+OLS of average excess returns on betas. On a $(T,N)$ panel the
+observation-level moments are $g_t=R^e_t-\beta\lambda$.
+
+## SDF
+
+Power utility on gross consumption growth is $m_t=\delta g_t^{-\gamma}$.
+Excess-return Euler equations are $E[m_t R^e_t]=0$, so
+$g_t=m_t R^e_t$. A level condition $E[m_t R^f-1]=0$ is required to
+identify $\delta$ together with $\gamma$. Excess returns alone are
+homogeneous in the scale of $m$.
+
+## Weighting and inference
+
+Let $S$ be the long-run covariance of $g_t$. Newey-West with Bartlett
+weights and $L$ lags is
+
+$$
+S=\Gamma_0+\sum_{\ell=1}^{L}\Bigl(1-\frac{\ell}{L+1}\Bigr)(\Gamma_\ell+\Gamma_\ell'),
+\qquad
+\Gamma_\ell=\frac{1}{T}\sum_{t=\ell+1}^{T} g_t g_{t-\ell}'.
+$$
+
+$L=0$ is the iid second-moment matrix. Two-step GMM uses a first-step
+$W$ (identity, or any given matrix), forms $S$ at that $\hat\theta$,
+and minimises again with $W=S^{-1}$. The asymptotic variance of
+$\hat\theta$ is the sandwich
+
+$$
+\text{Avar}(\hat\theta)=\frac{1}{T}(D'WD)^{-1}(D'WSWD)(D'WD)^{-1},
+$$
+
+with $D=\partial g_T/\partial\theta'$. When $W=S^{-1}$ this equals
+$(D'S^{-1}D)^{-1}/T$.
+
+Hansen's $J$ statistic is $J=T\,g_T' W g_T$ at the two-step weights,
+and $J\sim\chi^2(k-p)$ under the null that the extra moments are
+correct. The statistic is not $\chi^2$ at identity $W$.
+
+The source is Hansen (1982). Cochrane (2005) is the asset-pricing
+statement. The bibliography is on
+[References](../reference/references.qmd).

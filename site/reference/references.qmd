@@ -23,6 +23,9 @@ aliases:
   and the Temporal Behavior of Consumption and Asset Returns I: A
   Theoretical Framework*, Econometrica 57(4), 937 to 969.
   [JSTOR](https://www.jstor.org/stable/1913778)
+- Hansen, L. P., 1982, *Large Sample Properties of Generalized Method
+  of Moments Estimators*, Econometrica 50(4), 1029 to 1054.
+  [JSTOR](https://www.jstor.org/stable/1912775)
 - Hansen, L. P., and R. Jagannathan, 1991, *Implications of Security
   Market Data for Models of Dynamic Economies*, Journal of Political
   Economy 99(2), 225 to 262.

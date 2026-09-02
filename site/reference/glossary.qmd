@@ -16,6 +16,9 @@ aliases:
 | $\theta$ | $\theta$ is the Epstein-Zin composite $(1-\gamma)/(1-1/\psi)$, and the distance of $\theta$ from 1 measures how far the preferences are from power utility. |
 | pricing kernel / stochastic discount factor ($M$) | The pricing kernel is the household's intertemporal marginal rate of substitution, and every claim is priced through $E_t[M_{t+1} R_{i,t+1}] = 1$. |
 | Euler equation | The Euler equation is $E_t[M_{t+1}R_{i,t+1}]=1$, so every asset's return, weighted by the household's marginal utility, has expected value one. |
+| GMM | GMM chooses parameters so sample averages of the model's moment conditions are as close to zero as possible. |
+| weighting matrix | The weighting matrix $W$ is how much each moment counts in the GMM quadratic $g'Wg$. |
+| J-test | The J-test is the leftover pricing errors after GMM, given extra moments the model cannot fit. |
 | cash-flow news | Cash-flow news is a revision in expected dividends. |
 | discount-rate news | Discount-rate news is a revision in expected returns. |
 | log-linearization | Log-linearization is the approximation $r_{t+1} \approx \text{const} + \Delta d_{t+1} + \kappa_1 z_{t+1} - z_t$, and the approximation makes the valuation ratio linear in the state. |

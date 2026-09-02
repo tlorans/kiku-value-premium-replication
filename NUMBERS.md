@@ -58,6 +58,8 @@ prints its numbers rather than writing them anywhere.
 | `two_firms.py` | two synthetic firms differing only in their loading on the persistent component |
 | `table_ii_calibration.py` | the Table II calibration, read from `geap.ModelParams()` at run time |
 | `calibrate_any_portfolio.py` | the workflow for calibrating and pricing a cross-section you supply |
+| `gmm_linear_factor.py` | just-identified and over-identified linear-factor GMM |
+| `gmm_power_utility.py` | two-parameter power-utility SDF GMM on a constructed sample |
 
 ## Resolved findings, kept as history
 

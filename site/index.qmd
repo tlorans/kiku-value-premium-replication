@@ -21,6 +21,7 @@ with external surplus consumption.
 | [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Prices named dividend claims on a consumption process with persistent growth |
 | [Power utility](ccapm/index.qmd) | [`PowerUtilityModel`](ccapm/api.qmd) | Two-state consumption chain, power kernel, and levered claims |
 | [Habit](habit/index.qmd) | [`CampbellCochraneModel`](habit/api.qmd) | External habit, surplus consumption, and i.i.d. consumption growth |
+| [GMM](gmm/index.qmd) | [`geap.gmm`](gmm/api.qmd) | Hansen GMM on pricing errors and linear factor means |
 
 ```python
 import geap

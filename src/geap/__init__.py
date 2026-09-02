@@ -11,11 +11,12 @@ Documented import::
 
 Long-run risks (``geap.lrr``), power utility (``geap.ccapm``), and
 habit (``geap.habit``) share :class:`~geap.base.AssetPricingModel`.
+Hansen GMM lives in ``geap.gmm``.
 """
 
 from __future__ import annotations
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 from .base import (
     AssetPricingModel,
@@ -53,7 +54,7 @@ from .lrr.empirical import (
     table_i,
     table_vi_data,
 )
-from . import ccapm, habit, lrr
+from . import ccapm, gmm, habit, lrr
 from ._backend import use_backend as _use_backend
 
 # Frames cross the public boundary in whichever backend tidyfinance is set to.
@@ -93,4 +94,5 @@ __all__ = [
     "lrr",
     "ccapm",
     "habit",
+    "gmm",
 ]

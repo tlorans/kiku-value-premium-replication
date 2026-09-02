@@ -37,6 +37,13 @@ website:
           - habit/examples.qmd
           - habit/math.qmd
           - habit/api.qmd
+      - section: "GMM"
+        contents:
+          - gmm/index.qmd
+          - gmm/user-guide.qmd
+          - gmm/examples.qmd
+          - gmm/math.qmd
+          - gmm/api.qmd
       - section: "Reference"
         contents:
           - reference/glossary.qmd

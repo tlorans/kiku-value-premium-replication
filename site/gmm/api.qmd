@@ -1,0 +1,57 @@
+---
+title: "Module reference"
+---
+
+`geap.gmm` is Hansen GMM. It is imported with `geap` and is not hoisted
+as `geap.estimate`. Linear factor GMM and a power-utility SDF are the
+asset-pricing helpers.
+
+```python
+import geap
+import numpy as np
+
+fit = geap.gmm.linear_factor(np.array([0.08, 0.15]), np.array([1.0, 1.5]))
+fit.theta
+```
+
+## Estimator
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `estimate` | `(moments, theta0, *, W="identity", steps=1, hac_lags=None, bounds=None, names=None)` | Minimise $g_T' W g_T$. `moments(theta)` returns $g_T$ of length $k$ or $g_t$ of shape $(T,k)$. |
+| `linear_factor` | `(excess_returns, beta, *, W="identity", steps=1, hac_lags=None, names=None)` | Closed-form $\lambda$ from $E[R^e]=\beta\lambda$. Means of length $N$, or a $(T,N)$ panel. |
+| `power_utility_sdf` | `(delta, gamma, growth)` | $m=\delta g^{-\gamma}$ on gross consumption growth. |
+| `sdf_moments` | `(m, excess_returns)` | $g_t=m_t R^e_t$, shape $(T,N)$. |
+
+`W` is `"identity"`, `"invvar"`, `"optimal"`, or a $(k,k)$ array.
+`"optimal"` is two-step GMM from an identity first step. `steps=2`
+rebuilds $W=S^{-1}$ from Newey-West $S$. `hac_lags=None` is iid
+($L=0$).
+
+Observation-level $g_t$ is required for two-step weights, standard
+errors, and a $\chi^2$ J-test. A length-$k$ sample vector is informal
+calibration: $g'Wg$ is minimised and inference is omitted.
+
+## Results
+
+`GMMResults` is an estimator result, not an `AssetPricingResults`.
+
+| Attribute | Meaning |
+|:---|:---|
+| `theta` | Parameter estimates |
+| `g` | Sample moments $g_T$ at $\hat\theta$ |
+| `W` | Weighting matrix used in the last step |
+| `objective` | $g_T' W g_T$ |
+| `se`, `cov` | Standard errors and covariance when $g_t$ is available |
+| `S` | Newey-West covariance of $g_t$ |
+| `J`, `J_df`, `J_pvalue` | Hansen J after two-step W, else `J_pvalue` is omitted |
+| `nobs`, `n_moments`, `n_params`, `names`, `steps` | Sizes and labels |
+| `summary()` | Formatted table |
+| `to_frame()` | One row per parameter |
+
+`PowerUtilityModel.sdf(growth=None)` evaluates the same power-utility
+kernel. The default is the two-state chain. Pass a series of gross
+growth to evaluate the kernel on a sample.
+
+The family lives in `geap.gmm`, and the module is re-exported at the
+`geap` root as `geap.gmm`.

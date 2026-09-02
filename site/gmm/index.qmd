@@ -1,0 +1,56 @@
+---
+title: "GMM"
+---
+
+GMM twists the model's parameters until the averages the model promises
+match the averages in the data. An asset-pricing model is a list of
+statements about averages: a stochastic discount factor times excess
+returns has mean zero, or expected excess returns line up with betas.
+Those statements are moment conditions. The data give sample averages,
+and GMM chooses the unknown parameters so the sample averages are as
+close to the model's zeros as possible.
+
+This is a different estimator from the cash-flow calibration in
+[`calibrate_claim`](../lrr/api.qmd). Returns never enter that path.
+GMM on returns is available when the moments themselves are Euler
+equations or linear factor pricing errors.
+
+## One moment, one parameter
+
+The model $E[R^e]=\lambda$ and a sample mean of $0.08$ give
+$\hat\lambda=0.08$. The moment is matched exactly.
+
+```{python}
+import geap
+import numpy as np
+
+fit = geap.gmm.linear_factor(np.array([0.08]), np.array([1.0]))
+print(fit.summary())
+```
+
+## Two moments, one parameter
+
+Two assets and one factor cannot both be zeroed. Identity-weighted GMM
+is ordinary least squares of average excess returns on betas. The
+leftover vector is the pricing errors, and with more assets than
+parameters those errors are how the model is tested.
+
+```{python}
+mean_ret = np.array([0.08, 0.15])
+beta = np.array([1.0, 1.5])
+fit = geap.gmm.linear_factor(mean_ret, beta, W="identity")
+print(fit.summary())
+```
+
+The fitted $\lambda$ sits between the two asset-by-asset values $0.08$
+and $0.10$. Both pricing errors are nonzero.
+
+The SDF version is the same recipe. Power utility gives
+$m_t=\delta g_t^{-\gamma}$, the sample analog is the average of
+$m_t R^e_t$, and GMM chooses $(\delta,\gamma)$ to make that average
+small. Details are on [Examples](examples.qmd) and the formulas are on
+[Mathematical detail](math.qmd).
+
+The source for the estimator is Hansen (1982). Cochrane (2005) is the
+asset-pricing statement of the same GMM. The bibliography is on
+[References](../reference/references.qmd).

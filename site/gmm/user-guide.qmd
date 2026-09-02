@@ -1,0 +1,61 @@
+---
+title: "User guide"
+---
+
+`geap.gmm.estimate` minimises $g_T(\theta)' W g_T(\theta)$. The callable
+`moments(theta)` returns either a length-$k$ sample moment vector or a
+$(T,k)$ array of observation-level moments. Observation-level moments
+are required for two-step weights, standard errors, and the J-test.
+
+```python
+import geap
+import numpy as np
+
+def moments(theta):
+    return mean_ret - theta[0] * beta
+
+fit = geap.gmm.estimate(moments, 0.09, W="identity", names=("lambda",))
+print(fit.summary())
+```
+
+`linear_factor` is the closed form of that problem when the moments are
+$E[R^e]=\beta\lambda$. Identity weights make it OLS of the means on the
+betas.
+
+```{python}
+import geap
+import numpy as np
+
+mean_ret = np.array([0.08, 0.15])
+beta = np.array([1.0, 1.5])
+print(geap.gmm.linear_factor(mean_ret, beta, W="identity").summary())
+```
+
+## Weighting
+
+`W="identity"` treats every moment equally. `W="invvar"` scales by the
+inverse of each moment's variance. `W="optimal"` is two-step GMM:
+identity first, then $W=S^{-1}$ from the Newey-West covariance of $g_t$.
+`steps=2` does the same rebuild from whatever first-step $W$ you passed.
+An explicit $(k,k)$ array is used as given.
+
+A $\chi^2$ J-test is reported only after two-step (or optimal) weights,
+and only when $k>p$ and $g_t$ is available. Identity-weighted distance
+$g'Wg$ is always printed. It is not a $\chi^2$.
+
+## Sample moments without a panel
+
+A length-$k$ `moments` callable is informal calibration: GMM still
+minimises $g'Wg$, and it cannot form $S$, standard errors, or a J
+p-value. `steps>1` then raises. That is the shape you get if you wrap
+`model.solve()` and return a vector of model-minus-data gaps.
+
+## Power-utility kernel
+
+`power_utility_sdf(delta, gamma, growth)` evaluates $m=\delta g^{-\gamma}$
+on gross consumption growth. `PowerUtilityModel.sdf(growth)` is the same
+kernel from the model object. `sdf_moments(m, excess_returns)` is the
+$(T,N)$ matrix $m_t R^e_t$.
+
+The source is Hansen (1982), and the bibliography is on
+[References](../reference/references.qmd).

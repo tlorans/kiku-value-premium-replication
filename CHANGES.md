@@ -1,5 +1,11 @@
 # Changes
 
+## 1.3.0
+
+Hansen GMM as `geap.gmm`: `estimate`, `linear_factor`, power-utility
+SDF moments, two-step weights, Newey-West standard errors, and the
+J-test. Cash-flow `calibrate_claim` is unchanged. Docs under GMM.
+
 ## 1.2.0
 
 External habit as a third family: `geap.CampbellCochraneModel`,
