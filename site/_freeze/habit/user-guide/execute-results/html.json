@@ -1,0 +1,12 @@
+{
+  "hash": "02fefa4272c4fab8847a104d22332568",
+  "result": {
+    "engine": "jupyter",
+    "markdown": "---\ntitle: \"User guide\"\n---\n\nA model is a specification. Solving does not change it.\n\n```python\nimport geap\n\nmodel = geap.CampbellCochraneModel()\nres = model.solve()\nprint(res.summary())\nres.compare(\"equity\", \"bill\").premium\n```\n\n## Specify\n\nKeyword overrides merge onto Campbell and Cochrane (1999). Numbers are\nannual; the solver converts them to monthly.\n\n::: {#0be93438 .cell execution_count=1}\n``` {.python .cell-code}\nimport geap\n\nprint(geap.CampbellCochraneModel())\nprint(geap.CampbellCochraneModel(gamma=5))\n```\n\n::: {.cell-output .cell-output-stdout}\n```\nCampbellCochraneModel(gamma=2, phi=0.87, Sbar=0.057)\nCampbellCochraneModel(gamma=5, phi=0.87, Sbar=0.090)\n```\n:::\n:::\n\n\n## Solve\n\n`solve` iterates the consumption claim's price-consumption ratio on a\nsurplus grid, then annualizes a long monthly path.\n\n::: {#759fdb66 .cell execution_count=2}\n``` {.python .cell-code}\nres = geap.CampbellCochraneModel().solve()\nprint(res.expected_returns)\nprint(res.compare(\"equity\", \"bill\").premium)\n```\n\n::: {.cell-output .cell-output-stdout}\n```\nequity    5.767648\nbill      0.944432\ndtype: float64\n4.8232161452076205\n```\n:::\n:::\n\n\nA counterfactual is a new model:\n\n::: {#2bf302d7 .cell execution_count=3}\n``` {.python .cell-code}\nbase = geap.CampbellCochraneModel()\nprint(base.replace(gamma=5).gamma)\nprint(base.gamma)\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n5\n2.0\n```\n:::\n:::\n\n\n## Simulate\n\n`simulate` draws finite annual samples from the same monthly economy.\n\n::: {#4b70ffa8 .cell execution_count=4}\n``` {.python .cell-code}\nsim = geap.CampbellCochraneModel().simulate(n_samples=15, years=40, seed=0)\nprint(sim.compare(\"equity\", \"bill\").premium)\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n4.69592309839344\n```\n:::\n:::\n\n\nSource: Campbell and Cochrane (1999).\n[References](../reference/references.qmd).\n\n",
+    "supporting": [
+      "user-guide_files"
+    ],
+    "filters": [],
+    "includes": {}
+  }
+}

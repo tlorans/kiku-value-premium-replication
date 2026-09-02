@@ -1,0 +1,60 @@
+---
+title: "Examples"
+---
+
+## Habit versus power utility at $\gamma = 2$
+
+```{python}
+import geap
+import pandas as pd
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+habit = geap.CampbellCochraneModel().solve()
+power = geap.PowerUtilityModel(gamma=2).solve()
+df = pd.DataFrame({
+    "family": ["habit", "power utility"],
+    "gamma": [2, 2],
+    "premium": [
+        habit.compare("equity", "bill").premium,
+        power.compare("equity", "bill").premium,
+    ],
+    "bill": [
+        habit.expected_returns["bill"],
+        power.expected_returns["bill"],
+    ],
+})
+(
+    GT(df)
+    .tab_header(title="Equity premium at gamma = 2")
+    .cols_label(family="", gamma="gamma", premium="premium %", bill="bill %")
+    .fmt_number(columns="gamma", decimals=0)
+    .fmt_number(columns=["premium", "bill"], decimals=2)
+    .tab_source_note(
+        "Habit is Campbell and Cochrane (1999). Power utility is "
+        "Mehra and Prescott (1985) at gamma = 2."
+    )
+    .tab_options(**KIKU_GT)
+)
+```
+
+::: {.firewall}
+**Where each number comes from.** Both model columns are computed by
+the cell. Campbell and Cochrane (1999) target a postwar premium of
+6.64 points and a bill of 0.94 percent.
+:::
+
+## Steady-state surplus
+
+```{python}
+model = geap.CampbellCochraneModel()
+print(f"Sbar = {model.Sbar:.4f}")
+print(f"lambda(sbar) = {float(model.sensitivity(model.sbar)):.3f}")
+```
+
+Source: Campbell and Cochrane (1999).
+[References](../reference/references.qmd).

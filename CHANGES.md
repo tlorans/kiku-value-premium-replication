@@ -1,5 +1,10 @@
 # Changes
 
+## 1.2.0
+
+External habit as a third family: `geap.CampbellCochraneModel`,
+defaulting to Campbell and Cochrane (1999). Docs under Habit.
+
 ## 1.1.0
 
 Power-utility CCAPM as a second family: `geap.PowerUtilityModel`,

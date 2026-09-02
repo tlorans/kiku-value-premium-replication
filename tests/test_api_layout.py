@@ -2,8 +2,8 @@ from pathlib import Path
 import geap
 
 
-def test_version_is_1_1_0():
-    assert geap.__version__ == "1.1.0"
+def test_version_is_1_2_0():
+    assert geap.__version__ == "1.2.0"
 
 
 def test_tidyfinance_is_a_runtime_dependency():
@@ -21,7 +21,7 @@ def test_pyproject_companion_metadata():
     extras = project["optional-dependencies"]
     extra_blob = "\n".join(x for group in extras.values() for x in group)
     assert project["name"] == "geap"
-    assert project["version"] == "1.1.0"
+    assert project["version"] == "1.2.0"
     assert project["requires-python"] == ">=3.11"
     assert "tidyfinance>=0.5.0" in deps
     assert "numpy>=1.26" in deps
@@ -43,6 +43,7 @@ def test_root_api_has_companion_names():
         "AssetPricingResults",
         "LongRunRisksModel",
         "PowerUtilityModel",
+        "CampbellCochraneModel",
         "GridResults",
         "AnalyticalResults",
         "SimulationResults",
@@ -75,7 +76,7 @@ def test_root_api_has_companion_names():
 
 def test_root_api_is_small():
     """The documented surface stays curated rather than hoisting everything."""
-    assert len(geap.__all__) <= 32
+    assert len(geap.__all__) <= 34
 
 
 def test_root_api_dropped_names():

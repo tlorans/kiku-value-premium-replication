@@ -1,0 +1,52 @@
+---
+title: "Mathematical detail"
+---
+
+Formulas used by `CampbellCochraneModel`. Notation follows Campbell and
+Cochrane (1999). The solver runs monthly; reported moments are
+annualized.
+
+## Surplus
+
+Habit $X_t$ is external. Surplus consumption is $S_t=(C_t-X_t)/C_t$,
+$s_t=\log S_t$. Consumption growth is i.i.d.,
+$\Delta c_{t+1}=g+v_{t+1}$, $v\sim N(0,\sigma^2)$. Log surplus is
+
+$$
+s_{t+1}=(1-\phi)\bar s+\phi s_t+\lambda(s_t)\,v_{t+1}.
+$$
+
+Steady-state surplus is $\bar S=\sigma\sqrt{\gamma/(1-\phi)}$. The
+sensitivity that keeps the bill locally constant ($b=0$) is
+
+$$
+\lambda(s)=\frac{1}{\bar S}\sqrt{1-2(s-\bar s)}-1
+\quad\text{for }s\le s_{\max}=\bar s+\tfrac12(1-\bar S^2),
+$$
+
+and $\lambda(s)=0$ above $s_{\max}$.
+
+## Kernel
+
+$$
+M_{t+1}=\delta G_{t+1}^{-\gamma}e^{-\gamma(s_{t+1}-s_t)},
+\qquad G_{t+1}=e^{\Delta c_{t+1}}.
+$$
+
+$\delta$ is set so the bill at $\bar s$ equals the annual 0.94 percent
+target of the paper.
+
+## Consumption claim
+
+The price-consumption ratio $P/C(s)$ solves
+
+$$
+\frac{P}{C}(s)=E\left[M'\,G'\left(1+\frac{P'}{C'}\right)\Bigm|s\right]
+$$
+
+on a grid for $s$, with Gauss-Hermite integration over $v$. Equity
+return is $G'(1+P'/C')/(P/C)$. The bill is $1/E[M\mid s]$. Annual
+returns are the product of twelve monthly gross returns.
+
+Source: Campbell and Cochrane (1999).
+[References](../reference/references.qmd).

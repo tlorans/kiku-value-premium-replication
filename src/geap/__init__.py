@@ -9,13 +9,13 @@ Documented import::
     print(res.summary())
     res.compare("value", "growth").premium
 
-Long-run risks (``geap.lrr``) and power utility (``geap.ccapm``)
-share :class:`~geap.base.AssetPricingModel`.
+Long-run risks (``geap.lrr``), power utility (``geap.ccapm``), and
+habit (``geap.habit``) share :class:`~geap.base.AssetPricingModel`.
 """
 
 from __future__ import annotations
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 from .base import (
     AssetPricingModel,
@@ -24,6 +24,7 @@ from .base import (
     Summary,
 )
 from .ccapm import PowerUtilityModel
+from .habit import CampbellCochraneModel
 from .lrr import (
     AnalyticalResults,
     ClaimParams,
@@ -52,7 +53,7 @@ from .lrr.empirical import (
     table_i,
     table_vi_data,
 )
-from . import ccapm, lrr
+from . import ccapm, habit, lrr
 from ._backend import use_backend as _use_backend
 
 # Frames cross the public boundary in whichever backend tidyfinance is set to.
@@ -65,6 +66,7 @@ __all__ = [
     "AssetPricingResults",
     "LongRunRisksModel",
     "PowerUtilityModel",
+    "CampbellCochraneModel",
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
@@ -90,4 +92,5 @@ __all__ = [
     "campbell_shiller_annual",
     "lrr",
     "ccapm",
+    "habit",
 ]

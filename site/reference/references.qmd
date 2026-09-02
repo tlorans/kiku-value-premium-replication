@@ -8,6 +8,10 @@ aliases:
   Resolution of Asset Pricing Puzzles*, Journal of Finance 59(4),
   1481 to 1509.
   [Published version](https://onlinelibrary.wiley.com/doi/10.1111/j.1540-6261.2004.00670.x)
+- Campbell, J. Y., and J. H. Cochrane, 1999, *By Force of Habit: A
+  Consumption-Based Explanation of Aggregate Stock Market Behavior*,
+  Journal of Political Economy 107(2), 205 to 251.
+  [Published version](https://doi.org/10.1086/250059)
 - Campbell, J. Y., and R. J. Shiller, 1988, *The Dividend-Price Ratio
   and Expectations of Future Dividends and Discount Factors*, Review of
   Financial Studies 1(3), 195 to 228.

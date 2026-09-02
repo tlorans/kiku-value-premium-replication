@@ -1,0 +1,42 @@
+---
+title: "Module reference"
+---
+
+```python
+import geap
+
+model = geap.CampbellCochraneModel()
+res = model.solve()
+res.compare("equity", "bill").premium
+```
+
+## The model
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `CampbellCochraneModel` | `(params=None, *, gamma=None, g=None, sigma=None, phi=None, rf=None, n_s=121, n_quad=8)` | External-habit specification. Defaults to Campbell and Cochrane (1999). |
+| `.solve` | `(method="grid")` | `CampbellCochraneResults`. `analytical` is the same surplus-grid solution. |
+| `.simulate` | `(n_samples=50, years=70, *, seed=0, burn_in=120)` | Finite-sample annual means. |
+| `.replace` | `(**kwargs)` | A new model with some arguments changed. |
+| `.sensitivity(s)` | | $\lambda(s)$. |
+| `.Sbar`, `.sbar`, `.s_max` | | Steady-state surplus (level and log) and the upper bound. |
+| `.claims` | property | `equity`, `bill`. |
+
+Annual paper numbers are converted to monthly inside the solver.
+
+## Results
+
+Returns are annualized net rates in percent.
+
+| Attribute | Meaning |
+|:---|:---|
+| `expected_returns` | Mean annual net return by claim |
+| `volatility` | Annual volatility by claim |
+| `mean_log_pd` | Mean log price-consumption; NaN for the bill |
+| `risk_free` | The bill, same units |
+| `summary()` | Formatted table |
+| `to_frame()` | One row per claim |
+| `compare(long, short)` | Long minus short |
+
+The family lives in `geap.habit`. `CampbellCochraneModel` is re-exported
+at the `geap` root.

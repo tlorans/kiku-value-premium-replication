@@ -30,6 +30,13 @@ website:
           - ccapm/examples.qmd
           - ccapm/math.qmd
           - ccapm/api.qmd
+      - section: "Habit"
+        contents:
+          - habit/index.qmd
+          - habit/user-guide.qmd
+          - habit/examples.qmd
+          - habit/math.qmd
+          - habit/api.qmd
       - section: "Reference"
         contents:
           - reference/glossary.qmd

@@ -55,6 +55,9 @@ endowment, Epstein–Zin preferences, Kiku (2006) cash-flow leverage.
 two-state consumption chain. The documented result is the equity
 premium puzzle.
 
+**Habit** (`CampbellCochraneModel`): Campbell and Cochrane (1999)
+external surplus. Time-varying risk aversion at $\gamma = 2$.
+
 ## Examples
 
 | Script | What it prints |
@@ -65,6 +68,7 @@ premium puzzle.
 | `examples/dcf_counterfactual.py` | The same cash-flows in a DCF and in the model |
 | `examples/robustness.py` | The premium as one parameter varies |
 | `examples/mehra_prescott.py` | Power-utility CCAPM, Mehra and Prescott (1985) |
+| `examples/campbell_cochrane.py` | External habit, Campbell and Cochrane (1999) |
 
 ## License
 

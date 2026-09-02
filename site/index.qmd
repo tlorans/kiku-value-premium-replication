@@ -11,12 +11,14 @@ and discount rate come from one economy.
 
 Families share [`AssetPricingModel`](lrr/api.qmd). Long-run risks is
 the persistent-growth, Epstein–Zin family. Power utility is the
-two-state CCAPM of Mehra and Prescott (1985).
+two-state CCAPM of Mehra and Prescott (1985). Habit is Campbell and
+Cochrane (1999) external surplus.
 
 | Family | Estimator | What it does |
 |:---|:---|:---|
 | [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Price named dividend claims on a persistent consumption process |
 | [Power utility](ccapm/index.qmd) | [`PowerUtilityModel`](ccapm/api.qmd) | Two-state consumption chain, power kernel, levered claims |
+| [Habit](habit/index.qmd) | [`CampbellCochraneModel`](habit/api.qmd) | External habit, surplus consumption, i.i.d. consumption growth |
 
 ```python
 import geap
@@ -73,4 +75,5 @@ Kiku (2006), Table I.
 
 [Installation](installation.qmd) ·
 [Long-run risks](lrr/index.qmd) ·
-[Power utility](ccapm/index.qmd)
+[Power utility](ccapm/index.qmd) ·
+[Habit](habit/index.qmd)

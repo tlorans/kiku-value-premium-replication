@@ -25,8 +25,13 @@ goes missing.
 | 10 | `site/ccapm/examples.qmd` | Examples | Power utility | — |
 | 11 | `site/ccapm/math.qmd` | Mathematical detail | Power utility | — |
 | 12 | `site/ccapm/api.qmd` | Module reference | Power utility | — |
-| 13 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
-| 14 | `site/reference/references.qmd` | References | Reference | `/references.html` |
+| 13 | `site/habit/index.qmd` | Habit | Habit | — |
+| 14 | `site/habit/user-guide.qmd` | User guide | Habit | — |
+| 15 | `site/habit/examples.qmd` | Examples | Habit | — |
+| 16 | `site/habit/math.qmd` | Mathematical detail | Habit | — |
+| 17 | `site/habit/api.qmd` | Module reference | Habit | — |
+| 18 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 19 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
 ## Conventions
 
