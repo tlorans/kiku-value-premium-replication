@@ -6,19 +6,19 @@ more, so what used to be pinned at construction is pinned here instead.
 import numpy as np
 import pytest
 
-import lrrcs as lrr
-from lrrcs.calibration import calibrate_claims
+import geap
+from geap.lrr.calibration import calibrate_claims
 
 
 @pytest.fixture(scope="module")
 def paper():
-    return lrr.LongRunRisksModel().solve(n_x=15, n_s=4)
+    return geap.LongRunRisksModel().solve(n_x=15, n_s=4)
 
 
 def _renamed_paper_model(**names):
     """The paper calibration under caller-chosen claim names."""
-    base = lrr.ModelParams().claims
-    return lrr.LongRunRisksModel(claims={
+    base = geap.ModelParams().claims
+    return geap.LongRunRisksModel(claims={
         names["long"]: base["value"],
         names["short"]: base["growth"],
         names["market"]: base["market"],
@@ -81,7 +81,7 @@ def test_compare_to_frame_is_one_row(paper):
 
 
 def test_analytical_compare_uses_the_long_run_premium():
-    res = lrr.LongRunRisksModel().solve(method="analytical")
+    res = geap.LongRunRisksModel().solve(method="analytical")
     cmp = res.compare("value", "growth")
     assert cmp.premium == pytest.approx(
         res.long_run_premium["value"] - res.long_run_premium["growth"]
@@ -123,7 +123,7 @@ def test_calibrated_cross_section_compares_without_roles():
         "junk": 0.01 + 0.2 * dc + rng.normal(0, 0.04, size=n),
         "market": 0.02 + 0.5 * dc + rng.normal(0, 0.03, size=n),
     }
-    model = lrr.LongRunRisksModel(claims=calibrate_claims(dc, series))
+    model = geap.LongRunRisksModel(claims=calibrate_claims(dc, series))
     assert set(model.params.claims) == {"quality", "junk", "market"}
     res = model.solve(method="analytical")
     assert np.isfinite(res.compare("quality", "junk").premium)

@@ -3,10 +3,9 @@ project:
   output-dir: _site
 
 website:
-  title: "lrrcs"
+  title: "geap"
   description: >
-    General-equilibrium long-run risks: prices and risk premia from one
-    consumption process and one investor.
+    General-equilibrium asset pricing models in Python.
   site-url: https://tlorans.github.io/kiku-value-premium-replication
   repo-url: https://github.com/tlorans/kiku-value-premium-replication
   search: true
@@ -16,33 +15,18 @@ website:
     search: true
     contents:
       - index.qmd
-      - section: "User guide"
+      - installation.qmd
+      - section: "Long-run risks"
         contents:
-          - guide/model.qmd
-          - guide/calibration.qmd
-          - guide/solution.qmd
-          - guide/examples.qmd
+          - lrr/index.qmd
+          - lrr/user-guide.qmd
+          - lrr/examples.qmd
+          - lrr/math.qmd
+          - lrr/api.qmd
       - section: "Reference"
         contents:
-          - reference/installation.qmd
-          - reference/api.qmd
           - reference/glossary.qmd
           - reference/references.qmd
-      - section: "Course"
-        contents:
-          - how-to-read.qmd
-          - chapters/01-two-free-numbers.qmd
-          - chapters/02-value-premium-in-the-data.qmd
-          - chapters/03-pricing-by-euler-equation.qmd
-          - chapters/04-epstein-zin-preferences.qmd
-          - chapters/05-long-run-risks.qmd
-          - chapters/06-log-linear-solution.qmd
-          - chapters/07-quadrature-solution.qmd
-          - chapters/08-calibrating-cash-flows.qmd
-          - chapters/09-the-market-test.qmd
-          - chapters/10-value-premium-resolved.qmd
-          - chapters/11-price-your-own-claim.qmd
-          - chapters/12-objections-and-limits.qmd
 
 format:
   html:

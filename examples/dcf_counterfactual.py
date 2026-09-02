@@ -27,15 +27,15 @@ from __future__ import annotations
 
 import numpy as np
 
-import lrrcs as lrr
-from lrrcs.model import Dynamics
+import geap
+from geap.lrr import Dynamics
 
 N_PATHS = 200
 N_YEARS = 74
 SEED = 7
 T = N_YEARS * 12
 
-model = lrr.LongRunRisksModel()
+model = geap.LongRunRisksModel()
 params = model.params
 sol = model.solve(method="analytical")
 sigma = params.cons.sigma

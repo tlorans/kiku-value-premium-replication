@@ -3,11 +3,12 @@
 Execution correctness is enforced by `quarto render` itself (cells run
 at build time), so these tests only pin what a render does not check:
 sidebar completeness, legacy-URL redirect coverage, leftover Jekyll
-syntax, and freeze coverage (CI renders from the committed freeze and
-must never silently skip an executed chapter).
+syntax, course furniture, and freeze coverage (CI renders from the
+committed freeze and must never silently skip an executed page).
 """
 from pathlib import Path
 
+import pytest
 import re
 import yaml
 
@@ -79,7 +80,6 @@ def test_legacy_urls_covered_by_aliases():
     for path in _qmd_files():
         for alias in _front_matter(path).get("aliases", []) or []:
             covered.add(alias)
-    # the Jekyll root permalink maps to index.qmd itself
     missing = LEGACY_URLS - covered
     assert not missing, f"legacy URLs without an alias: {sorted(missing)}"
 
@@ -92,38 +92,29 @@ def test_no_jekyll_residue():
             assert pat not in text, f"Jekyll residue {pat!r} in {path.name}"
 
 
-def _chapter_files():
-    return [p for p in _qmd_files() if "chapters" in p.parts]
-
-
-def test_exercises_have_answer_checks():
-    """Chapters with exercises ship a collapsed answer-check callout."""
-    for path in _chapter_files():
+def test_no_course_furniture():
+    """The site is a library, not a syllabus."""
+    banned = (
+        "How to read this course",
+        "## Takeaways",
+        "Check yourself",
+        "Part I —",
+        "Part II —",
+        "this course",
+        "this chapter",
+    )
+    offenders = {}
+    for path in _qmd_files():
         text = path.read_text(encoding="utf-8")
-        if "## Exercises" in text:
-            assert 'title="Check your answer"' in text, (
-                f"exercises without answer check: {path.name}"
-            )
+        hits = [s for s in banned if s in text]
+        if hits:
+            offenders[path.relative_to(SITE).as_posix()] = hits
+    assert not offenders, f"course furniture still on the site: {offenders}"
 
 
-def test_chapters_have_recall_callout():
-    """Every chapter ships a collapsed Recall callout before its exercises."""
-    for path in _chapter_files():
-        text = path.read_text(encoding="utf-8")
-        assert 'title="Recall"' in text, f"missing recall callout: {path.name}"
-        if "## Exercises" in text:
-            recall = text.find('title="Recall"')
-            exercises = text.find("## Exercises")
-            assert recall < exercises, (
-                f"recall callout must precede exercises: {path.name}"
-            )
-
-
-def test_chapters_link_references_page():
-    """Every chapter points to the references page (primary-source pointer)."""
-    for path in _chapter_files():
-        text = path.read_text(encoding="utf-8")
-        assert "references.qmd" in text, f"no references link: {path.name}"
+def test_no_chapters_directory():
+    assert not (SITE / "chapters").exists()
+    assert not (SITE / "how-to-read.qmd").exists()
 
 
 def test_freeze_covers_every_executed_page():
@@ -139,18 +130,13 @@ def test_freeze_covers_every_executed_page():
         )
 
 
-# Names removed from the public API in 0.6.0. They must not survive
-# anywhere the reader can see them, prose included: a chapter that
-# still names them teaches an API that no longer exists.
+# Names removed from the public API. They must not survive anywhere the
+# reader can see them, prose included.
 REMOVED_API_NAMES = (
-    # 0.7.0: roles left the model, calibration became per claim.
-    # Patterns are anchored so ordinary prose survives: "the value
-    # premium" is the subject of the course, `.value_premium` was an
-    # attribute; ClaimParams.from_loading is the new spelling of the
-    # old LongRunRisksModel.from_loading.
+    r"\blrrcs\b",
     r"\.value_premium",
     r"\.long_short_premium",
-    r"\.legs",
+    r"\.legs\b",
     "from_cashflows",
     "LongRunRisksModel.from_loading",
     "calibrate_from_data",
@@ -158,7 +144,6 @@ REMOVED_API_NAMES = (
     "resolve_legs",
     "get_table_ii_dividends",
     r"\.dividends\b",
-    # 0.6.0: the flat function pipeline
     "ModelSolver",
     "solve_analytical",
     "simulate_table_vii",

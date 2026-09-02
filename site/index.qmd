@@ -1,100 +1,76 @@
 ---
-title: "lrrcs"
+title: "geap"
 toc: false
 aliases:
   - /getting-started.html
 ---
 
-General-equilibrium long-run risks. Prices and risk premia from one
-consumption process and one investor.
+General-equilibrium asset pricing models in Python. Specify preferences
+and a consumption process, attach cash-flow claims, and solve. Forecast
+and discount rate come from one economy.
 
-A discounted cash flow takes expected cash-flows from one model and a
-risk premium from another. The two models do not have to agree about
-when times are bad. This package prices every claim inside one
-economy, so expected cash-flows and the risk premium come from the
-same exposure.
+The first family is long-run risks: Bansal and Yaron (2004) endowment,
+Epstein–Zin preferences, cash-flow leverage as in Kiku (2006). Later
+families will sit beside it and share
+[`AssetPricingModel`](lrr/api.qmd).
 
-Companion to [tidyfinance](https://www.tidy-finance.org/). The
-default calibration is Kiku (2006), Table II.
-
-## Install
-
-Python 3.11+.
-
-```bash
-git clone https://github.com/tlorans/kiku-value-premium-replication.git
-cd kiku-value-premium-replication
-uv pip install -e .
-```
-
-Details and the optional WRDS extras are on
-[Installation](reference/installation.qmd).
-
-## Basic example
+| Family | Estimator | What it does |
+|:---|:---|:---|
+| [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Price named dividend claims on a persistent consumption process |
 
 ```python
-import lrrcs as lrr
+import geap
 
-model = lrr.LongRunRisksModel()
+model = geap.LongRunRisksModel()
 res = model.solve()
 print(res.summary())
-
 res.compare("value", "growth", market="market").premium
 ```
 
-Change one input and solve again.
+The default calibration is Kiku (2006) Table II. Average returns never
+enter the cash-flow step. The premium is a prediction.
 
-```python
-lrr.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
-lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
+```{python}
+#| code-fold: true
+import geap
+import pandas as pd
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+model = geap.LongRunRisksModel()
+sim = model.simulate(n_samples=300, years=74, seed=0)
+vg = sim.compare("value", "growth", market="market")
+
+data_er = {"growth": 7.81, "value": 13.88, "market": 8.56}   # Kiku, Table I
+names = ("growth", "value", "market")
+df = pd.DataFrame({
+    "claim": names,
+    "data": [data_er[k] for k in names],
+    "model": [sim.expected_returns[k] for k in names],
+})
+(
+    GT(df)
+    .tab_header(title="Average annual returns, data and long-run risks")
+    .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
+    .fmt_number(columns=["data", "model"], decimals=2)
+    .tab_source_note(f"Value minus growth is about 6 points in the data "
+                     f"(Kiku, Table I) and {vg.premium:.1f} points in the model.")
+    .tab_source_note(f"The CAPM beta ratio of value to growth is "
+                     f"{vg.beta_ratio:.2f}.")
+    .tab_options(**KIKU_GT)
+)
 ```
 
-Table VII is one call.
+::: {.firewall}
+**Where each number comes from.** The code cell computes the model
+column at build time from the Table II calibration. Data numbers are
+Kiku (2006), Table I.
+:::
 
-```python
-print(model.simulate(n_samples=1000, years=74, seed=0).summary())
-```
-
-## Models
-
-| Object | What it does |
-| --- | --- |
-| [`LongRunRisksModel`](reference/api.qmd#the-model) | Specification. Defaults to Table II. |
-| `.solve(method="grid")` | Euler equation on the state grid. |
-| `.solve(method="analytical")` | Log-linear solution. Loadings and prices of risk. |
-| `.simulate(...)` | Finite-sample moments, the paper's Table VII object. |
-| `.replace(...)` | A new model with named parameters changed. |
-| `.compare(long, short)` | Spread between two priced claims. |
-
-See the [model](guide/model.qmd) and [solution](guide/solution.qmd)
-pages.
-
-## Claims
-
-A claim is a cash-flow stream. The model prices a set of named
-claims. Which two of them make a spread is asked after the solve.
-
-| Object | What it does |
-| --- | --- |
-| [`ClaimParams`](reference/api.qmd#claims) | Four cash-flow parameters of one claim. |
-| [`calibrate_claim`](reference/api.qmd#claims) | Measure those parameters from consumption and dividends. Returns do not enter. |
-| [`calibrate_claims`](reference/api.qmd#claims) | The same step for a whole cross-section. |
-| [`ClaimParams.from_loading`](reference/api.qmd#claims) | A synthetic claim that differs only in $\phi$. |
-
-See [Calibration](guide/calibration.qmd).
-
-## Data
-
-| Object | What it does |
-| --- | --- |
-| `build_annual_panel` | Growth, value, and market panel, 1930 to 2003. |
-| `table_i` / `table_vi_data` | Paper tables from that panel. |
-| `load_consumption` | Real per-capita nondurables and services growth. |
-
-## Examples
-
-Worked scripts live in `examples/` and are listed on
-[Examples](guide/examples.qmd).
-
-The twelve chapters that used to be the site are under
-[Course](how-to-read.qmd).
+[Installation](installation.qmd) · [User guide](lrr/user-guide.qmd) ·
+[Examples](lrr/examples.qmd) · [Mathematical detail](lrr/math.qmd) ·
+[Module reference](lrr/api.qmd)

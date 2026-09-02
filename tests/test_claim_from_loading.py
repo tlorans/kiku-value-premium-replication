@@ -1,12 +1,12 @@
 """Bring your own claim: ClaimParams.from_loading."""
 import math
 
-import lrrcs as lrr
+import geap
 
 
 def _priced(loading):
-    return lrr.LongRunRisksModel(
-        claims={"claim": lrr.ClaimParams.from_loading(loading)}
+    return geap.LongRunRisksModel(
+        claims={"claim": geap.ClaimParams.from_loading(loading)}
     ).solve(method="analytical")
 
 
@@ -42,8 +42,8 @@ def test_from_loading_growth_channel_is_consistent():
 
 
 def test_from_loading_composes_with_preference_overrides():
-    patient = lrr.LongRunRisksModel(
-        claims={"claim": lrr.ClaimParams.from_loading(2.6)}, gamma=7.5
+    patient = geap.LongRunRisksModel(
+        claims={"claim": geap.ClaimParams.from_loading(2.6)}, gamma=7.5
     )
     assert patient.params.prefs.gamma == 7.5
     assert patient.params.claims["claim"].phi == 2.6
@@ -51,9 +51,9 @@ def test_from_loading_composes_with_preference_overrides():
 
 def test_from_loading_is_just_a_claim():
     """It builds parameters, so several claims compose in one model."""
-    model = lrr.LongRunRisksModel(claims={
-        "high": lrr.ClaimParams.from_loading(1.5),
-        "low": lrr.ClaimParams.from_loading(0.5),
+    model = geap.LongRunRisksModel(claims={
+        "high": geap.ClaimParams.from_loading(1.5),
+        "low": geap.ClaimParams.from_loading(0.5),
     })
     res = model.solve(method="analytical")
     assert res.A1["high"] > res.A1["low"]

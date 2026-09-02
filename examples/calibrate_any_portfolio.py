@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import numpy as np
 
-import lrrcs as lrr
+import geap
 
 
 def generate_synthetic_annual_series(n_years: int = 74, seed: int = 42):
@@ -55,19 +55,19 @@ def main():
     print("\nSynthetic annual series generated (74 years).")
 
     # 2. Measure the long-run leverage of each leg (equation 19).
-    phi_value = lrr.estimate_long_run_leverage(dc, dd_value, window=2)
-    phi_growth = lrr.estimate_long_run_leverage(dc, dd_growth, window=2)
+    phi_value = geap.estimate_long_run_leverage(dc, dd_value, window=2)
+    phi_growth = geap.estimate_long_run_leverage(dc, dd_growth, window=2)
     print(f"\nDirect eq.-19 estimates: value phi = {phi_value:.2f}, "
           f"growth phi = {phi_growth:.2f}")
 
     # 3. Build the model from those same cash flows.
-    claims = lrr.calibrate_claims(
+    claims = geap.calibrate_claims(
         dc,
         {"value": dd_value, "growth": dd_growth, "market": dd_market},
         frequency="annual",
         window=2,          # paper uses a 2-year moving average
     )
-    model = lrr.LongRunRisksModel(claims=claims)
+    model = geap.LongRunRisksModel(claims=claims)
 
     print("\nCalibrated cash-flow parameters:")
     print(f"  {'claim':8s} {'mu':>9s} {'phi':>8s} {'phi_sigma':>10s} {'alpha':>7s}")

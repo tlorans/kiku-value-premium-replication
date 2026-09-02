@@ -10,12 +10,12 @@ import re
 import numpy as np
 import pytest
 
-import lrrcs as lrr
+import geap
 
 
 @pytest.fixture(scope="module")
 def model():
-    return lrr.LongRunRisksModel()
+    return geap.LongRunRisksModel()
 
 
 @pytest.fixture(scope="module")
@@ -25,11 +25,11 @@ def grid(model):
 
 # -- specification ------------------------------------------------------
 def test_default_model_is_the_table_ii_calibration(model):
-    assert model.params == lrr.ModelParams()
+    assert model.params == geap.ModelParams()
 
 
 def test_keyword_overrides_leave_the_rest_alone():
-    model = lrr.LongRunRisksModel(gamma=7.5, psi=0.5)
+    model = geap.LongRunRisksModel(gamma=7.5, psi=0.5)
     assert model.params.prefs.gamma == 7.5
     assert model.params.prefs.psi == 0.5
     assert model.params.prefs.delta == 0.999
@@ -38,7 +38,7 @@ def test_keyword_overrides_leave_the_rest_alone():
 
 def test_partial_claim_override_merges_onto_the_calibration():
     """The counterfactual idiom: change one number, keep the rest."""
-    model = lrr.LongRunRisksModel(claims={"value": {"phi": 2.6}})
+    model = geap.LongRunRisksModel(claims={"value": {"phi": 2.6}})
     value = model.params.claims["value"]
     assert value.phi == 2.6
     assert value.mu == 0.0019 and value.phi_sigma == 7.4 and value.alpha == 0.15
@@ -46,14 +46,14 @@ def test_partial_claim_override_merges_onto_the_calibration():
 
 
 def test_the_model_never_mutates_the_params_it_was_given():
-    params = lrr.ModelParams()
-    lrr.LongRunRisksModel(params, gamma=2.0, claims={"value": {"phi": 1.0}})
+    params = geap.ModelParams()
+    geap.LongRunRisksModel(params, gamma=2.0, claims={"value": {"phi": 1.0}})
     assert params.prefs.gamma == 10.0
     assert params.claims["value"].phi == 6.2
 
 
 def test_new_claim_names_replace_the_cross_section():
-    model = lrr.LongRunRisksModel(
+    model = geap.LongRunRisksModel(
         claims={
             "high": dict(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
             "low": dict(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
@@ -65,18 +65,18 @@ def test_new_claim_names_replace_the_cross_section():
 
 def test_partial_spec_for_an_unknown_claim_is_rejected():
     with pytest.raises(TypeError, match="needs all of"):
-        lrr.LongRunRisksModel(claims={"brand_new": {"phi": 3.0}})
+        geap.LongRunRisksModel(claims={"brand_new": {"phi": 3.0}})
 
 
 def test_replace_builds_a_new_model():
-    base = lrr.LongRunRisksModel(gamma=10.0)
+    base = geap.LongRunRisksModel(gamma=10.0)
     other = base.replace(gamma=5.0)
     assert other.params.prefs.gamma == 5.0
     assert base.params.prefs.gamma == 10.0
 
 
 def test_residual_corr_accepts_pairs_of_names():
-    model = lrr.LongRunRisksModel(
+    model = geap.LongRunRisksModel(
         claims={
             "high": dict(mu=0.0019, phi=6.2, phi_sigma=7.4, alpha=0.15),
             "low": dict(mu=0.0009, phi=2.6, phi_sigma=8.4, alpha=0.27),
@@ -84,7 +84,7 @@ def test_residual_corr_accepts_pairs_of_names():
         },
         residual_corr={("high", "low"): 0.2},
     )
-    from lrrcs.implications import residual_correlation
+    from geap.lrr.implications import residual_correlation
 
     assert residual_correlation(model.params, "high", "low") == 0.2
     assert residual_correlation(model.params, "high", "market") == 0.0
@@ -92,19 +92,19 @@ def test_residual_corr_accepts_pairs_of_names():
 
 # -- signatures the documentation relies on ------------------------------
 def test_solve_and_simulate_defaults():
-    solve = inspect.signature(lrr.LongRunRisksModel.solve).parameters
+    solve = inspect.signature(geap.LongRunRisksModel.solve).parameters
     assert solve["method"].default == "grid"
     assert solve["n_x"].default == 30
     assert solve["n_s"].default == 4
 
-    sim = inspect.signature(lrr.LongRunRisksModel.simulate).parameters
+    sim = inspect.signature(geap.LongRunRisksModel.simulate).parameters
     assert sim["n_samples"].default == 1000
     assert sim["years"].default == 74
     assert sim["seed"].default == 0
 
 
 def test_cross_method_options_are_rejected():
-    model = lrr.LongRunRisksModel()
+    model = geap.LongRunRisksModel()
     with pytest.raises(ValueError, match="analytical"):
         model.solve(method="grid", pd_anchor=3.0)
     with pytest.raises(ValueError, match="grid"):
@@ -194,7 +194,7 @@ def test_paper_column_only_for_the_paper_calibration(model):
     paper = model.simulate(n_samples=5, years=20, seed=0).summary().as_text()
     assert "Paper" in paper
     tweaked = (
-        lrr.LongRunRisksModel(gamma=7.5)
+        geap.LongRunRisksModel(gamma=7.5)
         .simulate(n_samples=5, years=20, seed=0)
         .summary()
         .as_text()
@@ -211,8 +211,8 @@ def test_simulation_is_deterministic_in_the_seed(model):
 
 def test_a_model_without_a_market_can_still_simulate():
     """Pre-0.7.0 this raised: simulation demanded a claim named market."""
-    model = lrr.LongRunRisksModel(
-        claims={"mine": lrr.ClaimParams.from_loading(2.6)}
+    model = geap.LongRunRisksModel(
+        claims={"mine": geap.ClaimParams.from_loading(2.6)}
     )
     sim = model.simulate(n_samples=5, years=20, seed=0)
     assert np.isfinite(sim.expected_returns["mine"])
@@ -222,7 +222,7 @@ def test_a_model_without_a_market_can_still_simulate():
 
 def test_value_premium_matches_the_pre_facade_band():
     """Continuity guard: every earlier release put this at 5.3791042785."""
-    sim = lrr.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
+    sim = geap.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
     cmp = sim.compare("value", "growth", market="market")
     assert 4.5 < cmp.premium < 6.5
     assert cmp.premium == pytest.approx(5.3791042785, abs=1e-9)
@@ -230,7 +230,7 @@ def test_value_premium_matches_the_pre_facade_band():
 
 def test_beta_ratio_is_the_mean_of_per_sample_ratios():
     """Not the ratio of the mean betas: the two differ by about 0.008."""
-    sim = lrr.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
+    sim = geap.LongRunRisksModel().simulate(n_samples=300, years=74, seed=0)
     cmp = sim.compare("value", "growth", market="market")
     assert cmp.beta_ratio == pytest.approx(0.8118025654055882, abs=1e-9)
     betas = sim.capm_betas("market")
@@ -246,7 +246,7 @@ def test_simulate_cashflows_has_one_row_per_series(model):
 
 # -- calibration ---------------------------------------------------------
 def test_calibration_never_takes_returns():
-    for fn in (lrr.calibrate_claim, lrr.calibrate_claims):
+    for fn in (geap.calibrate_claim, geap.calibrate_claims):
         assert "returns" not in inspect.signature(fn).parameters, fn.__name__
 
 
@@ -258,7 +258,7 @@ def test_calibrated_claims_build_a_model():
     dd_short = 0.01 + 0.2 * dc + rng.normal(0, 0.04, size=n)
     dd_market = 0.02 + 0.5 * dc + rng.normal(0, 0.03, size=n)
 
-    model = lrr.LongRunRisksModel(claims=lrr.calibrate_claims(
+    model = geap.LongRunRisksModel(claims=geap.calibrate_claims(
         dc, {"long": dd_long, "short": dd_short, "market": dd_market}
     ))
     assert set(model.params.claims) == {"long", "short", "market"}
@@ -283,7 +283,7 @@ def _growth_series(n=74, seed=42):
 def test_custom_claim_names_need_no_role_argument():
     """Naming your own cross-section is now just naming the dict keys."""
     dc, high, low, market = _growth_series()
-    model = lrr.LongRunRisksModel(claims=lrr.calibrate_claims(
+    model = geap.LongRunRisksModel(claims=geap.calibrate_claims(
         dc, {"quality": high, "junk": low, "market": market}
     ))
     assert set(model.params.claims) == {"quality", "junk", "market"}
@@ -295,6 +295,6 @@ def test_calibrating_one_claim_equals_calibrating_the_set():
     """The seam that makes calibration composable: no cross-claim coupling."""
     dc, high, low, market = _growth_series()
     series = {"quality": high, "junk": low, "market": market}
-    batch = lrr.calibrate_claims(dc, series)
+    batch = geap.calibrate_claims(dc, series)
     for name, dd in series.items():
-        assert lrr.calibrate_claim(dc, dd) == batch[name], name
+        assert geap.calibrate_claim(dc, dd) == batch[name], name

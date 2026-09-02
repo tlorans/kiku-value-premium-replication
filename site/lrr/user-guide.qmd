@@ -1,0 +1,129 @@
+---
+title: "User guide"
+aliases:
+  - /measuring-leverage.html
+---
+
+A model is a specification. Solving and simulating do not change it.
+To vary a parameter, build another model or call `replace`.
+
+```python
+import geap
+
+model = geap.LongRunRisksModel()                 # Table II
+res = model.solve()                              # quadrature grid
+print(res.summary())
+res.compare("value", "growth", market="market")  # a spread, afterwards
+```
+
+## Specify
+
+Keyword overrides merge onto Table II. A claim mapping that names only
+some fields merges onto that claim. Naming a claim Table II does not
+have replaces the whole cross-section, and then all four fields are
+required.
+
+```{python}
+import geap
+
+print(geap.LongRunRisksModel(gamma=7.5))
+print(geap.LongRunRisksModel(claims={"value": {"phi": 2.6}}))
+```
+
+`ClaimParams.from_loading(phi)` builds a synthetic claim that differs
+from another only in $\phi$.
+
+```{python}
+high = geap.ClaimParams.from_loading(1.5)
+low = geap.ClaimParams.from_loading(0.5)
+print(geap.LongRunRisksModel(claims={"high": high, "low": low}))
+```
+
+## Solve
+
+`method="grid"` (default) solves the Euler equations on the
+Tauchen–Hussey state space. That is where the paper's numbers come
+from. `n_x=30`, `n_s=4` is the paper's grid.
+
+`method="analytical"` is the log-linear approximation: instant, and the
+right tool for reading loadings $A_1$, $A_2$ and the long-run piece of
+the premium.
+
+```{python}
+model = geap.LongRunRisksModel()
+grid = model.solve()
+anal = model.solve(method="analytical")
+print(grid.method, list(grid.expected_returns.index))
+print(anal.method, f"A1 value={anal.A1['value']:.1f}")
+```
+
+Solving never mutates the model. A counterfactual is a new object:
+
+```{python}
+base = model.solve().compare("value", "growth").premium
+flat = model.replace(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
+print(f"Table II premium {base:.2f}; value phi=2.6 premium {flat:.2f}")
+```
+
+## Simulate
+
+`simulate` is the paper's Table VII object: the average, across
+samples, of statistics estimated on `years` years of annual data. It is
+not a population moment.
+
+```{python}
+sim = model.simulate(n_samples=300, years=74, seed=0)
+print(sim.compare("value", "growth", market="market").premium)
+```
+
+`simulate_cashflows` checks the endowment side only, no prices.
+`simulate_paths` returns one monthly path of $x_t$, $\sigma_t^2$, and
+growth rates.
+
+## Calibrate from cash flows
+
+`calibrate_claim(dc, dd)` measures one `ClaimParams` from consumption
+growth and a dividend series. `calibrate_claims` does a whole
+cross-section. Neither function has an argument that could accept a
+return.
+
+```python
+claims = geap.calibrate_claims(
+    dc,
+    {"value": dd_v, "growth": dd_g, "market": dd_m},
+    frequency="annual",
+    window=2,
+)
+geap.LongRunRisksModel(claims=claims).solve()
+```
+
+The annual slope is not the monthly $\phi$ the solver uses. The
+regression establishes the ranking. Table II's monthly loadings are
+chosen so that simulated annual slopes match the data slopes (Kiku,
+Table VI). Worked cells are on [Examples](examples.qmd).
+
+## Compare
+
+The model prices a set of named claims. Which two make a spread is a
+question you ask afterwards.
+
+```{python}
+cmp = grid.compare("value", "growth", market="market")
+print(cmp.premium, cmp.beta_ratio)
+```
+
+`to_frame()` on a comparison is one tidy row, for stacking a sweep.
+
+```{python}
+import pandas as pd
+
+rows = pd.concat([
+    model.replace(gamma=g).solve(method="analytical")
+         .compare("value", "growth").to_frame()
+    for g in (5, 10, 15)
+])
+print(rows[["premium"]])
+```
+
+Source: Kiku (2006), cash-flow estimation and Table II.
+[References](../reference/references.qmd).

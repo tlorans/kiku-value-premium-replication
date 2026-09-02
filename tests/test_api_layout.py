@@ -1,9 +1,9 @@
 from pathlib import Path
-import lrrcs as lrr
+import geap
 
 
-def test_version_is_0_7_0():
-    assert lrr.__version__ == "0.7.0"
+def test_version_is_1_0_0():
+    assert geap.__version__ == "1.0.0"
 
 
 def test_tidyfinance_is_a_runtime_dependency():
@@ -20,8 +20,8 @@ def test_pyproject_companion_metadata():
     deps = "\n".join(project["dependencies"])
     extras = project["optional-dependencies"]
     extra_blob = "\n".join(x for group in extras.values() for x in group)
-    assert project["name"] == "lrrcs"
-    assert project["version"] == "0.7.0"
+    assert project["name"] == "geap"
+    assert project["version"] == "1.0.0"
     assert project["requires-python"] == ">=3.11"
     assert "tidyfinance>=0.5.0" in deps
     assert "numpy>=1.26" in deps
@@ -38,7 +38,9 @@ def test_pyproject_companion_metadata():
 
 def test_root_api_has_companion_names():
     for name in (
-        # the model and its results
+        # the protocol and the first family
+        "AssetPricingModel",
+        "AssetPricingResults",
         "LongRunRisksModel",
         "GridResults",
         "AnalyticalResults",
@@ -66,13 +68,13 @@ def test_root_api_has_companion_names():
         "table_i",
         "table_vi_data",
     ):
-        assert hasattr(lrr, name), name
-        assert name in lrr.__all__, name
+        assert hasattr(geap, name), name
+        assert name in geap.__all__, name
 
 
 def test_root_api_is_small():
     """The documented surface stays curated rather than hoisting everything."""
-    assert len(lrr.__all__) <= 27
+    assert len(geap.__all__) <= 30
 
 
 def test_root_api_dropped_names():
@@ -99,7 +101,7 @@ def test_root_api_dropped_names():
         "print_table_vii",
         "print_calibration_summary",
         "print_moments",
-        # reachable through lrrcs.calibration, not at the root
+        # reachable through geap.lrr.calibration, not at the root
         "get_table_ii_claims",
         "simulate_cashflow_moments",
         # roles left the model in 0.7.0
@@ -109,19 +111,19 @@ def test_root_api_dropped_names():
         "DividendParams",
         "calibrate_from_data",
         "compute_asset_pricing_moments",
-        # reachable through lrrcs.empirical, not at the root
+        # reachable through geap.lrr.empirical, not at the root
         "figure1",
     ):
-        assert name not in lrr.__all__, name
-        assert not hasattr(lrr, name), name
+        assert name not in geap.__all__, name
+        assert not hasattr(geap, name), name
 
 
 def test_engines_stay_importable_by_module_path():
     """The clean break is at the root namespace, not in the subpackages."""
-    from lrrcs.calibration import calibrate_claims, simulate_cashflow_moments
-    from lrrcs.empirical import figure1
-    from lrrcs.implications import population_moments, simulate_table_vii
-    from lrrcs.model import ModelSolver, solve_analytical
+    from geap.lrr.calibration import calibrate_claims, simulate_cashflow_moments
+    from geap.lrr.empirical import figure1
+    from geap.lrr.implications import population_moments, simulate_table_vii
+    from geap.lrr import ModelSolver, solve_analytical
 
     for obj in (
         calibrate_claims,
@@ -137,10 +139,10 @@ def test_engines_stay_importable_by_module_path():
 
 def test_table_helpers_default_to_1930_2003():
     import inspect
-    sig = inspect.signature(lrr.table_i)
+    sig = inspect.signature(geap.table_i)
     assert sig.parameters["start"].default == 1930
     assert sig.parameters["end"].default == 2003
-    sig = inspect.signature(lrr.build_annual_panel)
+    sig = inspect.signature(geap.build_annual_panel)
     assert sig.parameters["start"].default == 1930
     assert sig.parameters["end"].default == 2003
 
@@ -150,7 +152,7 @@ def test_legs_module_is_gone():
     import importlib
     import pytest
     with pytest.raises(ModuleNotFoundError):
-        importlib.import_module("lrrcs.model.legs")
+        importlib.import_module("geap.lrr.legs")
 
 
 def test_old_flat_modules_are_gone():
@@ -158,7 +160,7 @@ def test_old_flat_modules_are_gone():
     import pytest
     for name in ("params", "solver", "moments", "simulation", "analytical"):
         with pytest.raises(ModuleNotFoundError):
-            importlib.import_module(f"lrrcs.{name}")
+            importlib.import_module(f"geap.{name}")
 
 
 def test_kiku_value_premium_is_gone():
@@ -169,7 +171,7 @@ def test_kiku_value_premium_is_gone():
 
 
 def test_no_climate_imports():
-    import lrrcs, sys
+    import geap, sys
     banned = [m for m in sys.modules if "climate_discount" in m or "corpo_research_papers" in m]
     assert banned == []
 
@@ -177,10 +179,10 @@ def test_no_climate_imports():
 def test_table_i_returns_pandas_by_default():
     import pandas as pd
     import tidyfinance as tf
-    import lrrcs as lrr
+    import geap
     tf.set_backend("pandas")
     bm = pd.read_csv("tests/fixtures/tiny_panel.csv")
-    out = lrr.table_i(bm)
+    out = geap.table_i(bm)
     assert isinstance(out, pd.DataFrame)
 
 
@@ -188,13 +190,13 @@ def test_table_i_returns_polars_when_backend_is_polars():
     import pandas as pd
     import polars as pl
     import tidyfinance as tf
-    import lrrcs as lrr
+    import geap
     tf.set_backend("polars")
     try:
         bm = pd.read_csv("tests/fixtures/tiny_panel.csv")
-        out = lrr.table_i(bm)
+        out = geap.table_i(bm)
         assert isinstance(out, pl.DataFrame)
-        out2 = lrr.table_i(pl.from_pandas(bm))
+        out2 = geap.table_i(pl.from_pandas(bm))
         assert isinstance(out2, pl.DataFrame)
     finally:
         tf.set_backend("pandas")
@@ -204,7 +206,7 @@ def test_results_frames_follow_the_backend():
     import pandas as pd
     import polars as pl
     import tidyfinance as tf
-    res = lrr.LongRunRisksModel().solve(n_x=15, n_s=4)
+    res = geap.LongRunRisksModel().solve(n_x=15, n_s=4)
     tf.set_backend("pandas")
     assert isinstance(res.to_frame(), pd.DataFrame)
     tf.set_backend("polars")
@@ -215,5 +217,12 @@ def test_results_frames_follow_the_backend():
 
 
 def test_no_lrr_set_backend():
-    import lrrcs as lrr
-    assert not hasattr(lrr, "set_backend")
+    import geap
+    assert not hasattr(geap, "set_backend")
+
+
+def test_lrrcs_import_fails():
+    import importlib
+    import pytest
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("lrrcs")

@@ -1,0 +1,146 @@
+---
+title: "Examples"
+aliases:
+  - /financial-data.html
+  - /time-series.html
+  - /cross-section.html
+  - /price-your-own-claim.html
+---
+
+```{python}
+#| code-fold: true
+from pathlib import Path
+import urllib.request
+
+DATA = Path("../../data")
+if not DATA.exists():
+    DATA = Path("data")
+    DATA.mkdir(exist_ok=True)
+    base = ("https://raw.githubusercontent.com/tlorans/"
+            "kiku-value-premium-replication/main/data/")
+    for f in ("annual_panel.csv", "consumption_annual.csv", "rf_annual.csv"):
+        if not (DATA / f).exists():
+            urllib.request.urlretrieve(base + f, DATA / f)
+```
+
+## Table II, solved
+
+The default model is the paper's calibration. `method="analytical"`
+reads loadings. The grid is the paper's quantitative solution.
+
+```{python}
+import geap
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+model = geap.LongRunRisksModel()
+print(model.solve(method="analytical").summary())
+```
+
+```{python}
+res = model.solve()
+print(res.compare("value", "growth", market="market").summary())
+```
+
+## Two firms that differ only in $\phi$
+
+```{python}
+import pandas as pd
+
+BASE = dict(mu=0.0015, phi_sigma=7.5, alpha=0.5)
+firms = geap.LongRunRisksModel(
+    claims={"A": dict(BASE, phi=0.5), "B": dict(BASE, phi=1.5)},
+).solve(method="analytical")
+
+names = list(firms.claims)
+rows = pd.DataFrame({
+    "firm": names,
+    "phi": [firms.params.claims[n].phi for n in names],
+    "a1": [firms.A1[n] for n in names],
+    "prem": [firms.long_run_premium[n] for n in names],
+})
+(
+    GT(rows)
+    .tab_header(title="Two firms that differ only in the loading")
+    .cols_label(firm="firm", phi="phi", a1="A1", prem="long-run premium %")
+    .fmt_number(columns="phi", decimals=1)
+    .fmt_number(columns="a1", decimals=1)
+    .fmt_number(columns="prem", decimals=2)
+    .tab_options(**KIKU_GT)
+)
+```
+
+Firm B tracks the persistent component, so $A_1$ is positive and the
+long-run premium is positive. Firm A's loading sits below
+$1/\psi = 0.67$, so $A_1$ is negative: a hedge.
+
+## Loadings from 1930 to 2003 cash flows
+
+Returns do not enter. The annual slope $\tilde\phi$ is the estimable
+counterpart of monthly $\phi$. Value's slope must come out above
+growth's if the story is right.
+
+```{python}
+import numpy as np
+import pandas as pd
+
+dc = pd.read_csv(DATA / "consumption_annual.csv").sort_values("year")
+panel = pd.read_csv(DATA / "annual_panel.csv")
+y = dc["dc"].to_numpy()
+
+def dgrowth(claim):
+    rows = panel[panel["claim"] == claim].merge(dc, on="year").sort_values("year")
+    return rows["dgrowth"].to_numpy()
+
+measured = geap.calibrate_claims(
+    y,
+    {"growth": dgrowth("Growth"), "value": dgrowth("Value"),
+     "market": dgrowth("Market")},
+    frequency="annual",
+    window=2,
+)
+slopes = pd.DataFrame({
+    "claim": list(measured),
+    "phi_annual": [measured[n].phi for n in measured],
+})
+(
+    GT(slopes)
+    .tab_header(title="Annual cash-flow slopes, 1930 to 2003")
+    .cols_label(claim="claim", phi_annual="annual slope")
+    .fmt_number(columns="phi_annual", decimals=2)
+    .tab_source_note("calibrate_claims on the shipped CSVs. Returns are not an input.")
+    .tab_options(**KIKU_GT)
+)
+```
+
+The paper's Table VI data slopes are 0.55 (growth), 3.04 (value), and
+1.26 (market). The reconstruction is inside those standard errors; see
+`tests/test_empirical_goldens.py`. The monthly Table II loadings are a
+separate object: they are chosen so simulated annual slopes match the
+data slopes.
+
+::: {.firewall}
+**Where each number comes from.** Table VI figures 0.55, 3.04, and 1.26
+are Kiku (2006). The table above is computed from the shipped CSVs.
+:::
+
+## Simulated Table VII
+
+```{python}
+sim = model.simulate(n_samples=300, years=74, seed=0)
+vg = sim.compare("value", "growth", market="market")
+print(f"premium {vg.premium:.2f}, beta ratio {vg.beta_ratio:.2f}")
+```
+
+The paper's model column for the value premium is 5.29 (Kiku, Table
+VII). A 300-sample run is noisier than the paper's 1000.
+
+Scripts under `examples/` repeat these workflows outside the site:
+`run_paper.py`, `two_firms.py`, `calibrate_any_portfolio.py`.
+
+Source: Kiku (2006), Tables I, VI, VII, and equation (19).
+[References](../reference/references.qmd).
