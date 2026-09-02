@@ -78,6 +78,70 @@ Firm B tracks the persistent component, so $A_1$ is positive and the
 long-run premium is positive. Firm A's loading sits below
 $1/\psi = 0.67$, so $A_1$ is negative: a hedge.
 
+```{python}
+#| fig-cap: "Long-run risk premium as cash-flow leverage phi varies. The vertical line is 1/psi = 0.67, below which the claim is a hedge."
+from plotnine import (
+    ggplot, aes, geom_line, geom_vline, labs,
+    theme_minimal, theme, element_blank, element_line, element_text,
+)
+
+INK, RED, GRID, BODY = "#1b1714", "#7a1f1f", "#e2d6c4", "#2d2926"
+phis = [0.2 + 0.2 * i for i in range(16)]
+sweep = pd.DataFrame({
+    "phi": phis,
+    "premium": [
+        geap.LongRunRisksModel(
+            claims={"mine": dict(BASE, phi=p)}
+        ).solve(method="analytical").long_run_premium["mine"]
+        for p in phis
+    ],
+})
+(
+    ggplot(sweep, aes("phi", "premium"))
+    + geom_line(color=RED, size=0.9)
+    + geom_vline(xintercept=1.0 / 1.5, color=INK, linetype="dashed", size=0.4)
+    + labs(x="phi", y="long-run premium (%)")
+    + theme_minimal(base_size=11)
+    + theme(
+        figure_size=(6.5, 3.2),
+        text=element_text(color=BODY),
+        panel_grid_minor=element_blank(),
+        panel_grid_major=element_line(color=GRID, size=0.4),
+        axis_line=element_line(color=INK, size=0.5),
+    )
+)
+```
+
+## Expected growth is small and persistent
+
+```{python}
+#| fig-cap: "One simulated path of expected growth x and consumption growth dc. x is a few tenths of a percent per month and moves slowly; dc is mostly transitory noise around it."
+path = geap.LongRunRisksModel().simulate_paths(480, seed=3)
+if not isinstance(path, pd.DataFrame):
+    path = path.to_pandas()
+path = path.reset_index(drop=True)
+path["month"] = range(1, len(path) + 1)
+long = path.melt(
+    id_vars="month", value_vars=["x", "dc"],
+    var_name="series", value_name="growth",
+)
+(
+    ggplot(long, aes("month", "growth", color="series"))
+    + geom_line()
+    + labs(x="month", y="growth")
+    + theme_minimal(base_size=11)
+    + theme(
+        figure_size=(6.5, 3.2),
+        text=element_text(color=BODY),
+        panel_grid_minor=element_blank(),
+        panel_grid_major=element_line(color=GRID, size=0.4),
+        axis_line=element_line(color=INK, size=0.5),
+        legend_title=element_blank(),
+        legend_position="top",
+    )
+)
+```
+
 ## Loadings from 1930 to 2003 cash flows
 
 Returns do not enter. The annual slope $\tilde\phi$ is the estimable

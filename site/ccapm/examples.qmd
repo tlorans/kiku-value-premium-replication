@@ -45,21 +45,41 @@ column is computed by the cell.
 ## Risk aversion does not close the gap
 
 ```{python}
-rows = pd.concat([
-    geap.PowerUtilityModel(gamma=g).solve()
-        .compare("equity", "bill").to_frame()
-        .assign(gamma=g)
-    for g in (2, 5, 10)
-])
+#| fig-cap: "Equity premium and bill rate as gamma varies, delta = 0.99. The dashed line is the 6.18 point sample premium. The model never reaches it in this range, and the bill rises with gamma."
+from plotnine import (
+    ggplot, aes, geom_line, geom_hline, labs,
+    theme_minimal, theme, element_blank, element_line, element_text,
+    scale_color_manual,
+)
+
+INK, RED, GRID, BODY = "#1b1714", "#7a1f1f", "#e2d6c4", "#2d2926"
+gammas = list(range(1, 11))
+rows = []
+for g in gammas:
+    res = geap.PowerUtilityModel(gamma=g).solve()
+    rows.append({"gamma": g, "series": "premium", "value": res.compare("equity", "bill").premium})
+    rows.append({"gamma": g, "series": "bill", "value": res.expected_returns["bill"]})
+curve = pd.DataFrame(rows)
 (
-    GT(rows[["gamma", "premium"]])
-    .tab_header(title="Model equity premium as gamma varies")
-    .cols_label(gamma="gamma", premium="premium %")
-    .fmt_number(columns="gamma", decimals=0)
-    .fmt_number(columns="premium", decimals=2)
-    .tab_options(**KIKU_GT)
+    ggplot(curve, aes("gamma", "value", color="series"))
+    + geom_line(size=0.9)
+    + geom_hline(yintercept=6.18, color=INK, linetype="dashed", size=0.4)
+    + scale_color_manual(values={"premium": RED, "bill": INK})
+    + labs(x="gamma", y="percent")
+    + theme_minimal(base_size=11)
+    + theme(
+        figure_size=(6.5, 3.2),
+        text=element_text(color=BODY),
+        panel_grid_minor=element_blank(),
+        panel_grid_major=element_line(color=GRID, size=0.4),
+        axis_line=element_line(color=INK, size=0.5),
+        legend_title=element_blank(),
+        legend_position="top",
+    )
 )
 ```
+
+The dashed line is Mehra and Prescott's 6.18 point sample premium.
 
 ## A levered claim
 

@@ -48,10 +48,40 @@ the cell. Campbell and Cochrane (1999) target a postwar premium of
 6.64 points and a bill of 0.94 percent.
 :::
 
-## Steady-state surplus
+## Sensitivity rises in bad times
+
+$\lambda(s)$ is large when surplus is low, so a consumption shock moves
+marginal utility more in recessions.
 
 ```{python}
+#| fig-cap: "Sensitivity lambda(s) against log surplus. The vertical line is the steady state. Sensitivity is highest at low surplus and hits zero above s_max."
+import numpy as np
+from plotnine import (
+    ggplot, aes, geom_line, geom_vline, labs,
+    theme_minimal, theme, element_blank, element_line, element_text,
+)
+
+INK, RED, GRID, BODY = "#1b1714", "#7a1f1f", "#e2d6c4", "#2d2926"
 model = geap.CampbellCochraneModel()
+s = np.linspace(model.sbar - 4.0, model.s_max + 0.05, 300)
+curve = pd.DataFrame({"s": s, "lambda": model.sensitivity(s)})
+(
+    ggplot(curve, aes("s", "lambda"))
+    + geom_line(color=RED, size=0.9)
+    + geom_vline(xintercept=model.sbar, color=INK, linetype="dashed", size=0.4)
+    + labs(x="log surplus s", y="lambda(s)")
+    + theme_minimal(base_size=11)
+    + theme(
+        figure_size=(6.5, 3.2),
+        text=element_text(color=BODY),
+        panel_grid_minor=element_blank(),
+        panel_grid_major=element_line(color=GRID, size=0.4),
+        axis_line=element_line(color=INK, size=0.5),
+    )
+)
+```
+
+```{python}
 print(f"Sbar = {model.Sbar:.4f}")
 print(f"lambda(sbar) = {float(model.sensitivity(model.sbar)):.3f}")
 ```
