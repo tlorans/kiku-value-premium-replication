@@ -2,6 +2,9 @@
 title: "Module reference"
 ---
 
+`PowerUtilityModel` is the two-state power utility model in `geap`, and it defaults to Mehra and Prescott (1985).
+The following snippet constructs the default model and solves it, and `compare("equity", "bill").premium` is the gap in expected return between `equity` and `bill`.
+
 ```python
 import geap
 
@@ -22,12 +25,13 @@ res.compare("equity", "bill").premium
 | `.consumption_growth` | property | The two gross growth rates. |
 | `.transition` | property | 2×2 transition matrix. |
 
-`claims={"high": {"phi": 3}}` adds a levered consumption claim.
-`equity` defaults to $\phi=1$. `bill` cannot take a `phi`.
+You can add extra levered consumption claims with the `claims` argument.
+For example, `claims={"high": {"phi": 3}}` adds a claim named `high` whose dividend growth is consumption growth to the power $\phi=3$.
+Moreover, `equity` defaults to $\phi=1$, and `bill` cannot take a `phi`.
 
 ## Results
 
-Returns are annualized net rates in percent.
+Returns are annualized net rates in percent, and `compare(long, short)` reports long minus short in the same units.
 
 | Attribute | Meaning |
 |:---|:---|
@@ -39,5 +43,5 @@ Returns are annualized net rates in percent.
 | `to_frame()` | One row per claim |
 | `compare(long, short)` | Long minus short |
 
-The family lives in `geap.ccapm`. `PowerUtilityModel` is re-exported at
-the `geap` root.
+The family lives in `geap.ccapm`, and `PowerUtilityModel` is re-exported at the `geap` root.
+You can construct the model after `import geap` without a separate `geap.ccapm` import.

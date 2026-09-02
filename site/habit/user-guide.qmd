@@ -2,7 +2,8 @@
 title: "User guide"
 ---
 
-A model is a specification. Solving does not change it.
+A `CampbellCochraneModel` object is a specification of the economy, and
+calling `solve` does not change the object.
 
 ```python
 import geap
@@ -15,8 +16,10 @@ res.compare("equity", "bill").premium
 
 ## Specify
 
-Keyword overrides merge onto Campbell and Cochrane (1999). Numbers are
-annual; the solver converts them to monthly.
+You pass keyword arguments to change selected parameters of
+`CampbellCochraneModel`, and parameters you omit keep the Campbell and
+Cochrane (1999) values. The numbers you pass are annual, and the
+solver converts them to monthly.
 
 ```{python}
 import geap
@@ -27,8 +30,9 @@ print(geap.CampbellCochraneModel(gamma=5))
 
 ## Solve
 
-`solve` iterates the consumption claim's price-consumption ratio on a
-surplus grid, then annualizes a long monthly path.
+You call `solve` to obtain expected returns from the specification.
+The method iterates the price-consumption ratio of the consumption
+claim on a surplus grid, and it then annualizes a long monthly path.
 
 ```{python}
 res = geap.CampbellCochraneModel().solve()
@@ -36,7 +40,8 @@ print(res.expected_returns)
 print(res.compare("equity", "bill").premium)
 ```
 
-A counterfactual is a new model:
+A counterfactual is a new model, and `replace` returns the new model
+without changing the original parameters.
 
 ```{python}
 base = geap.CampbellCochraneModel()
@@ -46,12 +51,14 @@ print(base.gamma)
 
 ## Simulate
 
-`simulate` draws finite annual samples from the same monthly economy.
+You call `simulate` to draw finite annual samples from the same
+monthly economy used by `solve`. `compare` works on the draws as it
+works on the object returned by `solve`.
 
 ```{python}
 sim = geap.CampbellCochraneModel().simulate(n_samples=15, years=40, seed=0)
 print(sim.compare("equity", "bill").premium)
 ```
 
-Source: Campbell and Cochrane (1999).
+The source is Campbell and Cochrane (1999), and the bibliography is on
 [References](../reference/references.qmd).

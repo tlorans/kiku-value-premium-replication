@@ -38,6 +38,7 @@ aliases:
   Econometrica 59(2), 371 to 396.
   [JSTOR](https://www.jstor.org/stable/2938261)
 
-In-text citations across the site link to this page. A few references
-named on individual pages, e.g., Fama and French on the sort and Weil
-on the preferences, are cited where they are used.
+In-text citations across the site link to the list above, and a few
+references named on individual pages, e.g., Fama and French on the
+sort and Weil on the preferences, are cited on the page that uses
+them.

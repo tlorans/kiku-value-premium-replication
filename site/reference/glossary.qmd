@@ -6,20 +6,20 @@ aliases:
 
 | Term | Meaning |
 |:---|:---|
-| loading ($\phi$) | how strongly a claim's dividend growth moves with the persistent component of consumption; the model's characteristic, measured from cash flows |
-| persistent component ($x_t$) | the slow-moving deviation of expected consumption growth from its mean |
-| half-life | time for a shock to $x_t$ to decay by half: $\log(0.5)/\log(\rho)$, about 34 months at $\rho = 0.98$ |
-| P/D ratio | price per unit of annual dividend; its log is the valuation measure |
-| beta | slope of a claim's return on the market's return (CAPM) |
-| EIS ($\psi$) | elasticity of intertemporal substitution: response of consumption plans to interest rates |
-| risk aversion ($\gamma$) | willingness to pay to avoid consumption risk |
-| $\theta$ | the Epstein–Zin composite $(1-\gamma)/(1-1/\psi)$; its distance from 1 measures how far the preferences are from power utility |
-| pricing kernel / stochastic discount factor ($M$) | the household's intertemporal marginal rate of substitution; prices every claim through $E_t[M_{t+1} R_{i,t+1}] = 1$ |
-| Euler equation | $E_t[M_{t+1}R_{i,t+1}]=1$: every asset's return, weighted by the household's marginal utility, has expected value one |
-| cash-flow news | revision in expected dividends |
-| discount-rate news | revision in expected returns |
-| log-linearization | the approximation $r_{t+1} \approx \text{const} + \Delta d_{t+1} + \kappa_1 z_{t+1} - z_t$ that makes the valuation ratio linear in the state |
-| $\kappa_1$ | the log-linearization constant $e^{\bar z}/(1+e^{\bar z})$, near 0.997, that discounts next period's valuation ratio |
+| loading ($\phi$) | The loading measures how strongly a claim's dividend growth moves with the persistent component of consumption. The loading is the model's characteristic, and it is measured from cash flows. |
+| persistent component ($x_t$) | The persistent component is the deviation of expected consumption growth from its mean, and the deviation decays slowly. |
+| half-life | The half-life is the time for a shock to $x_t$ to decay by half. It equals $\log(0.5)/\log(\rho)$, and it is about 34 months at $\rho = 0.98$. |
+| P/D ratio | The P/D ratio is the price per unit of annual dividend, and the log of the P/D ratio is the valuation measure. |
+| beta | Beta is the slope of a claim's return on the market's return in the CAPM. |
+| EIS ($\psi$) | The EIS is the elasticity of intertemporal substitution, and it is the response of consumption plans to interest rates. |
+| risk aversion ($\gamma$) | Risk aversion is the willingness to pay to avoid consumption risk. |
+| $\theta$ | $\theta$ is the Epstein-Zin composite $(1-\gamma)/(1-1/\psi)$, and the distance of $\theta$ from 1 measures how far the preferences are from power utility. |
+| pricing kernel / stochastic discount factor ($M$) | The pricing kernel is the household's intertemporal marginal rate of substitution, and every claim is priced through $E_t[M_{t+1} R_{i,t+1}] = 1$. |
+| Euler equation | The Euler equation is $E_t[M_{t+1}R_{i,t+1}]=1$, so every asset's return, weighted by the household's marginal utility, has expected value one. |
+| cash-flow news | Cash-flow news is a revision in expected dividends. |
+| discount-rate news | Discount-rate news is a revision in expected returns. |
+| log-linearization | Log-linearization is the approximation $r_{t+1} \approx \text{const} + \Delta d_{t+1} + \kappa_1 z_{t+1} - z_t$, and the approximation makes the valuation ratio linear in the state. |
+| $\kappa_1$ | $\kappa_1$ is the log-linearization constant $e^{\bar z}/(1+e^{\bar z})$, near 0.997, and it discounts next period's valuation ratio. |
 
-Formulas: [Mathematical detail](../lrr/math.qmd).
-[References](references.qmd).
+The formulas are in [Mathematical detail](../lrr/math.qmd).
+A reference list is in [References](references.qmd).

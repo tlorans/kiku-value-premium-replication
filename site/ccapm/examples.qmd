@@ -2,7 +2,11 @@
 title: "Examples"
 ---
 
-## The puzzle at $\gamma = 10$
+## The equity premium puzzle at $\gamma = 10$
+
+`PowerUtilityModel` at $\gamma = 10$ and $\delta = 0.99$ prices equity
+and the bill. The table reports the model's expected net returns next
+to Mehra and Prescott's sample means for 1889 to 1978.
 
 ```{python}
 import geap
@@ -37,12 +41,16 @@ prem = res.compare("equity", "bill").premium
 ```
 
 ::: {.firewall}
-**Where each number comes from.** Data columns are Mehra and Prescott
-(1985), 1889–1978 (equity 6.98, bill 0.80, premium 6.18). The model
-column is computed by the cell.
+The data columns are from Mehra and Prescott (1985) for 1889 to 1978,
+with equity at 6.98, the bill at 0.80, and a premium of 6.18. The
+model column is computed by the cell.
 :::
 
 ## Risk aversion does not close the gap
+
+The model premium stays below the 6.18 point sample premium as $\gamma$
+runs from 1 to 10 with $\delta$ held at 0.99. The bill rate rises with
+$\gamma$, so higher risk aversion does not close the gap.
 
 ```{python}
 #| fig-cap: "Equity premium and bill rate as gamma varies, delta = 0.99. The dashed line is the 6.18 point sample premium. The model never reaches it in this range, and the bill rises with gamma."
@@ -79,9 +87,16 @@ curve = pd.DataFrame(rows)
 )
 ```
 
-The dashed line is Mehra and Prescott's 6.18 point sample premium.
+The dashed line is Mehra and Prescott's 6.18 point sample premium, and
+the plotted model premium remains below it for every $\gamma$ from 1 to
+10.
 
 ## A levered claim
+
+A claim with $\phi = 3$ has dividend growth equal to consumption growth
+raised to the power 3. The cell prints the premium of the high claim
+over the bill, and then the premium of equity over the bill from the
+same solution.
 
 ```{python}
 res = geap.PowerUtilityModel(claims={"high": {"phi": 3}}).solve()
@@ -89,5 +104,5 @@ print(res.compare("high", "bill").premium)
 print(res.compare("equity", "bill").premium)
 ```
 
-Source: Mehra and Prescott (1985).
+The source is Mehra and Prescott (1985), and the bibliography is on
 [References](../reference/references.qmd).

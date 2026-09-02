@@ -5,9 +5,9 @@ aliases:
   - /package.html
 ---
 
-Python 3.11 or newer. The core install solves Table II with no
-credentials and no downloads. `tidyfinance` is required only to rebuild
-CRSP / Compustat from WRDS.
+The package needs Python 3.11 or newer. The core install lets you solve
+Table II with no credentials and no downloads, and `tidyfinance` is
+required only if you rebuild CRSP / Compustat from WRDS.
 
 ```bash
 git clone https://github.com/tlorans/kiku-value-premium-replication.git
@@ -23,35 +23,36 @@ import geap
 sys.version_info[:2], geap.__version__
 ```
 
-From a notebook, without a clone:
+You can install from a notebook without cloning the repository.
 
 ```bash
 pip install "geap[fast] @ git+https://github.com/tlorans/kiku-value-premium-replication.git"
 ```
 
-The analytical solution is instant:
+The analytical solution returns immediately.
 
 ```{python}
 model = geap.LongRunRisksModel()
 print(model.solve(method="analytical").summary())
 ```
 
-The quadrature solution is the same two lines with the default method.
-It takes a few seconds:
+The quadrature solution uses the same two lines with the default method,
+and it takes a few seconds.
 
 ```{python}
 res = model.solve()
 print(res.summary())
 ```
 
-The model prices the claims as a set. Name the two you want to compare:
+The model prices the claims as a set, and you name the two claims you
+want to compare.
 
 ```{python}
 print(res.compare("value", "growth", market="market").summary())
 ```
 
 No number on a documentation page is typed by hand. A model number is
-printed by a cell on that page. A data number is attributed to Kiku
+printed by a cell on the page, and a data number is attributed to Kiku
 (2006).
 
 ## Extras
@@ -74,22 +75,22 @@ pl.__version__, p9.__version__
 
 ## WRDS
 
-Rebuilding CRSP / Compustat from scratch needs credentials. If you stay
-with the shipped 1930 to 2003 CSVs, skip this section. Run once per
-machine:
+Rebuilding CRSP / Compustat from scratch needs credentials. Skip the
+WRDS setup if you stay with the shipped 1930 to 2003 CSVs, or run the
+following command once per machine.
 
 ```python
 tf.set_wrds_credentials()
 ```
 
-The call writes a `.env` file that the downloader reads.
-`geap.build_annual_panel(refresh=True)` then queries WRDS, and
+`tf.set_wrds_credentials()` writes a `.env` file that the downloader
+reads. `geap.build_annual_panel(refresh=True)` then queries WRDS, and
 `refresh=False` reuses `data/raw/*.parquet` or the shipped CSVs.
 
 If credentials are missing, the call raises `EmpiricalDataError` with a
 message telling you to call `tf.set_wrds_credentials()`.
 
-Consumption and the deflator come from FRED:
+Consumption and the deflator come from FRED.
 
 ```python
 import geap
@@ -99,10 +100,10 @@ defl = geap.load_deflator()       # PCE implicit price deflator
 ```
 
 The stock panel needs CRSP monthly returns with `retx`, Compustat book
-equity merged through the CCM links, and the Davis–Fama–French
+equity merged through the CCM links, and the Davis-Fama-French
 historical book-equity file for the years before Compustat's coverage
 begins. `geap.build_annual_panel` runs the construction: the quintile
-sort, the value weighting, the Campbell–Shiller recovery of the return
+sort, the value weighting, the Campbell-Shiller recovery of the return
 identity, deflation, and the real bill rate.
 
 ```python

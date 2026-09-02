@@ -6,27 +6,31 @@ aliases:
   - /objections.html
 ---
 
-A discounted cash flow takes a growth forecast from one model and a
-discount rate from another. Nothing forces the two to agree. A
-general-equilibrium model derives both from one consumption process and
-one set of preferences, and then prices every claim on that economy.
+A discounted cash flow uses a growth forecast from one model and a
+discount rate from another, and nothing requires the growth forecast
+and the discount rate to be consistent with each other. A
+general-equilibrium model derives the growth forecast and the discount
+rate from one consumption process and one set of preferences, and then
+prices every claim on the economy.
 
-Long-run risks is the first family in `geap`. Consumption growth carries
-a small, highly persistent component under transitory noise (Bansal and
-Yaron 2004). An Epstein–Zin household prices news about that component.
-A claim is a dividend process that loads on it. The loading $\phi$ is
-measured from cash flows. Returns never enter the measurement. The
-premium the model then prints is a prediction.
+Long-run risks is the first family in `geap`. Consumption growth
+carries a small and highly persistent component under transitory noise
+(Bansal and Yaron 2004). An Epstein-Zin household prices news about
+the persistent component, and a claim is a dividend process that loads
+on the persistent component. The loading $\phi$ is measured from cash
+flows, and returns never enter the measurement. The premium the model
+then returns is a prediction.
 
-Kiku (2006) uses that structure on value and growth portfolios. Value's
-dividends load more on the persistent component than growth's
-($\phi = 6.2$ versus $2.6$ in Table II). The same household then
-returns value's high premium and low price-dividend ratio together. The
-CAPM cannot: the two legs have nearly identical market betas.
+Kiku (2006) uses the long-run risks structure on value and growth
+portfolios. Value's dividends load more on the persistent component
+than growth's ($\phi = 6.2$ versus $2.6$ in Table II). The same
+household then returns value's high premium and low price-dividend
+ratio together. The CAPM cannot return both, because the two legs have
+nearly identical market betas.
 
 ## Endowment
 
-Four equations (Kiku 2006, eq. 6):
+The endowment follows Kiku (2006, eq. 6).
 
 $$
 \Delta c_{t+1} = \mu_c + x_t + \sigma_t\, \eta_{t+1}
@@ -44,10 +48,11 @@ $$
 \Delta d_{i,t+1} = \mu_i + \phi_i\, x_t + \varphi_{\sigma,i}\, \sigma_t\, u_{i,t+1}
 $$
 
-$x_t$ is the deviation of expected growth from its mean, a few tenths
-of a percent per month, persistence $\rho = 0.98$. A shock to it is
-news about the next decade of consumption. $\phi_i$ is the only
-parameter that differs across claims in an economically central way.
+$x_t$ is the deviation of expected growth from its mean, and the
+deviation is a few tenths of a percent per month with persistence
+$\rho = 0.98$. A shock to $x_t$ is news about the next decade of
+consumption. $\phi_i$ is the only parameter that differs across claims
+in an economically important way.
 
 ```{python}
 import geap
@@ -61,32 +66,36 @@ for name, c in p.claims.items():
 
 ## Identification
 
-Calibrate the household to consumption moments. Calibrate each claim to
-its own dividend growth. Compare the returns the model was never shown.
-That is the discipline. A DCF that fits a discount rate to the premium
-it claims to explain cannot run the same test.
+First, calibrate the household to consumption moments. Second,
+calibrate each claim to its own dividend growth. Third, compare the
+returns the model was never shown, because the identification
+discipline is to test returns the calibration never used. A DCF that
+fits a discount rate to the premium it claims to explain cannot run
+the same test.
 
-The workflow is [`LongRunRisksModel`](user-guide.qmd): specify, solve,
-simulate, compare. Loadings from data go through
-[`calibrate_claim`](examples.qmd). The formulas are on
+The [`LongRunRisksModel`](user-guide.qmd) workflow is to specify,
+solve, simulate, and compare. Loadings from data go through
+[`calibrate_claim`](examples.qmd), and the formulas are in
 [Mathematical detail](math.qmd).
 
 ## Limits
 
-The model is an internally consistent economy, not a claim that the
-economy is true.
+The model is an internally consistent economy. The specification is
+not a claim that the real economy matches the model.
 
 - Return correlations in the model are too low relative to the data
   (Kiku, Table IX).
 - Power utility ($\gamma = 1/\psi$) prices the value premium at zero,
   because long-run news then has no price.
-- The quadrature grid is the economy you actually solve. A grid that
-  truncates $x_t$ removes most of the premium. The package scales the
-  quadrature weight to the unconditional distribution of $x$ so the
-  nodes cover the states the process visits.
+- You solve the model on a quadrature grid, and a grid that truncates
+  $x_t$ removes most of the premium. The package scales the quadrature
+  weight to the unconditional distribution of $x$ so the nodes cover
+  the states the process visits.
 - Kiku's printed Table VII return *levels* (6.07, 11.36, 7.53 with
-  $r_f = 1.58$) do not reproduce exactly from a 30-point grid. The gap
-  is discretization. Spreads and betas are the objects the paper tests.
+  $r_f = 1.58$) do not reproduce exactly from a 30-point grid, and the
+  gap is discretization. Spreads and betas are the objects the paper
+  tests.
 
-Source: Kiku (2006); Bansal and Yaron (2004); Epstein and Zin (1989).
+The sources are Kiku (2006), Bansal and Yaron (2004), and Epstein and
+Zin (1989). The bibliography is on
 [References](../reference/references.qmd).

@@ -2,40 +2,44 @@
 title: "Mathematical detail"
 ---
 
-Formulas used by `LongRunRisksModel`. Notation follows Kiku (2006)
-unless noted. Collapsed callouts hold derivations.
+The formulas used by `LongRunRisksModel` follow Kiku (2006) notation
+unless noted, and the derivations are in collapsed callouts.
 
 ## Euler equation
 
-For any claim $i$ with gross return $R_{i,t+1}$,
+The Euler equation holds for any claim $i$ with gross return
+$R_{i,t+1}$.
 
 $$
 E_t\!\left[M_{t+1}\, R_{i,t+1}\right] = 1 .
 $$ {#eq-euler}
 
-$M_{t+1}$ is the pricing kernel. Once payoffs are weighted by the
-state-by-state exchange rate, every asset earns its price. The same
-condition prices a stock, a bill, and a private dividend stream.
+The pricing kernel is $M_{t+1}$. After payoffs are weighted by the
+exchange rate in each state, every asset's expected discounted return
+equals one, and the Euler equation prices a stock, a bill, and a
+private dividend stream.
 
 ::: {.callout-note collapse="true" title="Derivation"}
-The investor maximizes $E_t \sum_j \delta^j u(C_{t+j})$. Reduce
-consumption at $t$ by $\xi$, buy $\xi/P_t$ units of an asset with
-payoff $X_{t+1}$, and consume the proceeds. At an optimum,
+The investor maximizes $E_t \sum_j \delta^j u(C_{t+j})$. First,
+reduce consumption at $t$ by $\xi$. Second, buy $\xi/P_t$ units of
+an asset with payoff $X_{t+1}$. Third, consume the proceeds at
+$t+1$. The first-order condition at an optimum is
 $u'(C_t)\,P_t = E_t[\delta\, u'(C_{t+1})\, X_{t+1}]$. Divide by
 $u'(C_t)$ and by $P_t$, and set
-$M_{t+1} = \delta\, u'(C_{t+1})/u'(C_t)$,
+$M_{t+1} = \delta\, u'(C_{t+1})/u'(C_t)$ and
 $R_{i,t+1} = X_{t+1}/P_t$.
 :::
 
 Power utility, $u(C) = C^{1-\gamma}/(1-\gamma)$, makes $M$ a function
-of current consumption growth only. That kernel fails the equity
-premium, the risk-free rate, and the value premium at once (Hansen and
-Jagannathan 1991; Mehra and Prescott 1985). The failures are why the
-family changes both preferences and the endowment.
+of current consumption growth only. A kernel that depends only on
+current consumption growth fails the equity premium, the risk-free
+rate, and the value premium together (Hansen and Jagannathan 1991;
+Mehra and Prescott 1985). Long-run risk models therefore use different
+preferences and a different endowment.
 
-## Epstein–Zin preferences
+## Epstein-Zin preferences
 
-Lifetime utility is recursive (Epstein and Zin 1989):
+Lifetime utility is recursive (Epstein and Zin 1989).
 
 $$
 V_t = \left[(1-\delta)\, C_t^{\frac{1-\gamma}{\theta}}
@@ -45,10 +49,10 @@ V_t = \left[(1-\delta)\, C_t^{\frac{1-\gamma}{\theta}}
 \theta = \frac{1-\gamma}{1-\tfrac{1}{\psi}} .
 $$ {#eq-ez}
 
-Risk aversion $\gamma$ sits inside the certainty equivalent. The
-elasticity of intertemporal substitution $\psi$ sits in the outer
-aggregator. When $\gamma = 1/\psi$, $\theta = 1$ and the recursion is
-power utility. Any other configuration is something power utility
+Risk aversion $\gamma$ enters the certainty equivalent, and the
+elasticity of intertemporal substitution $\psi$ enters the outer
+aggregator. The recursion is power utility when $\gamma = 1/\psi$, because then
+$\theta = 1$. Any other configuration is something power utility
 cannot represent.
 
 The log kernel (Kiku, eq. 5) is
@@ -59,14 +63,18 @@ m_{t+1} = \theta \log \delta
           + (\theta - 1)\, r_{c,t+1},
 $$ {#eq-kernel}
 
-where $r_{c,t+1}$ is the log return on the consumption claim. Marginal
-utility depends on news about lifetime consumption, not only on this
-month's $\Delta c$.
+where $r_{c,t+1}$ is the log return on the consumption claim.
+Marginal utility depends on news about lifetime consumption, in
+addition to current $\Delta c$.
 
-Table II sets $\delta = 0.999$, $\gamma = 10$, $\psi = 1.5$, so
-$\theta = -9$. The household prefers early resolution of uncertainty.
+Kiku's Table II uses $\delta = 0.999$, $\gamma = 10$, and
+$\psi = 1.5$, so $\theta = -9$. The household prefers early
+resolution of uncertainty.
 
 ## Endowment
+
+The endowment is consumption growth, expected growth $x_t$,
+stochastic volatility, and a dividend stream for each claim.
 
 $$
 \Delta c_{t+1} = \mu_c + x_t + \sigma_t\, \eta_{t+1}
@@ -84,20 +92,20 @@ $$
 \Delta d_{i,t+1} = \mu_i + \phi_i\, x_t + \varphi_{\sigma,i}\, \sigma_t\, u_{i,t+1}
 $$ {#eq-div}
 
-with standard-normal shocks. $\phi_i$ is cash-flow leverage. Half-life
-of a shock to $x_t$ is $\log(0.5)/\log(\rho)$, about 34 months at
-$\rho = 0.98$.
+The shocks are standard normal, and $\phi_i$ is cash-flow leverage.
+The half-life of a shock to $x_t$ is $\log(0.5)/\log(\rho)$, about
+34 months at $\rho = 0.98$.
 
 ## Log-linear solution
 
 The log price-dividend ratio is taken to be affine in the state
-(Campbell and Shiller 1988),
+(Campbell and Shiller 1988).
 
 $$
 z_t \equiv \log(P_t/D_t) = A_0 + A_1\, x_t + A_2\, \sigma_t^2 .
 $$ {#eq-affine}
 
-For a claim with leverage $\phi$ (Kiku, eq. 11),
+The slope $A_1$ for a claim with leverage $\phi$ (Kiku, eq. 11) is
 
 $$
 A_1 = \frac{\phi - \tfrac{1}{\psi}}{1 - \kappa_1 \rho},
@@ -105,12 +113,12 @@ $$ {#eq-a1}
 
 where $\kappa_1 = e^{\bar z}/(1 + e^{\bar z})$ is a linearization
 constant near one. Prices rise on good growth news when
-$\phi > 1/\psi$. With $\psi = 1.5$ that threshold is $0.67$. The
+$\phi > 1/\psi$, and with $\psi = 1.5$ the threshold is $0.67$. The
 denominator magnifies the numerator because $\rho$ is close to one.
 
 `solve(method="analytical")` returns $A_1$, $A_2$, the long-run risk
-premium, and the three shock prices. There is no return distribution
-in this solution, so no volatilities and no betas.
+premium, and the three shock prices. The analytical solution has no
+return distribution, so it has no volatilities and no betas.
 
 ## Quadrature solution
 
@@ -121,19 +129,19 @@ chain. The paper uses 30 nodes for $x$ and 4 for $\sigma^2$.
 The weighting density $\omega$ is scaled to the *unconditional*
 distribution of $x$, so the nodes cover the states the process visits.
 Scaling $\omega$ to the one-step conditional density at the mean
-truncates the range and removes most of the value premium.
+truncates the range, and it removes most of the value premium.
 
-`solve()` (default `method="grid"`) is this solution. Population
-moments are averages under the stationary distribution of the chain.
-`simulate` is different: it is the cross-sample mean of statistics
+`solve()` (default `method="grid"`) is the quadrature solution, and
+population moments are averages under the stationary distribution of
+the chain. `simulate` is the mean, across samples, of statistics
 computed on finite annual samples, which is Table VII.
 
-The discretized economy is the economy you actually solve. Kiku's
+The discretized economy is the economy that the solver uses. Kiku's
 printed Table VII return *levels* do not reproduce exactly from a
-30-point grid; the gap is over-dispersion of $x$. Spreads and betas
-are the objects the paper tests.
+30-point grid, and the gap is over-dispersion of $x$. Spreads and
+betas are the objects the paper tests.
 
-Source: Cochrane, *Asset Pricing*, ch. 1; Epstein and Zin (1989);
-Bansal and Yaron (2004); Campbell and Shiller (1988); Tauchen and
-Hussey (1991); Kiku (2006).
+The sources are Cochrane, *Asset Pricing*, chapter 1, Epstein and Zin
+(1989), Bansal and Yaron (2004), Campbell and Shiller (1988), Tauchen
+and Hussey (1991), and Kiku (2006). The bibliography is on
 [References](../reference/references.qmd).

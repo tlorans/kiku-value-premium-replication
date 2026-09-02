@@ -23,10 +23,10 @@ if not DATA.exists():
             urllib.request.urlretrieve(base + f, DATA / f)
 ```
 
-## Table II, solved
+## Table II solution
 
 The default model is the paper's calibration. `method="analytical"`
-reads loadings. The grid is the paper's quantitative solution.
+reads loadings, and the grid is the paper's quantitative solution.
 
 ```{python}
 import geap
@@ -74,9 +74,9 @@ rows = pd.DataFrame({
 )
 ```
 
-Firm B tracks the persistent component, so $A_1$ is positive and the
-long-run premium is positive. Firm A's loading sits below
-$1/\psi = 0.67$, so $A_1$ is negative: a hedge.
+Firm B tracks the persistent component, so $A_1$ is positive. The
+long-run premium is therefore positive. Firm A's loading is below
+$1/\psi = 0.67$, so $A_1$ is negative and the claim is a hedge.
 
 ```{python}
 #| fig-cap: "Long-run risk premium as cash-flow leverage phi varies. The vertical line is 1/psi = 0.67, below which the claim is a hedge."
@@ -144,9 +144,9 @@ long = path.melt(
 
 ## Loadings from 1930 to 2003 cash flows
 
-Returns do not enter. The annual slope $\tilde\phi$ is the estimable
-counterpart of monthly $\phi$. Value's slope must come out above
-growth's if the story is right.
+Returns do not enter the calibration. The annual slope $\tilde\phi$ is
+the estimable counterpart of monthly $\phi$. Moreover, value's slope
+must come out above growth's if the paper's mechanism is correct.
 
 ```{python}
 import numpy as np
@@ -182,14 +182,14 @@ slopes = pd.DataFrame({
 ```
 
 The paper's Table VI data slopes are 0.55 (growth), 3.04 (value), and
-1.26 (market). The reconstruction is inside those standard errors; see
-`tests/test_empirical_goldens.py`. The monthly Table II loadings are a
-separate object: they are chosen so simulated annual slopes match the
-data slopes.
+1.26 (market). The reconstruction is inside the Table VI standard
+errors, and the comparison is in `tests/test_empirical_goldens.py`. The
+monthly Table II loadings are a separate object, and they are chosen so
+simulated annual slopes match the data slopes.
 
 ::: {.firewall}
-**Where each number comes from.** Table VI figures 0.55, 3.04, and 1.26
-are Kiku (2006). The table above is computed from the shipped CSVs.
+Table VI figures 0.55, 3.04, and 1.26 are from Kiku (2006). The table
+above is computed from the shipped CSVs.
 :::
 
 ## Simulated Table VII
@@ -201,10 +201,10 @@ print(f"premium {vg.premium:.2f}, beta ratio {vg.beta_ratio:.2f}")
 ```
 
 The paper's model column for the value premium is 5.29 (Kiku, Table
-VII). A 300-sample run is noisier than the paper's 1000.
+VII). A run of 300 samples is noisier than the paper's run of 1000.
 
-Scripts under `examples/` repeat these workflows outside the site:
+Scripts under `examples/` repeat the same workflows outside the site:
 `run_paper.py`, `two_firms.py`, `calibrate_any_portfolio.py`.
 
-Source: Kiku (2006), Tables I, VI, VII, and equation (19).
-[References](../reference/references.qmd).
+The source is Kiku (2006), Tables I, VI, VII, and equation (19). The
+bibliography is on [References](../reference/references.qmd).

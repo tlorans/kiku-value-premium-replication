@@ -4,11 +4,11 @@ aliases:
   - /api.html
 ---
 
-The package works in three layers. A **claim** has cash-flow dynamics,
-which you either measure from data or write down. A **model** prices a
-set of named claims. A **comparison** sets two priced claims side by
-side. The model prices claims; which two of them make a spread is your
-question.
+Claims, models, and comparisons are the public objects in `geap`. A
+claim has cash-flow dynamics, which you either measure from data or
+write down. A model prices a set of named claims, and a comparison
+sets two priced claims side by side. The model prices claims, and you
+choose which pair to report as a spread.
 
 ```python
 import geap
@@ -26,7 +26,8 @@ cmp.premium
 
 ## Protocol
 
-Every family subclasses these. Long-run risks is the first.
+Each asset-pricing family subclasses the protocol types in the table,
+and long-run risks is the first family in the package.
 
 | Name | Role |
 |:---|:---|
@@ -37,9 +38,9 @@ Every family subclasses these. Long-run risks is the first.
 
 ## Claims
 
-`ClaimParams` holds four parameters. Only $\phi$, the loading on
-persistent consumption growth, varies the economics across a
-cross-section.
+`ClaimParams` stores the parameters of one claim, and a claim has four
+parameters in total. Only $\phi$, the loading on persistent consumption
+growth, differs across claims in a cross-section.
 
 | Function | Signature | Returns |
 |:---|:---|:---|
@@ -48,9 +49,8 @@ cross-section.
 | `calibrate_claim` | `(dc, dd, *, frequency="annual", window=2, default_phi_sigma=7.5)` | one `ClaimParams` measured from cash flows |
 | `calibrate_claims` | `(dc, claims, **kw)` | a whole cross-section, one `calibrate_claim` each |
 
-Neither calibration function has an argument that could accept a
-return. The premium the model produces later is a prediction, not a
-fit.
+Neither calibration function has an argument for a return, so the
+premium the model produces later is a prediction rather than a fit.
 
 ```python
 value = geap.calibrate_claim(dc, dd_value)
@@ -71,8 +71,8 @@ mine = geap.ClaimParams.from_loading(1.5)
 | `.replace` | `(**kwargs)` | a new model with some arguments changed |
 | `.claims` | property | claim names, in order |
 
-`method="grid"` solves the Euler equations on the Tauchen–Hussey state
-space. `method="analytical"` is the log-linear approximation of
+`method="grid"` solves the Euler equations on the Tauchen-Hussey state
+space, and `method="analytical"` is the log-linear approximation of
 Section 3.4.
 
 ```python
@@ -80,14 +80,15 @@ geap.LongRunRisksModel(gamma=7.5).solve().compare("value", "growth").premium
 model.replace(claims={"value": {"phi": 2.6}}).solve().compare("value", "growth").premium
 ```
 
-A claim given only some of its four fields keeps the rest of the
-calibration. Naming a claim the default does not have replaces the
-whole cross-section, and then all four fields are required.
+If you pass a claim with only some of its four fields filled in, the
+remaining fields stay at their calibrated values. Naming a claim
+absent from the default replaces the whole cross-section, and then all
+four fields are required.
 
 ## Results
 
 Quantities that vary by claim are `pandas.Series` indexed by claim
-name. Returns, premia, and rates are annualized and in percent.
+name, and returns, premia, and rates are annualized and in percent.
 
 | Attribute | On | Meaning |
 |:---|:---|:---|
@@ -104,13 +105,14 @@ name. Returns, premia, and rates are annualized and in percent.
 | `summary()` | all three | a formatted table |
 | `to_frame()` | all three | a tidy frame, one row per claim |
 
-`capm_betas` is a method because a beta needs a reference claim.
-`to_frame()` and `states()` follow the `tidyfinance` backend.
+`capm_betas` is a method rather than an attribute, because a beta
+needs a reference claim. `to_frame()` and `states()` follow the
+`tidyfinance` backend.
 
 ## Comparison
 
 `res.compare(long, short, market=None)` sets two priced claims side by
-side. The market is only needed for betas.
+side, and the market argument is only needed for betas.
 
 | Attribute | Meaning |
 |:---|:---|
@@ -123,8 +125,8 @@ side. The market is only needed for betas.
 | `to_frame()` | one tidy row, for stacking across a sweep |
 
 On simulated results `beta_ratio` is the cross-sample mean of the
-per-sample ratio, which is the paper's object. It is not the ratio of
-the reported mean betas.
+per-sample ratio, which is the quantity the paper reports. The
+attribute is not the ratio of the reported mean betas.
 
 ## Measure loadings from cash flows
 
@@ -150,18 +152,18 @@ the reported mean betas.
 ## Parameters and errors
 
 `ModelParams()`, `PreferencesParams`, `ConsumptionParams`, and
-`ClaimParams` are the parameter dataclasses. `ModelParams()` is the
-Table II calibration. `SolverDivergenceError` is raised when a fixed
-point leaves the plausible range. `EmpiricalDataError` is raised when
-WRDS credentials are missing.
+`ClaimParams` are the parameter dataclasses, and `ModelParams()` is
+the Table II calibration. `SolverDivergenceError` is raised when a
+fixed point leaves the plausible range, and `EmpiricalDataError` is
+raised when WRDS credentials are missing.
 
-The family lives in `geap.lrr`. Calibration and empirical helpers that
-are public are re-exported at the `geap` root.
+The long-run risks family is in `geap.lrr`, and public calibration and
+empirical helpers are re-exported at the `geap` root.
 
 ## A new sort, end to end
 
-Consumption growth and one cash-flow series per claim go in. No returns
-enter at any point.
+You pass in consumption growth and one cash-flow series per claim, and
+you do not pass returns at any point.
 
 ```python
 import polars as pl
@@ -187,5 +189,5 @@ res = geap.LongRunRisksModel(claims=claims).solve()
 print(res.compare("value", "growth", market="market").summary())
 ```
 
-The premium that comes out was never targeted, which is what makes the
-comparison with the data a test rather than a fit.
+The premium the model returns was never targeted, so a comparison with
+the data is a test rather than a fit.

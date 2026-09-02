@@ -3,15 +3,16 @@ title: "Habit"
 ---
 
 External habit makes risk aversion move with the surplus of consumption
-over a slow-moving habit stock. In good times surplus is high and
-investors are willing to hold risk. In bad times surplus is low,
-marginal utility is high, and they demand a large premium. Campbell and
-Cochrane (1999) use that mechanism to match the postwar equity premium
-at $\gamma = 2$, which power utility cannot.
+over a slow-moving habit stock. In good times surplus is high, and
+investors are willing to hold risk. In bad times surplus is low, and
+marginal utility is high. Investors then demand a large premium to hold
+the consumption claim. Moreover, Campbell and Cochrane (1999) use
+surplus consumption to match the postwar equity premium at $\gamma = 2$,
+and power utility cannot match the same premium at $\gamma = 2$.
 
-The claim to aggregate consumption is equity. The one-period claim is
-the bill. Consumption growth is i.i.d. The only state is log surplus
-$s_t$. Returns never enter the calibration.
+Equity is the claim to aggregate consumption, and the bill is the
+one-period claim. Consumption growth is i.i.d., and the only state is
+log surplus $s_t$. Returns never enter the calibration.
 
 ```{python}
 import geap
@@ -21,11 +22,11 @@ res = model.solve()
 print(res.compare("equity", "bill").summary())
 ```
 
-Power utility on a two-state chain, at the same $\gamma = 2$, produces
-a premium well below one point. Habit produces several points and keeps
-the bill near 0.94 percent a year (Campbell and Cochrane 1999).
-Long-run risks gets a large premium from persistent consumption news
-instead of from a time-varying surplus.
+Power utility on a two-state chain, at $\gamma = 2$, produces a premium
+well below one point. External habit produces several points and keeps
+the bill near 0.94 percent a year (Campbell and Cochrane 1999). The
+long-run risks model gets a large premium from persistent consumption
+news, rather than from a time-varying surplus.
 
 ## Surplus and sensitivity
 
@@ -34,19 +35,19 @@ S_t = \frac{C_t - X_t}{C_t}, \qquad
 s_{t+1} = (1-\phi)\bar s + \phi s_t + \lambda(s_t)\,(\Delta c_{t+1}-g).
 $$
 
-$\lambda(s)$ is chosen so the bill is locally constant ($b = 0$ in
-their notation). Steady-state surplus is
-$\bar S = \sigma\sqrt{\gamma/(1-\phi)}$.
+The sensitivity function $\lambda(s)$ is chosen so the bill is locally
+constant ($b = 0$ in Campbell and Cochrane's notation). Steady-state
+surplus is $\bar S = \sigma\sqrt{\gamma/(1-\phi)}$.
 
 ## Limits
 
-- Habit is external: the household does not internalise the effect of
+- Habit is external, so the household does not internalise the effect of
   consumption on $X$.
-- The default prices only the consumption claim and the bill. A
-  cross-section of dividend claims is not in this family yet.
+- `CampbellCochraneModel` prices only the consumption claim and the
+  bill. A cross-section of dividend claims is not priced yet.
 - Unconditional moments come from a simulated monthly path after the
-  price-consumption function is solved on a surplus grid. They move
-  slightly with the grid and the draw.
+  price-consumption function is solved on a surplus grid. The moments
+  move slightly with the grid and the draw.
 
-Source: Campbell and Cochrane (1999).
+The source is Campbell and Cochrane (1999), and the bibliography is on
 [References](../reference/references.qmd).

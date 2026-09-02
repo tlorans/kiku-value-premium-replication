@@ -5,20 +5,22 @@ aliases:
   - /getting-started.html
 ---
 
-General-equilibrium asset pricing models in Python. Specify preferences
-and a consumption process, attach cash-flow claims, and solve. Forecast
-and discount rate come from one economy.
+The geap library solves general equilibrium asset pricing models in
+Python. You specify preferences and a consumption process, and you
+attach cash-flow claims. You then solve the model so that the growth
+forecast and the discount rate come from the same economy.
 
-Families share [`AssetPricingModel`](lrr/api.qmd). Long-run risks is
-the persistent-growth, Epstein–Zin family. Power utility is the
-two-state CCAPM of Mehra and Prescott (1985). Habit is Campbell and
-Cochrane (1999) external surplus.
+The model families share [`AssetPricingModel`](lrr/api.qmd). Long-run
+risks uses Epstein-Zin preferences and a consumption process with
+persistent growth. Power utility is the two-state CCAPM of Mehra and
+Prescott (1985), and habit is the Campbell and Cochrane (1999) model
+with external surplus consumption.
 
 | Family | Estimator | What it does |
 |:---|:---|:---|
-| [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Price named dividend claims on a persistent consumption process |
-| [Power utility](ccapm/index.qmd) | [`PowerUtilityModel`](ccapm/api.qmd) | Two-state consumption chain, power kernel, levered claims |
-| [Habit](habit/index.qmd) | [`CampbellCochraneModel`](habit/api.qmd) | External habit, surplus consumption, i.i.d. consumption growth |
+| [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Prices named dividend claims on a consumption process with persistent growth |
+| [Power utility](ccapm/index.qmd) | [`PowerUtilityModel`](ccapm/api.qmd) | Two-state consumption chain, power kernel, and levered claims |
+| [Habit](habit/index.qmd) | [`CampbellCochraneModel`](habit/api.qmd) | External habit, surplus consumption, and i.i.d. consumption growth |
 
 ```python
 import geap
@@ -29,8 +31,9 @@ print(res.summary())
 res.compare("value", "growth", market="market").premium
 ```
 
-The default calibration is Kiku (2006) Table II. Average returns never
-enter the cash-flow step. The premium is a prediction.
+The default calibration is Table II of Kiku (2006). Average returns are
+not used in the cash-flow step, and the premium is therefore a
+prediction from the solved economy.
 
 ```{python}
 #| code-fold: true
@@ -68,12 +71,11 @@ df = pd.DataFrame({
 ```
 
 ::: {.firewall}
-**Where each number comes from.** The code cell computes the model
-column at build time from the Table II calibration. Data numbers are
-Kiku (2006), Table I.
+The code cell computes the model column at build time from the Table II
+calibration, and the data numbers are from Kiku (2006), Table I.
 :::
 
-[Installation](installation.qmd) ·
-[Long-run risks](lrr/index.qmd) ·
-[Power utility](ccapm/index.qmd) ·
+[Installation](installation.qmd),
+[Long-run risks](lrr/index.qmd),
+[Power utility](ccapm/index.qmd), and
 [Habit](habit/index.qmd)

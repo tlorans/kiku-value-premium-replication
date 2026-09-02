@@ -2,8 +2,8 @@
 title: "Mathematical detail"
 ---
 
-Formulas used by `PowerUtilityModel`. Notation follows Mehra and
-Prescott (1985).
+`PowerUtilityModel` uses the formulas below, and the notation follows
+Mehra and Prescott (1985).
 
 ## Endowment
 
@@ -14,43 +14,44 @@ $$
 \lambda_1 = 1+\mu+\sigma, \qquad \lambda_2 = 1+\mu-\sigma,
 $$
 
-with symmetric transitions $\Pr(\lambda_i\to\lambda_i)=\varphi=(1+\rho)/2$
-and $\Pr(\lambda_i\to\lambda_j)=1-\varphi$. Stationary weights are
-$(1/2, 1/2)$. The defaults $\mu=0.018$, $\sigma=0.036$, $\rho=-0.14$
-match US per-capita consumption, 1889–1978.
+The chain has symmetric transitions $\Pr(\lambda_i\to\lambda_i)=\varphi=(1+\rho)/2$
+and $\Pr(\lambda_i\to\lambda_j)=1-\varphi$, so the stationary weights are
+$(1/2, 1/2)$. The default values $\mu=0.018$, $\sigma=0.036$, and
+$\rho=-0.14$ match US per-capita consumption from 1889 to 1978.
 
 ## Kernel
 
-Power utility $u(C)=C^{1-\gamma}/(1-\gamma)$ gives
+Power utility $u(C)=C^{1-\gamma}/(1-\gamma)$ gives the kernel
 
 $$
 M_j = \delta\,\lambda_j^{-\gamma}.
 $$
 
-The kernel in state $j$ depends only on that state's consumption
-growth.
+The kernel in state $j$ depends only on consumption growth in state $j$.
 
 ## Equity
 
-The Lucas tree pays the endowment. The price-dividend ratio $q$ solves
+The Lucas tree pays the endowment, and the price-dividend ratio $q$
+solves
 
 $$
 q_i = \sum_j \pi_{ij}\, \delta\,\lambda_j^{-\gamma}\, \lambda_j\, (q_j+1).
 $$
 
-Gross return from $i$ to $j$ is $\lambda_j(q_j+1)/q_i$. The bill in
-state $i$ is $1/\sum_j \pi_{ij} M_j$. Unconditional means are averages
-under the stationary distribution.
+Gross return from $i$ to $j$ is $\lambda_j(q_j+1)/q_i$, and the bill in
+state $i$ is $1/\sum_j \pi_{ij} M_j$. Unconditional means of both
+returns are averages under the stationary distribution.
 
-A levered claim replaces $\lambda_j$ in the payoff with
-$\lambda_j^{\phi}$. $\phi=1$ is equity.
+For a levered claim, $\lambda_j$ in the payoff is replaced with
+$\lambda_j^{\phi}$, and the claim is equity when $\phi=1$.
 
 ## The puzzle
 
-Mehra and Prescott search $\gamma\in(0,10]$ and $\delta\in(0,1)$ and
-never reach the sample pair $(E[R_f], E[R_e]-E[R_f]) \approx
-(0.80\%, 6.18\%)$. High $\gamma$ raises the premium only by raising
-the bill.
+Mehra and Prescott search $\gamma\in(0,10]$ and $\delta\in(0,1)$, and
+the pairs they obtain never match the sample pair $(E[R_f], E[R_e]-E[R_f]) \approx
+(0.80\%, 6.18\%)$. A high value of $\gamma$ raises the premium only by
+raising the bill.
 
-Source: Mehra and Prescott (1985); Cochrane, *Asset Pricing*, ch. 1.
+The sources are Mehra and Prescott (1985) and Cochrane, *Asset Pricing*,
+chapter 1.
 [References](../reference/references.qmd).

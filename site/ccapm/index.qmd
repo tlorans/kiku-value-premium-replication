@@ -3,15 +3,15 @@ title: "Power utility"
 ---
 
 Power utility on a two-state consumption chain is the baseline
-consumption-based model. Mehra and Prescott (1985) showed that it
-cannot produce the historical equity premium at plausible risk
-aversion. That failure is why later families change the endowment, the
+consumption-based model, and Mehra and Prescott (1985) showed the
+model cannot produce the historical equity premium at plausible risk
+aversion. Later models therefore change the endowment, the
 preferences, or both.
 
-The claim to aggregate consumption is equity. The one-period claim is
-the bill. Extra claims are levered consumption: dividend growth is
-consumption growth to the power $\phi$. Returns never enter the
-calibration. The premium is a prediction.
+Equity is the claim to aggregate consumption, and the bill is the
+one-period claim. Extra claims are levered consumption, and dividend
+growth is consumption growth to the power $\phi$. Returns never enter
+the calibration, and the premium is a prediction.
 
 ```{python}
 import geap
@@ -26,14 +26,15 @@ return of 0.80 percent (Mehra and Prescott 1985). At $\gamma = 10$ and
 $\delta = 0.99$, the two-state economy produces a much smaller premium
 and a much higher bill.
 
-Long-run risks keeps named claims and the Euler equation, and changes
-the pieces power utility is missing: a persistent component of
-consumption and Epstein–Zin preferences that price news about it. See
+Long-run risks uses named claims and the Euler equation. The model adds
+a persistent component of consumption, and Epstein-Zin preferences
+price news about the component. Details are in
 [Long-run risks](../lrr/index.qmd).
 
 ## Endowment
 
-Two states, symmetric transitions (Mehra and Prescott 1985):
+The endowment is a two-state chain with symmetric transitions (Mehra
+and Prescott 1985).
 
 $$
 \lambda = (1+\mu+\sigma,\; 1+\mu-\sigma),
@@ -41,19 +42,19 @@ $$
 \phi = \frac{1+\rho}{2}.
 $$
 
-Defaults $\mu = 0.018$, $\sigma = 0.036$, $\rho = -0.14$ match annual
-US per-capita consumption growth, 1889–1978. Stationary weights are
-one half each.
+The defaults $\mu = 0.018$, $\sigma = 0.036$, and $\rho = -0.14$ match
+annual US per-capita consumption growth from 1889 to 1978, and the
+stationary weights are one half each.
 
 ## Limits
 
-- The kernel moves only with current consumption growth. There is no
+- The kernel moves only with current consumption growth, so there is no
   price of news about future growth.
-- Matching a 6 point premium at this endowment requires risk aversion
-  far above 10, or a discount factor outside $(0,1)$, and then the bill
-  rate is wrong.
-- Levered claims raise the premium mechanically with $\phi$. They do
-  not repair the kernel.
+- Matching a 6 point premium at the two-state endowment requires risk
+  aversion far above 10, or a discount factor outside $(0,1)$. The bill
+  rate is then wrong.
+- Levered claims raise the premium mechanically with $\phi$, and they
+  do not repair the kernel.
 
-Source: Mehra and Prescott (1985).
+The source is Mehra and Prescott (1985), and the bibliography is on
 [References](../reference/references.qmd).

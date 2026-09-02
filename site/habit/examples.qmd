@@ -4,6 +4,9 @@ title: "Examples"
 
 ## Habit versus power utility at $\gamma = 2$
 
+The cell solves the habit model and power utility at $\gamma = 2$, and
+it reports the equity premium and the bill rate for each model.
+
 ```{python}
 import geap
 import pandas as pd
@@ -43,15 +46,16 @@ df = pd.DataFrame({
 ```
 
 ::: {.firewall}
-**Where each number comes from.** Both model columns are computed by
-the cell. Campbell and Cochrane (1999) target a postwar premium of
-6.64 points and a bill of 0.94 percent.
+The premium and the bill in each row are computed by the cell.
+Campbell and Cochrane (1999) target a postwar premium of 6.64 points
+and a bill of 0.94 percent.
 :::
 
-## Sensitivity rises in bad times
+## Sensitivity is higher when surplus is low
 
-$\lambda(s)$ is large when surplus is low, so a consumption shock moves
-marginal utility more in recessions.
+The sensitivity $\lambda(s)$ is large when surplus is low, so a
+consumption shock changes surplus and marginal utility by more in a
+recession than in an expansion.
 
 ```{python}
 #| fig-cap: "Sensitivity lambda(s) against log surplus. The vertical line is the steady state. Sensitivity is highest at low surplus and hits zero above s_max."
@@ -86,5 +90,5 @@ print(f"Sbar = {model.Sbar:.4f}")
 print(f"lambda(sbar) = {float(model.sensitivity(model.sbar)):.3f}")
 ```
 
-Source: Campbell and Cochrane (1999).
+The source is Campbell and Cochrane (1999), and the bibliography is on
 [References](../reference/references.qmd).
