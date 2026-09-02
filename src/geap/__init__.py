@@ -9,13 +9,13 @@ Documented import::
     print(res.summary())
     res.compare("value", "growth").premium
 
-Long-run risks is the first family. Later families will sit beside
-``geap.lrr`` and share :class:`~geap.base.AssetPricingModel`.
+Long-run risks (``geap.lrr``) and power utility (``geap.ccapm``)
+share :class:`~geap.base.AssetPricingModel`.
 """
 
 from __future__ import annotations
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 from .base import (
     AssetPricingModel,
@@ -23,6 +23,7 @@ from .base import (
     Comparison,
     Summary,
 )
+from .ccapm import PowerUtilityModel
 from .lrr import (
     AnalyticalResults,
     ClaimParams,
@@ -51,7 +52,7 @@ from .lrr.empirical import (
     table_i,
     table_vi_data,
 )
-from . import lrr
+from . import ccapm, lrr
 from ._backend import use_backend as _use_backend
 
 # Frames cross the public boundary in whichever backend tidyfinance is set to.
@@ -63,6 +64,7 @@ __all__ = [
     "AssetPricingModel",
     "AssetPricingResults",
     "LongRunRisksModel",
+    "PowerUtilityModel",
     "ModelParams",
     "PreferencesParams",
     "ConsumptionParams",
@@ -87,4 +89,5 @@ __all__ = [
     "real_rf_from_monthly",
     "campbell_shiller_annual",
     "lrr",
+    "ccapm",
 ]

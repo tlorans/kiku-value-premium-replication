@@ -1,5 +1,10 @@
 # Changes
 
+## 1.1.0
+
+Power-utility CCAPM as a second family: `geap.PowerUtilityModel`,
+defaulting to Mehra and Prescott (1985). Docs under Power utility.
+
 ## 1.0.0
 
 The package was renamed from lrrcs to geap. `import lrrcs` no longer

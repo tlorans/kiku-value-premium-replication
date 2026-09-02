@@ -2,9 +2,8 @@
 
 General-equilibrium asset pricing models in Python.
 
-The first family is long-run risks: cash-flow leverage on persistent
-consumption growth, priced by an Epstein–Zin household. Average
-returns never enter the cash-flow step.
+Families share one protocol: specify, solve, compare. Average returns
+never enter the cash-flow step.
 
 Docs: [tlorans.github.io/kiku-value-premium-replication](https://tlorans.github.io/kiku-value-premium-replication/)
 
@@ -52,6 +51,10 @@ page.
 **Long-run risks** (`LongRunRisksModel`): Bansal and Yaron (2004)
 endowment, Epstein–Zin preferences, Kiku (2006) cash-flow leverage.
 
+**Power utility** (`PowerUtilityModel`): Mehra and Prescott (1985)
+two-state consumption chain. The documented result is the equity
+premium puzzle.
+
 ## Examples
 
 | Script | What it prints |
@@ -61,6 +64,7 @@ endowment, Epstein–Zin preferences, Kiku (2006) cash-flow leverage.
 | `examples/two_firms.py` | Two firms that differ only in phi |
 | `examples/dcf_counterfactual.py` | The same cash-flows in a DCF and in the model |
 | `examples/robustness.py` | The premium as one parameter varies |
+| `examples/mehra_prescott.py` | Power-utility CCAPM, Mehra and Prescott (1985) |
 
 ## License
 

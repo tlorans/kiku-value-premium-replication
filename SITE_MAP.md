@@ -20,8 +20,13 @@ goes missing.
 | 5 | `site/lrr/examples.qmd` | Examples | Long-run risks | `/financial-data.html`, `/time-series.html`, `/cross-section.html`, `/price-your-own-claim.html` |
 | 6 | `site/lrr/math.qmd` | Mathematical detail | Long-run risks | — |
 | 7 | `site/lrr/api.qmd` | Module reference | Long-run risks | `/api.html` |
-| 8 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
-| 9 | `site/reference/references.qmd` | References | Reference | `/references.html` |
+| 8 | `site/ccapm/index.qmd` | Power utility | Power utility | — |
+| 9 | `site/ccapm/user-guide.qmd` | User guide | Power utility | — |
+| 10 | `site/ccapm/examples.qmd` | Examples | Power utility | — |
+| 11 | `site/ccapm/math.qmd` | Mathematical detail | Power utility | — |
+| 12 | `site/ccapm/api.qmd` | Module reference | Power utility | — |
+| 13 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 14 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
 ## Conventions
 

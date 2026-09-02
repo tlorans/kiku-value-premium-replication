@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geap"
-version = "1.0.0"
+version = "1.1.0"
 description = "General-equilibrium asset pricing models in Python."
 readme = "README.md"
 requires-python = ">=3.11"

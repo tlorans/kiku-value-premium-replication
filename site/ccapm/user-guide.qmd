@@ -1,0 +1,64 @@
+---
+title: "User guide"
+---
+
+A model is a specification. Solving does not change it.
+
+```python
+import geap
+
+model = geap.PowerUtilityModel()
+res = model.solve()
+print(res.summary())
+res.compare("equity", "bill").premium
+```
+
+## Specify
+
+Keyword overrides merge onto Mehra and Prescott (1985).
+
+```{python}
+import geap
+
+print(geap.PowerUtilityModel(gamma=2))
+print(geap.PowerUtilityModel(delta=0.96, gamma=10))
+```
+
+Extra claims are levered consumption. `equity` is the Lucas tree
+($\phi = 1$). `bill` has no leverage.
+
+```{python}
+print(geap.PowerUtilityModel(claims={"high": {"phi": 3}}))
+```
+
+## Solve
+
+The state space is two points. `method="grid"` and
+`method="analytical"` are the same numbers.
+
+```{python}
+res = geap.PowerUtilityModel().solve()
+print(res.expected_returns)
+```
+
+A counterfactual is a new model:
+
+```{python}
+base = geap.PowerUtilityModel()
+print(base.replace(gamma=2).solve().compare("equity", "bill").premium)
+print(base.gamma)
+```
+
+## Simulate
+
+`simulate` draws finite annual samples from the chain and averages the
+sample means, the same object as Table VII in the long-run-risks
+family.
+
+```{python}
+sim = geap.PowerUtilityModel().simulate(n_samples=200, years=100, seed=0)
+print(sim.compare("equity", "bill").premium)
+```
+
+Source: Mehra and Prescott (1985).
+[References](../reference/references.qmd).

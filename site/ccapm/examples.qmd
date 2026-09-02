@@ -1,0 +1,73 @@
+---
+title: "Examples"
+---
+
+## The puzzle at $\gamma = 10$
+
+```{python}
+import geap
+import pandas as pd
+from great_tables import GT
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+res = geap.PowerUtilityModel().solve()
+data = {"equity": 6.98, "bill": 0.80}  # Mehra and Prescott, 1889–1978
+names = ("equity", "bill")
+df = pd.DataFrame({
+    "claim": names,
+    "data": [data[k] for k in names],
+    "model": [res.expected_returns[k] for k in names],
+})
+prem = res.compare("equity", "bill").premium
+(
+    GT(df)
+    .tab_header(title="Average annual net returns, data and power utility")
+    .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
+    .fmt_number(columns=["data", "model"], decimals=2)
+    .tab_source_note(
+        f"The equity premium is 6.18 points in the data and {prem:.2f} "
+        "points in the model at gamma = 10, delta = 0.99."
+    )
+    .tab_options(**KIKU_GT)
+)
+```
+
+::: {.firewall}
+**Where each number comes from.** Data columns are Mehra and Prescott
+(1985), 1889–1978 (equity 6.98, bill 0.80, premium 6.18). The model
+column is computed by the cell.
+:::
+
+## Risk aversion does not close the gap
+
+```{python}
+rows = pd.concat([
+    geap.PowerUtilityModel(gamma=g).solve()
+        .compare("equity", "bill").to_frame()
+        .assign(gamma=g)
+    for g in (2, 5, 10)
+])
+(
+    GT(rows[["gamma", "premium"]])
+    .tab_header(title="Model equity premium as gamma varies")
+    .cols_label(gamma="gamma", premium="premium %")
+    .fmt_number(columns="gamma", decimals=0)
+    .fmt_number(columns="premium", decimals=2)
+    .tab_options(**KIKU_GT)
+)
+```
+
+## A levered claim
+
+```{python}
+res = geap.PowerUtilityModel(claims={"high": {"phi": 3}}).solve()
+print(res.compare("high", "bill").premium)
+print(res.compare("equity", "bill").premium)
+```
+
+Source: Mehra and Prescott (1985).
+[References](../reference/references.qmd).

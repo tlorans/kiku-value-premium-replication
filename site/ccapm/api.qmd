@@ -1,0 +1,43 @@
+---
+title: "Module reference"
+---
+
+```python
+import geap
+
+model = geap.PowerUtilityModel()
+res = model.solve()
+res.compare("equity", "bill").premium
+```
+
+## The model
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `PowerUtilityModel` | `(params=None, *, delta=None, gamma=None, mu=None, sigma=None, rho=None, claims=None)` | Two-state power-utility specification. Defaults to Mehra and Prescott (1985). |
+| `.solve` | `(method="grid")` | `PowerUtilityResults`. `analytical` is the same two-state solution. |
+| `.simulate` | `(n_samples=200, years=100, *, seed=0, burn_in=20)` | Finite-sample means from the chain. |
+| `.replace` | `(**kwargs)` | A new model with some arguments changed. |
+| `.claims` | property | `equity`, `bill`, then any extra levered names. |
+| `.consumption_growth` | property | The two gross growth rates. |
+| `.transition` | property | 2×2 transition matrix. |
+
+`claims={"high": {"phi": 3}}` adds a levered consumption claim.
+`equity` defaults to $\phi=1$. `bill` cannot take a `phi`.
+
+## Results
+
+Returns are annualized net rates in percent.
+
+| Attribute | Meaning |
+|:---|:---|
+| `expected_returns` | Unconditional mean net return by claim |
+| `volatility` | Unconditional volatility by claim |
+| `mean_log_pd` | Mean log price-dividend; NaN for the bill |
+| `risk_free` | The bill, same units |
+| `summary()` | Formatted table |
+| `to_frame()` | One row per claim |
+| `compare(long, short)` | Long minus short |
+
+The family lives in `geap.ccapm`. `PowerUtilityModel` is re-exported at
+the `geap` root.

@@ -23,6 +23,13 @@ website:
           - lrr/examples.qmd
           - lrr/math.qmd
           - lrr/api.qmd
+      - section: "Power utility"
+        contents:
+          - ccapm/index.qmd
+          - ccapm/user-guide.qmd
+          - ccapm/examples.qmd
+          - ccapm/math.qmd
+          - ccapm/api.qmd
       - section: "Reference"
         contents:
           - reference/glossary.qmd

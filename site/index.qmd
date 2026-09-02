@@ -9,14 +9,14 @@ General-equilibrium asset pricing models in Python. Specify preferences
 and a consumption process, attach cash-flow claims, and solve. Forecast
 and discount rate come from one economy.
 
-The first family is long-run risks: Bansal and Yaron (2004) endowment,
-Epstein–Zin preferences, cash-flow leverage as in Kiku (2006). Later
-families will sit beside it and share
-[`AssetPricingModel`](lrr/api.qmd).
+Families share [`AssetPricingModel`](lrr/api.qmd). Long-run risks is
+the persistent-growth, Epstein–Zin family. Power utility is the
+two-state CCAPM of Mehra and Prescott (1985).
 
 | Family | Estimator | What it does |
 |:---|:---|:---|
 | [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Price named dividend claims on a persistent consumption process |
+| [Power utility](ccapm/index.qmd) | [`PowerUtilityModel`](ccapm/api.qmd) | Two-state consumption chain, power kernel, levered claims |
 
 ```python
 import geap
@@ -71,6 +71,6 @@ column at build time from the Table II calibration. Data numbers are
 Kiku (2006), Table I.
 :::
 
-[Installation](installation.qmd) · [User guide](lrr/user-guide.qmd) ·
-[Examples](lrr/examples.qmd) · [Mathematical detail](lrr/math.qmd) ·
-[Module reference](lrr/api.qmd)
+[Installation](installation.qmd) ·
+[Long-run risks](lrr/index.qmd) ·
+[Power utility](ccapm/index.qmd)

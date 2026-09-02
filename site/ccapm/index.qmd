@@ -1,0 +1,59 @@
+---
+title: "Power utility"
+---
+
+Power utility on a two-state consumption chain is the baseline
+consumption-based model. Mehra and Prescott (1985) showed that it
+cannot produce the historical equity premium at plausible risk
+aversion. That failure is why later families change the endowment, the
+preferences, or both.
+
+The claim to aggregate consumption is equity. The one-period claim is
+the bill. Extra claims are levered consumption: dividend growth is
+consumption growth to the power $\phi$. Returns never enter the
+calibration. The premium is a prediction.
+
+```{python}
+import geap
+
+model = geap.PowerUtilityModel()
+res = model.solve()
+print(res.compare("equity", "bill").summary())
+```
+
+The sample equity premium for 1889 to 1978 is 6.18 points, with a bill
+return of 0.80 percent (Mehra and Prescott 1985). At $\gamma = 10$ and
+$\delta = 0.99$, the two-state economy produces a much smaller premium
+and a much higher bill.
+
+Long-run risks keeps named claims and the Euler equation, and changes
+the pieces power utility is missing: a persistent component of
+consumption and Epstein–Zin preferences that price news about it. See
+[Long-run risks](../lrr/index.qmd).
+
+## Endowment
+
+Two states, symmetric transitions (Mehra and Prescott 1985):
+
+$$
+\lambda = (1+\mu+\sigma,\; 1+\mu-\sigma),
+\qquad
+\phi = \frac{1+\rho}{2}.
+$$
+
+Defaults $\mu = 0.018$, $\sigma = 0.036$, $\rho = -0.14$ match annual
+US per-capita consumption growth, 1889–1978. Stationary weights are
+one half each.
+
+## Limits
+
+- The kernel moves only with current consumption growth. There is no
+  price of news about future growth.
+- Matching a 6 point premium at this endowment requires risk aversion
+  far above 10, or a discount factor outside $(0,1)$, and then the bill
+  rate is wrong.
+- Levered claims raise the premium mechanically with $\phi$. They do
+  not repair the kernel.
+
+Source: Mehra and Prescott (1985).
+[References](../reference/references.qmd).

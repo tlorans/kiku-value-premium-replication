@@ -1,0 +1,56 @@
+---
+title: "Mathematical detail"
+---
+
+Formulas used by `PowerUtilityModel`. Notation follows Mehra and
+Prescott (1985).
+
+## Endowment
+
+Annual consumption growth is a two-state Markov chain. Gross growth in
+the two states is
+
+$$
+\lambda_1 = 1+\mu+\sigma, \qquad \lambda_2 = 1+\mu-\sigma,
+$$
+
+with symmetric transitions $\Pr(\lambda_i\to\lambda_i)=\varphi=(1+\rho)/2$
+and $\Pr(\lambda_i\to\lambda_j)=1-\varphi$. Stationary weights are
+$(1/2, 1/2)$. The defaults $\mu=0.018$, $\sigma=0.036$, $\rho=-0.14$
+match US per-capita consumption, 1889–1978.
+
+## Kernel
+
+Power utility $u(C)=C^{1-\gamma}/(1-\gamma)$ gives
+
+$$
+M_j = \delta\,\lambda_j^{-\gamma}.
+$$
+
+The kernel in state $j$ depends only on that state's consumption
+growth.
+
+## Equity
+
+The Lucas tree pays the endowment. The price-dividend ratio $q$ solves
+
+$$
+q_i = \sum_j \pi_{ij}\, \delta\,\lambda_j^{-\gamma}\, \lambda_j\, (q_j+1).
+$$
+
+Gross return from $i$ to $j$ is $\lambda_j(q_j+1)/q_i$. The bill in
+state $i$ is $1/\sum_j \pi_{ij} M_j$. Unconditional means are averages
+under the stationary distribution.
+
+A levered claim replaces $\lambda_j$ in the payoff with
+$\lambda_j^{\phi}$. $\phi=1$ is equity.
+
+## The puzzle
+
+Mehra and Prescott search $\gamma\in(0,10]$ and $\delta\in(0,1)$ and
+never reach the sample pair $(E[R_f], E[R_e]-E[R_f]) \approx
+(0.80\%, 6.18\%)$. High $\gamma$ raises the premium only by raising
+the bill.
+
+Source: Mehra and Prescott (1985); Cochrane, *Asset Pricing*, ch. 1.
+[References](../reference/references.qmd).
