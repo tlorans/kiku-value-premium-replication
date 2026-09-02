@@ -1,6 +1,6 @@
 """Table II calibration, printed from the package.
 
-Every value below is read from lrr.ModelParams() at run time —
+Every value below is read from geap.ModelParams() at run time —
 nothing is transcribed. The "target / source" column states what each
 parameter is disciplined by.
 
@@ -9,12 +9,12 @@ The calibration table on The long-run risks model page is this output.
 """
 from __future__ import annotations
 
-import lrrcs as lrr
+import geap
 
-p = lrr.ModelParams()
+p = geap.ModelParams()
 prefs, cons = p.prefs, p.cons
 
-print("Table II calibration (monthly), printed from lrr.ModelParams()")
+print("Table II calibration (monthly), printed from geap.ModelParams()")
 print()
 print("Preferences (household)")
 print(f"  delta = {prefs.delta}   | time preference | Kiku (2006) Table II")

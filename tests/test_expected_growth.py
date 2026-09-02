@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from lrrcs.calibration.expected_growth import expected_growth_proxy
-from lrrcs.calibration.leverage import estimate_long_run_leverage
+from geap.lrr.calibration.expected_growth import expected_growth_proxy
+from geap.lrr.calibration.leverage import estimate_long_run_leverage
 
 
 def test_expected_growth_proxy_window_2():
@@ -39,7 +39,7 @@ def test_leverage_still_recovers_known_phi_via_proxy():
     assert abs(phi - 2.16) < 0.4
 
 
-from lrrcs.calibration.expected_growth import filter_expected_growth
+from geap.lrr.calibration.expected_growth import filter_expected_growth
 
 
 def test_filter_expected_growth_too_short():

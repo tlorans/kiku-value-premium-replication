@@ -11,7 +11,7 @@ Every number on the Price your own claim page comes from this printout.
 """
 from __future__ import annotations
 
-import lrrcs as lrr
+import geap
 
 FIRMS = (
     ("A", 0.5),
@@ -22,8 +22,8 @@ print("Two firms, identical except the loading of dividends on x_t")
 print()
 print(f"{'firm':6s} {'phi':>5s} {'A1':>7s} {'premium_lr %':>13s} {'g_eff %':>9s} {'gordon %':>9s}")
 # Both firms go in one model, so a single solve prices the pair.
-firms = lrr.LongRunRisksModel(
-    claims={name: lrr.ClaimParams.from_loading(phi) for name, phi in FIRMS}
+firms = geap.LongRunRisksModel(
+    claims={name: geap.ClaimParams.from_loading(phi) for name, phi in FIRMS}
 ).solve(method="analytical")
 
 for name, phi in FIRMS:

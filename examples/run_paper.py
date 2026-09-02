@@ -2,7 +2,7 @@
 
 Run: uv run python examples/run_paper.py
 """
-import lrrcs as lrr
+import geap
 
 
 def main():
@@ -10,12 +10,12 @@ def main():
 
     # Section 2: the empirical value premium the model has to explain.
     try:
-        bm = lrr.build_annual_panel(refresh=False)
-        print(lrr.table_i(bm))
+        bm = geap.build_annual_panel(refresh=False)
+        print(geap.table_i(bm))
     except Exception as exc:
         print(f"Section 2 skipped ({exc}). Continuing from Table II.")
 
-    model = lrr.LongRunRisksModel()
+    model = geap.LongRunRisksModel()
 
     # Section 3.4: the log-linear reading of where the premium comes from.
     print(model.solve(method="analytical").summary())

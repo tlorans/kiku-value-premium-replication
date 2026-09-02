@@ -1,6 +1,6 @@
 import inspect
 import numpy as np
-from lrrcs.calibration import (
+from geap.lrr.calibration import (
     calibrate_claim,
     calibrate_claims,
     estimate_long_run_leverage,
@@ -56,7 +56,7 @@ def test_simulate_cashflow_moments_keys():
 
 
 def test_calibrate_claims_phi_sigma_matches_residual_vol():
-    from lrrcs.calibration.from_data import _consumption_innovation
+    from geap.lrr.calibration.from_data import _consumption_innovation
 
     rng = np.random.default_rng(11)
     n = 80

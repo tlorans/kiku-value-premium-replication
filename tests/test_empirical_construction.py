@@ -1,20 +1,20 @@
 import numpy as np
 import pandas as pd
-from lrrcs.empirical.construction import (
+from geap.lrr.empirical.construction import (
     apply_delisting_returns,
     book_equity,
     nyse_quintile_labels,
     value_weight_monthly,
 )
-from lrrcs.empirical.dividends import campbell_shiller_annual
-from lrrcs.empirical.goldens import (
+from geap.lrr.empirical.dividends import campbell_shiller_annual
+from geap.lrr.empirical.goldens import (
     END,
     FIGURE2_START,
     START,
     TABLE_I,
     TABLE_VI_PHI,
 )
-from lrrcs.empirical.tables import newey_west_mean, within_se
+from geap.lrr.empirical.tables import newey_west_mean, within_se
 
 
 def test_windows():
@@ -121,7 +121,7 @@ def test_campbell_shiller_v0_is_100():
 
 def test_form_bm_quintiles_uses_assign_portfolio(monkeypatch):
     import pandas as pd
-    from lrrcs.empirical.construction import form_bm_quintiles
+    from geap.lrr.empirical.construction import form_bm_quintiles
 
     seen = {}
 
@@ -134,13 +134,13 @@ def test_form_bm_quintiles_uses_assign_portfolio(monkeypatch):
         # 1 = growth ... 5 = value
         return pd.Series([1] * n)
 
-    monkeypatch.setattr("lrrcs.empirical.construction.tf.assign_portfolio", fake_assign)
+    monkeypatch.setattr("geap.lrr.empirical.construction.tf.assign_portfolio", fake_assign)
     monkeypatch.setattr(
-        "lrrcs.empirical.construction.tf.breakpoint_options",
+        "geap.lrr.empirical.construction.tf.breakpoint_options",
         lambda **kw: kw,
     )
     monkeypatch.setattr(
-        "lrrcs.empirical.construction.tf.data_options",
+        "geap.lrr.empirical.construction.tf.data_options",
         lambda **kw: kw,
     )
 

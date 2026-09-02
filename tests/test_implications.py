@@ -12,8 +12,8 @@ Four layers, in gating order:
 import numpy as np
 import pytest
 
-import lrrcs as lrr
-from lrrcs.implications.figures import figure5, figure_lr_premium, figure_mean_pd
+import geap
+from geap.lrr.implications.figures import figure5, figure_lr_premium, figure_mean_pd
 
 # Table VII, Model column: cross-sample means (and SDs) of annual stats.
 PAPER_ER = {"growth": 6.07, "value": 11.36, "market": 7.53}
@@ -25,7 +25,7 @@ PAPER_VOL_SD = {"growth": 4.90, "value": 6.13, "market": 4.35}
 @pytest.fixture(scope="module")
 def paper_model():
     """The Table II calibration; its grid solve is cached on the model."""
-    return lrr.LongRunRisksModel()
+    return geap.LongRunRisksModel()
 
 
 @pytest.fixture(scope="module")
@@ -72,7 +72,7 @@ def test_table_vii_by_simulation(paper_model):
 
 def test_grid_convergence():
     """rf rises monotonically with grid size; the premium never flips sign."""
-    model = lrr.LongRunRisksModel()
+    model = geap.LongRunRisksModel()
     rf = []
     for n_x in (20, 40, 60):
         res = model.solve(n_x=n_x, n_s=4, tol=1e-8)
@@ -83,7 +83,7 @@ def test_grid_convergence():
 
 def test_analytical_consistency_fine_grid():
     """Numerical dz/dx matches the self-consistent log-linear A1 (eq. 11)."""
-    model = lrr.LongRunRisksModel()
+    model = geap.LongRunRisksModel()
     res = model.solve(n_x=60, n_s=4, tol=1e-8)
     params = res.params
     c = params.cons
@@ -103,19 +103,19 @@ def test_analytical_consistency_fine_grid():
 def test_degenerate_grid_raises_instead_of_flooring():
     """On a tiny grid the value claim's price is genuinely infinite; the
     solver must say so rather than clamp it to a floor."""
-    with pytest.raises(lrr.SolverDivergenceError):
-        lrr.LongRunRisksModel().solve(n_x=5, n_s=2)
+    with pytest.raises(geap.SolverDivergenceError):
+        geap.LongRunRisksModel().solve(n_x=5, n_s=2)
 
 
 def test_analytical_model_column_pd_ranking():
     """Section 3.4 linearization points recover value log(P/D) < growth."""
-    res = lrr.LongRunRisksModel().solve(method="analytical")
+    res = geap.LongRunRisksModel().solve(method="analytical")
     assert res.long_run_premium["value"] > res.long_run_premium["growth"]
     assert res.mean_log_pd["value"] < res.mean_log_pd["market"] < res.mean_log_pd["growth"]
 
 
 def test_simulated_consumption_moment_ranking():
-    cf = lrr.LongRunRisksModel().simulate_cashflows(n_sims=20, years=74, seed=1)
+    cf = geap.LongRunRisksModel().simulate_cashflows(n_sims=20, years=74, seed=1)
     cf = cf.set_index("series")
     assert 1.0 <= cf.loc["consumption", "mean"] <= 3.0
 

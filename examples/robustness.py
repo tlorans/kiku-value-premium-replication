@@ -16,9 +16,9 @@ Run: uv run python examples/robustness.py
 """
 from __future__ import annotations
 
-import lrrcs as lrr
+import geap
 
-BASE = lrr.LongRunRisksModel()
+BASE = geap.LongRunRisksModel()
 
 
 def spread_and_market(model) -> tuple[float, float]:
@@ -37,7 +37,7 @@ GRIDS = {
 }
 
 
-def varied(key: str, value: float) -> lrr.LongRunRisksModel:
+def varied(key: str, value: float) -> geap.LongRunRisksModel:
     """A new model with one parameter moved off the Table II calibration."""
     if key.startswith("claims:"):
         _, claim, field = key.split(":")

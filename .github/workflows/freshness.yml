@@ -1,6 +1,6 @@
 name: Freshness (full re-execute)
 
-# Deletes the freeze cache and re-executes every chapter from scratch.
+# Deletes the freeze cache and re-executes every page from scratch.
 # Failure or drift here means the committed frozen outputs no longer
 # match what the code produces. Never deploys.
 

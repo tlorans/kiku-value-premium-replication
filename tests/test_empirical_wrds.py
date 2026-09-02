@@ -1,11 +1,11 @@
 import pandas as pd
 import pytest
-from lrrcs.empirical.wrds import (
+from geap.lrr.empirical.wrds import (
     EmpiricalDataError,
     _normalize_crsp_monthly,
     _wrds_connection,
 )
-from lrrcs.empirical.panel import _filter_universe, _pull_wrds
+from geap.lrr.empirical.panel import _filter_universe, _pull_wrds
 
 
 def test_wrds_connection_without_credentials_raises(monkeypatch, tmp_path):
@@ -60,7 +60,7 @@ def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
             )
         raise AssertionError((domain, dataset))
 
-    monkeypatch.setattr("lrrcs.empirical.wrds.tf.download_data", fake_download)
+    monkeypatch.setattr("geap.lrr.empirical.wrds.tf.download_data", fake_download)
 
     class DummyConn:
         def __enter__(self):
@@ -69,7 +69,7 @@ def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
             return False
 
     monkeypatch.setattr(
-        "lrrcs.empirical.wrds._wrds_connection", lambda: DummyConn()
+        "geap.lrr.empirical.wrds._wrds_connection", lambda: DummyConn()
     )
     def fake_read_sql(query, conn):
         q = query.lower()
@@ -93,7 +93,7 @@ def test_pull_wrds_calls_tidyfinance_download_data(monkeypatch):
             }
         )
 
-    monkeypatch.setattr("lrrcs.empirical.wrds._read_sql", fake_read_sql)
+    monkeypatch.setattr("geap.lrr.empirical.wrds._read_sql", fake_read_sql)
     tables = _pull_wrds()
     datasets = {c["dataset"] for c in calls}
     assert "crsp_monthly" in datasets
@@ -185,7 +185,7 @@ def test_permno_starting_on_exchcd_31_stays_in_universe():
 
 @pytest.mark.wrds
 def test_live_panel_covers_1930_2003():
-    from lrrcs.empirical.panel import build_annual_panel
+    from geap.lrr.empirical.panel import build_annual_panel
     bm = build_annual_panel(refresh=True)
     assert set(bm["claim"].unique()) == {"Growth", "Value", "Market"}
     assert bm["year"].min() == 1930
@@ -200,14 +200,14 @@ def test_live_table_i_hard_gate_within_se():
     Value cash-flow ranking cells (dg_sd, Value–Market Δd corr, φ̃, innov_corr)
     stay off this gate; they do not sit inside the printed SE.
     """
-    from lrrcs.empirical.goldens import (
+    from geap.lrr.empirical.goldens import (
         END,
         START,
         TABLE_I,
         TABLE_I_CORR_RET,
     )
-    from lrrcs.empirical.panel import _cache_ready, build_annual_panel
-    from lrrcs.empirical.tables import table_i, table_i_corr, within_se
+    from geap.lrr.empirical.panel import _cache_ready, build_annual_panel
+    from geap.lrr.empirical.tables import table_i, table_i_corr, within_se
 
     bm = build_annual_panel(refresh=not _cache_ready())
     tab = table_i(bm).set_index("claim")

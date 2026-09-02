@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lrrcs"
-version = "0.7.0"
-description = "General-equilibrium long-run risks: asset prices and risk premia."
+name = "geap"
+version = "1.0.0"
+description = "General-equilibrium asset pricing models in Python."
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [
-    {name = "Replication Team (Grok, Lucas, Harper, Benjamin)"}
+    {name = "Thomas Lorans", email = "thomaslorans@gmail.com"}
 ]
 dependencies = [
     "numpy>=1.26",

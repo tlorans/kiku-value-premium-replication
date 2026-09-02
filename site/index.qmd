@@ -1,41 +1,38 @@
 ---
-title: "Valuing Asset Claims in General Equilibrium"
+title: "geap"
 toc: false
 aliases:
   - /getting-started.html
 ---
 
-Every discounted cash flow valuation rests on two numbers you made up.
-The growth forecast comes from one model, and the discount rate comes
-from another. Neither is obliged to agree with the other. The course
-teaches an alternative that answers the question the DCF assumes away,
-which is why risky cash flows earn high expected returns, and how high. You derive both numbers from a single description of the
-economy, meaning one consumption process and one set of preferences,
-and the same model then prices every claim, from the aggregate stock
-market to a portfolio you bring yourself.
+General-equilibrium asset pricing models in Python. Specify preferences
+and a consumption process, attach cash-flow claims, and solve. Forecast
+and discount rate come from one economy.
 
-The course is built around Kiku (2006), *Is the Value Premium a
-Puzzle?*, which the site replicates in code.
-Value firms out-earned growth firms by about six percentage points a
-year over 1930 to 2003, while their market betas are nearly identical.
-Under the CAPM, a higher return requires a higher beta, so the CAPM
-cannot price the premium. By the end of the course you will have
-rebuilt the general equilibrium model that resolves the puzzle, and you
-will have tested it against seventy-four years of data. You will also
-have used the model to price a claim of your own.
+The first family is long-run risks: Bansal and Yaron (2004) endowment,
+Epstein–Zin preferences, cash-flow leverage as in Kiku (2006). Later
+families will sit beside it and share
+[`AssetPricingModel`](lrr/api.qmd).
 
-## The main result
+| Family | Estimator | What it does |
+|:---|:---|:---|
+| [Long-run risks](lrr/index.qmd) | [`LongRunRisksModel`](lrr/api.qmd) | Price named dividend claims on a persistent consumption process |
 
-The table below is the result the course builds toward. The model is
-calibrated to consumption and dividends alone, with no return data used
-anywhere in the calibration, and is then compared with the returns it
-was never shown. Data columns come from the paper (Table I and
-Table VII), and the code cell computes the model columns when the page
-builds.
+```python
+import geap
+
+model = geap.LongRunRisksModel()
+res = model.solve()
+print(res.summary())
+res.compare("value", "growth", market="market").premium
+```
+
+The default calibration is Kiku (2006) Table II. Average returns never
+enter the cash-flow step. The premium is a prediction.
 
 ```{python}
 #| code-fold: true
-import lrrcs as lrr
+import geap
 import pandas as pd
 from great_tables import GT
 
@@ -44,7 +41,7 @@ KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
                source_notes_font_size="0.8rem", column_labels_font_weight="bold",
                data_row_padding="4px")
 
-model = lrr.LongRunRisksModel()
+model = geap.LongRunRisksModel()
 sim = model.simulate(n_samples=300, years=74, seed=0)
 vg = sim.compare("value", "growth", market="market")
 
@@ -57,63 +54,23 @@ df = pd.DataFrame({
 })
 (
     GT(df)
-    .tab_header(title="Average annual returns in the data and in the model")
+    .tab_header(title="Average annual returns, data and long-run risks")
     .cols_label(claim="", data="E[R] data (%)", model="E[R] model (%)")
     .fmt_number(columns=["data", "model"], decimals=2)
-    .tab_source_note(f"The value premium is about 6 points in the data and "
-                     f"{vg.premium:.1f} points in the model.")
+    .tab_source_note(f"Value minus growth is about 6 points in the data "
+                     f"(Kiku, Table I) and {vg.premium:.1f} points in the model.")
     .tab_source_note(f"The CAPM beta ratio of value to growth is "
-                     f"{vg.beta_ratio:.2f}, so value has the lower beta "
-                     f"and the higher return.")
+                     f"{vg.beta_ratio:.2f}.")
     .tab_options(**KIKU_GT)
 )
 ```
 
-## The course outline
-
-**Part I: The puzzle.** A DCF has
-[two free numbers](chapters/01-two-free-numbers.qmd), and fixing them
-honestly requires a model of risk. The
-[data chapter](chapters/02-value-premium-in-the-data.qmd) documents a
-premium of about six percentage points that the CAPM cannot price.
-
-**Part II: The toolkit.**
-[The Euler equation](chapters/03-pricing-by-euler-equation.qmd) prices
-every claim in the model.
-[Epstein-Zin preferences](chapters/04-epstein-zin-preferences.qmd) make
-news about future growth affect prices today, and the
-[long-run risks consumption process](chapters/05-long-run-risks.qmd)
-supplies the news.
-
-**Part III: Solving the model.** The
-[log-linear solution](chapters/06-log-linear-solution.qmd) gives closed
-form answers, and the
-[quadrature solution](chapters/07-quadrature-solution.qmd) avoids the
-approximation. Each chapter also explains what its method leaves out.
-
-**Part IV: Testing against the data.** You
-[calibrate the cash flows](chapters/08-calibrating-cash-flows.qmd)
-without using any return data. You then test the model on the
-[aggregate market](chapters/09-the-market-test.qmd), and you check
-whether the
-[value premium comes out right](chapters/10-value-premium-resolved.qmd)
-with nothing re-tuned.
-
-**Part V: Applying the model.** You
-[price a claim of your own](chapters/11-price-your-own-claim.qmd), and
-then you read the
-[objections and the model's limits](chapters/12-objections-and-limits.qmd).
-
-If you are new, start with [How to read this course](how-to-read.qmd).
-The course does not claim the model is true. The course claims a
-valuation should get its forecast and its discount rate from one place,
-and the model is a clean working example of how to do so.
-
 ::: {.firewall}
-**Where each number comes from.** The code cell above each model number
-computes it at build time, by running the [`lrrcs`](reference/api.qmd)
-package on the paper's calibration. Data numbers are the paper's
-published values, reproduced offline in
-[Chapter 2](chapters/02-value-premium-in-the-data.qmd). You can
-download each chapter as a runnable notebook.
+**Where each number comes from.** The code cell computes the model
+column at build time from the Table II calibration. Data numbers are
+Kiku (2006), Table I.
 :::
+
+[Installation](installation.qmd) · [User guide](lrr/user-guide.qmd) ·
+[Examples](lrr/examples.qmd) · [Mathematical detail](lrr/math.qmd) ·
+[Module reference](lrr/api.qmd)
