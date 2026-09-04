@@ -29,7 +29,7 @@ from .results import (
     SimulationResults,
 )
 
-from . import calibration, empirical, implications
+from . import calibration, empirical, estimation, implications
 
 __all__ = [
     "LongRunRisksModel",
@@ -54,5 +54,6 @@ __all__ = [
     "LRRResults",
     "calibration",
     "empirical",
+    "estimation",
     "implications",
 ]

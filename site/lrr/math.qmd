@@ -141,7 +141,25 @@ printed Table VII return *levels* do not reproduce exactly from a
 30-point grid, and the gap is over-dispersion of $x$. Spreads and
 betas are the objects the paper tests.
 
+## Time aggregation (Bansal, Kiku, and Yaron 2016)
+
+Let $h$ be the number of decision periods in a sampling interval. The
+observed consumption growth is the log of the ratio of summed levels,
+
+$$
+\Delta c^a_{\tau} \approx \sum_{j=2}^{h}\frac{j-1}{h}\Delta c_{t-2h+j}
++ \sum_{j=1}^{h}\frac{h-j+1}{h}\Delta c_{t-h+j}.
+$$
+
+Unconditionally $E[\Delta c^a] = h\mu_c$. The affine maps
+$z_{d,t}=A_{d}'Y_t$ and $r_{f,t}=F'Y_t$ invert for the latent states
+at the sampling date (JME eq. 23). At $h>1$ the price-dividend map
+subtracts the trailing dividend log-sum, and $F$ is scaled by $h$.
+`geap.lrr.estimation.model_moments` evaluates the aggregated moments
+at a given $( \theta, h )$.
+
 The sources are Cochrane, *Asset Pricing*, chapter 1, Epstein and Zin
-(1989), Bansal and Yaron (2004), Campbell and Shiller (1988), Tauchen
-and Hussey (1991), and Kiku (2006). The bibliography is on
+(1989), Bansal and Yaron (2004), Bansal, Kiku, and Yaron (2016),
+Campbell and Shiller (1988), Tauchen and Hussey (1991), and Kiku (2006).
+The bibliography is on
 [References](../reference/references.qmd).

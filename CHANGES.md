@@ -1,5 +1,19 @@
 # Changes
 
+## 1.4.0
+
+Bansal, Kiku, and Yaron (2016) GMM estimation of long-run risks with
+time aggregation, under `geap.lrr.estimation`. The estimator takes the
+annual panel and a Bansal–Yaron (2004) start; Table 2 is the comparison
+after GMM, not an input. Continuously updated diagonal GMM weights,
+Hansen Lemma 4.2 $J$-test (raw-parameter Jacobian, QR-stabilized),
+sandwich standard errors, and an optional
+eight-year moving-block bootstrap in `geap.gmm`. Quarterly starts
+rescale the Bansal–Yaron monthly vector by decisions per year (four
+samples), not as if \(h\) were annual. `bootstrap_h` re-selects \(h\)
+on each bootstrap draw. Kiku (2006) calibration and quadrature solver
+are unchanged.
+
 ## 1.3.0
 
 Hansen GMM as `geap.gmm`: `estimate`, `linear_factor`, power-utility

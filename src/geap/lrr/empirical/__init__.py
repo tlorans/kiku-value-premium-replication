@@ -1,6 +1,7 @@
 from .consumption import (
     consumption_growth_from_levels,
     load_consumption,
+    load_consumption_quarterly,
     load_deflator,
 )
 from .dividends import campbell_shiller_annual
@@ -16,6 +17,7 @@ __all__ = [
     "campbell_shiller_annual",
     "consumption_growth_from_levels",
     "load_consumption",
+    "load_consumption_quarterly",
     "load_deflator",
     "real_rf_from_monthly",
     "table_i",

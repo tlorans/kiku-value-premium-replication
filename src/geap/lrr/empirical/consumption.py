@@ -11,6 +11,9 @@ _ND = "DNDGRA3A086NBEA"
 _SV = "DSERRA3A086NBEA"
 _POP = "B230RC0A052NBEA"
 _DEFL = "DPCERD3A086NBEA"
+_ND_Q = "DNDGRA3Q086SBEA"
+_SV_Q = "DSERRA3Q086SBEA"
+_POP_Q = "B230RC0Q173SBEA"
 
 
 def consumption_growth_from_levels(
@@ -49,3 +52,28 @@ def load_consumption() -> pd.Series:
 def load_deflator() -> pd.Series:
     """Annual PCE implicit price deflator from FRED (DPCERD3A086NBEA)."""
     return _fred_annual_series(_DEFL)
+
+
+def _fred_quarterly_series(series_id: str, timeout: float = 30.0) -> pd.Series:
+    url = _FRED_CSV.format(id=series_id)
+    with urllib.request.urlopen(url, timeout=timeout) as resp:
+        raw = resp.read().decode()
+    df = pd.read_csv(io.StringIO(raw))
+    date_col = df.columns[0]
+    value_col = df.columns[1]
+    idx = pd.to_datetime(df[date_col])
+    s = pd.Series(pd.to_numeric(df[value_col], errors="coerce").to_numpy(), index=idx)
+    s = s[~s.index.duplicated(keep="last")].sort_index()
+    s.name = series_id
+    return s
+
+
+def load_consumption_quarterly() -> pd.Series:
+    """Quarterly log growth of real per-capita ND+S from FRED."""
+    nd = _fred_quarterly_series(_ND_Q)
+    sv = _fred_quarterly_series(_SV_Q)
+    pop = _fred_quarterly_series(_POP_Q)
+    idx = nd.index.intersection(sv.index).intersection(pop.index)
+    dc = consumption_growth_from_levels(nd.loc[idx], sv.loc[idx], pop.loc[idx])
+    dc.name = "dc"
+    return dc

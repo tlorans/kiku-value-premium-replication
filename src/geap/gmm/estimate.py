@@ -8,7 +8,7 @@ from scipy.optimize import minimize
 from scipy.stats import chi2
 
 from .results import GMMResults
-from .weighting import newey_west, resolve_weights, sandwich
+from .weighting import hansen_j_general, invvar_weights, newey_west, resolve_weights, sandwich
 
 MomentFn = Callable[[np.ndarray], np.ndarray]
 
@@ -64,6 +64,7 @@ def _assemble(
     jacobian: np.ndarray | None = None,
     moments: MomentFn | None = None,
     efficient: bool,
+    j_test: bool = False,
 ) -> GMMResults:
     nobs = None if g_t is None else int(g_t.shape[0])
     n_params = int(theta.size)
@@ -79,8 +80,11 @@ def _assemble(
             jacobian = _finite_difference_jacobian(moments, theta)
         cov = sandwich(jacobian, W, S, nobs)
         se = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-        if efficient and n_moments > n_params:
-            J = float(nobs * objective)
+        if n_moments > n_params and (efficient or j_test):
+            if efficient and not j_test:
+                J = float(nobs * objective)
+            else:
+                J, j_df = hansen_j_general(g_T, jacobian, W, S, nobs)
             J_pvalue = float(chi2.sf(J, j_df))
     return GMMResults(
         theta,
@@ -109,6 +113,7 @@ def estimate(
     bounds=None,
     names: Iterable[str] | None = None,
     options: dict | None = None,
+    j_test: bool = False,
 ) -> GMMResults:
     """Hansen GMM: minimise ``g_T(θ)' W g_T(θ)``.
 
@@ -159,6 +164,9 @@ def estimate(
         raise ValueError(
             "Two-step GMM needs observation-level moments of shape (T, k)."
         )
+    cue = isinstance(W, str) and W.lower() == "cue_invvar"
+    if cue and g_t is None:
+        raise ValueError("cue_invvar weights need observation-level moments of shape (T, k).")
     W_mat = resolve_weights(w_spec, g_t, n_moments)
     names_t = tuple(names) if names is not None else _default_names(n_params)
     if len(names_t) != n_params:
@@ -177,8 +185,14 @@ def estimate(
     current_W = W_mat
     current_gt, current_gT = g_t, g_T
     for step in range(n_steps):
-        def objective(th, _W=current_W):
-            _, g = _eval(moments, th)
+        def objective(th, _W=current_W, _cue=cue, _lags=lags):
+            gt, g = _eval(moments, th)
+            if _cue:
+                if gt is None:
+                    raise ValueError(
+                        "cue_invvar weights need observation-level moments of shape (T, k)."
+                    )
+                _W = invvar_weights(gt, lags=_lags)
             return float(g @ _W @ g)
 
         result = minimize(
@@ -190,6 +204,8 @@ def estimate(
         )
         current = _as_theta(result.x)
         current_gt, current_gT = _eval(moments, current)
+        if cue and current_gt is not None:
+            current_W = invvar_weights(current_gt, lags=lags)
         if step < n_steps - 1:
             if current_gt is None:
                 raise ValueError(
@@ -208,4 +224,5 @@ def estimate(
         names=names_t,
         moments=moments,
         efficient=n_steps >= 2,
+        j_test=j_test,
     )

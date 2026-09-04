@@ -21,6 +21,7 @@ website:
           - lrr/index.qmd
           - lrr/user-guide.qmd
           - lrr/examples.qmd
+          - lrr/estimation.qmd
           - lrr/math.qmd
           - lrr/api.qmd
       - section: "Power utility"

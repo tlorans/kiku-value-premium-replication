@@ -1,0 +1,93 @@
+---
+title: "Estimation with time aggregation"
+---
+
+Kiku (2006) *calibrates* the long-run risks model. Bansal, Kiku, and
+Yaron (2016) *estimate* it. The endowment and Epstein–Zin preferences
+are the same. The estimator recovers the latent expected-growth and
+volatility states from the price-dividend ratio and the risk-free
+rate, and it treats the agent's decision frequency $h$ as a parameter.
+Annual data from 1930 to 2015 give $\hat h = 11$, about 33 days.
+
+The first cell evaluates the log-linear solution at the published
+Table 2 vector. The next cell estimates the model from the 1930–2015
+annual panel built from the paper's sources: CRSP value-weighted
+NYSE/AMEX/NASDAQ, BLS CPI, the 90-day T-bill, and BEA NIPA
+consumption. The start is the Bansal–Yaron (2004) monthly calibration,
+not Table 2. Hats sit next to the paper's Table 2 vector and its
+eight-year block-bootstrap standard errors.
+
+```{python}
+from geap.lrr.estimation import (
+    TABLE_2_LRR,
+    TABLE_2_LRR_H,
+    load_annual,
+    model_moments,
+    sample_moments,
+)
+
+data = load_annual()
+samp = sample_moments(data)
+model = model_moments(TABLE_2_LRR, TABLE_2_LRR_H)
+print(f"h = {TABLE_2_LRR_H}")
+print(f"E[Δc] sample {samp['dc_mean']:.3f}  model {model['mean_dc']:.3f}")
+print(f"E[z]  sample {samp['log_pd_mean']:.3f}  model {model['mean_zd']:.3f}")
+print(f"E[rf] sample {samp['rf_mean']:.3f}  model {model['mean_rf']:.3f}")
+print(f"E[R-rf] model {model['mean_excess']:.3f}")
+print(f"σ(Δc) sample {samp['dc_std']:.3f}  model {model['vol_dc']:.3f}")
+```
+
+```{python}
+from geap.lrr.estimation import COLD_START, estimate_bky, load_annual
+
+panel = load_annual()
+print(
+    f"start  gamma={COLD_START.gamma}  psi={COLD_START.psi}  "
+    f"phi_d={COLD_START.phi_d}"
+)
+print(f"sample  n={len(panel)}  {int(panel['year'].min())}-{int(panel['year'].max())}")
+fit = estimate_bky(panel, start=COLD_START)
+print(fit.summary())
+```
+
+On this vintage the $h$ grid lands at 12, inside the paper's
+bootstrap standard error of 11.
+
+An annual specification that forces $h = 1$ ignores time aggregation.
+Long-run shocks then look like short-run noise, risk aversion is
+inflated, and the model is rejected. That is Tables 4–5.
+
+```{python}
+from geap.lrr.estimation import (
+    TABLE_2_LRR, TABLE_2_LRR_H, TABLE_4_ANNUAL,
+    long_run_variance_share, model_moments, table7_premia,
+)
+
+ann = model_moments(TABLE_4_ANNUAL, 1)
+print(f"annual h=1  E[R-rf]={ann['mean_excess']:.3f}  vol(z)={ann['vol_zd']:.3f}")
+print(
+    "long-run share of var(Δc): "
+    f"LRR {long_run_variance_share(TABLE_2_LRR, TABLE_2_LRR_H):.2f}  "
+    f"annual {long_run_variance_share(TABLE_4_ANNUAL, 1):.2f}"
+)
+prem = table7_premia()
+print("Table 7 model premia %", {k: round(v, 2) for k, v in prem.items()})
+```
+
+`examples/bky_jme.py` prints Tables 1–8 and the GMM on the annual
+panel. `estimate_bky` takes that panel and a Bansal–Yaron (2004) start.
+It does not read Table 2 except to print the comparison. Integer $h$ is
+chosen on a grid. The printed SE next to each hat is this sample's
+sandwich SE; $z$ uses the paper's eight-year block-bootstrap SE.
+Pass `n_boot` to replace the sandwich with a moving-block bootstrap
+that holds $\hat h$ fixed, or `bootstrap_h=True` to re-select $h$ on
+each draw. Neither path changes `LongRunRisksModel.solve`.
+
+The shipped 1930–2015 panel matches the paper's market return, dividend
+growth, and log price-dividend ratio to Table 1's display precision.
+NIPA revisions move mean consumption growth down by about 0.17
+percentage points, and the fitted ex-ante T-bill sits about 19 basis
+points above the printed 0.5 percent. Those gaps are locked in
+`tests/test_bky_goldens.py`. At the published Table 2 vector, Hansen's
+$J$-test on this panel does not reject. The paper's printed values are
+10.4 and 0.11.

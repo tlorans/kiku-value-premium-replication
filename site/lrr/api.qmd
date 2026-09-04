@@ -71,6 +71,17 @@ mine = geap.ClaimParams.from_loading(1.5)
 | `.replace` | `(**kwargs)` | a new model with some arguments changed |
 | `.claims` | property | claim names, in order |
 
+## Estimation (Bansal, Kiku, and Yaron 2016)
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `geap.lrr.estimation.load_annual` | `(path=None, *, start=1930, end=2015)` | shipped 1930–2015 annual sample |
+| `geap.lrr.estimation.solve_loglinear` | `(params)` | appendix A affine solution at the decision frequency |
+| `geap.lrr.estimation.model_moments` | `(params, h)` | time-aggregated moments |
+| `geap.lrr.estimation.estimate_bky` | `(data, *, h=None, start=COLD_START, n_boot=0, bootstrap_h=False, ...)` | CUE GMM; sandwich SEs; ``bootstrap_h`` re-selects \(h\) |
+| `geap.lrr.estimation.table3_frame` | `(data, params, h)` | Table 3 sample, model, and $t$(diff) |
+| `geap.lrr.estimation.COLD_START` | `BKYParams` | Bansal–Yaron (2004) monthly start; not Table 2 |
+
 `method="grid"` solves the Euler equations on the Tauchen-Hussey state
 space, and `method="analytical"` is the log-linear approximation of
 Section 3.4.

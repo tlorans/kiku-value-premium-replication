@@ -50,6 +50,8 @@ page.
 
 **Long-run risks** (`LongRunRisksModel`): Bansal and Yaron (2004)
 endowment, Epstein–Zin preferences, Kiku (2006) cash-flow leverage.
+`geap.lrr.estimation` estimates the same model by GMM with time
+aggregation (Bansal, Kiku, and Yaron 2016).
 
 **Power utility** (`PowerUtilityModel`): Mehra and Prescott (1985)
 two-state consumption chain. The documented result is the equity
@@ -76,6 +78,7 @@ never enter `calibrate_claim`.
 | `examples/campbell_cochrane.py` | External habit, Campbell and Cochrane (1999) |
 | `examples/gmm_linear_factor.py` | Linear-factor GMM on means and betas |
 | `examples/gmm_power_utility.py` | Power-utility SDF GMM on a three-moment toy |
+| `examples/bky_jme.py` | Bansal, Kiku, Yaron (2016): sample, cold-start Table 2 GMM, Tables 3–8 |
 
 ## License
 

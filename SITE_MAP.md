@@ -18,25 +18,26 @@ goes missing.
 | 3 | `site/lrr/index.qmd` | Long-run risks | Long-run risks | `/two-free-numbers.html`, `/long-run-risks-model.html`, `/objections.html` |
 | 4 | `site/lrr/user-guide.qmd` | User guide | Long-run risks | `/measuring-leverage.html` |
 | 5 | `site/lrr/examples.qmd` | Examples | Long-run risks | `/financial-data.html`, `/time-series.html`, `/cross-section.html`, `/price-your-own-claim.html` |
-| 6 | `site/lrr/math.qmd` | Mathematical detail | Long-run risks | — |
-| 7 | `site/lrr/api.qmd` | Module reference | Long-run risks | `/api.html` |
-| 8 | `site/ccapm/index.qmd` | Power utility | Power utility | — |
-| 9 | `site/ccapm/user-guide.qmd` | User guide | Power utility | — |
-| 10 | `site/ccapm/examples.qmd` | Examples | Power utility | — |
-| 11 | `site/ccapm/math.qmd` | Mathematical detail | Power utility | — |
-| 12 | `site/ccapm/api.qmd` | Module reference | Power utility | — |
-| 13 | `site/habit/index.qmd` | Habit | Habit | — |
-| 14 | `site/habit/user-guide.qmd` | User guide | Habit | — |
-| 15 | `site/habit/examples.qmd` | Examples | Habit | — |
-| 16 | `site/habit/math.qmd` | Mathematical detail | Habit | — |
-| 17 | `site/habit/api.qmd` | Module reference | Habit | — |
-| 18 | `site/gmm/index.qmd` | GMM | GMM | — |
-| 19 | `site/gmm/user-guide.qmd` | User guide | GMM | — |
-| 20 | `site/gmm/examples.qmd` | Examples | GMM | — |
-| 21 | `site/gmm/math.qmd` | Mathematical detail | GMM | — |
-| 22 | `site/gmm/api.qmd` | Module reference | GMM | — |
-| 23 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
-| 24 | `site/reference/references.qmd` | References | Reference | `/references.html` |
+| 6 | `site/lrr/estimation.qmd` | Estimation with time aggregation | Long-run risks | — |
+| 7 | `site/lrr/math.qmd` | Mathematical detail | Long-run risks | — |
+| 8 | `site/lrr/api.qmd` | Module reference | Long-run risks | `/api.html` |
+| 9 | `site/ccapm/index.qmd` | Power utility | Power utility | — |
+| 10 | `site/ccapm/user-guide.qmd` | User guide | Power utility | — |
+| 11 | `site/ccapm/examples.qmd` | Examples | Power utility | — |
+| 12 | `site/ccapm/math.qmd` | Mathematical detail | Power utility | — |
+| 13 | `site/ccapm/api.qmd` | Module reference | Power utility | — |
+| 14 | `site/habit/index.qmd` | Habit | Habit | — |
+| 15 | `site/habit/user-guide.qmd` | User guide | Habit | — |
+| 16 | `site/habit/examples.qmd` | Examples | Habit | — |
+| 17 | `site/habit/math.qmd` | Mathematical detail | Habit | — |
+| 18 | `site/habit/api.qmd` | Module reference | Habit | — |
+| 19 | `site/gmm/index.qmd` | GMM | GMM | — |
+| 20 | `site/gmm/user-guide.qmd` | User guide | GMM | — |
+| 21 | `site/gmm/examples.qmd` | Examples | GMM | — |
+| 22 | `site/gmm/math.qmd` | Mathematical detail | GMM | — |
+| 23 | `site/gmm/api.qmd` | Module reference | GMM | — |
+| 24 | `site/reference/glossary.qmd` | Glossary | Reference | `/background.html` |
+| 25 | `site/reference/references.qmd` | References | Reference | `/references.html` |
 
 ## Conventions
 

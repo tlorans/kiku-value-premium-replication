@@ -197,6 +197,53 @@ def test_calibration_does_not_import_gmm():
         assert "from geap import gmm" not in src
 
 
+def test_cue_invvar_rebuilds_w_at_the_estimate():
+    rng = np.random.default_rng(4)
+    t = 2000
+    returns = np.column_stack(
+        [
+            0.08 + 0.01 * rng.standard_normal(t),
+            0.10 + 0.05 * rng.standard_normal(t),
+        ]
+    )
+    beta = np.array([1.0, 1.0])
+    fit = geap.gmm.linear_factor(returns, beta, W="cue_invvar", steps=1)
+    g0 = returns - fit.theta[0] * beta
+    expected = np.diag(1.0 / g0.var(axis=0, ddof=1))
+    assert fit.W == pytest.approx(expected, rel=1e-8)
+    assert fit.steps == 1
+
+
+def test_lemma42_j_is_defined_for_identity_weights():
+    rng = np.random.default_rng(5)
+    t = 3000
+    lam = 0.08
+    beta = np.array([1.0, 1.5, 2.0])
+    noise = rng.normal(0.0, 0.03, size=(t, 3))
+    re = lam * beta + noise
+    fit = geap.gmm.linear_factor(re, beta, W="identity", steps=1, j_test=True)
+    assert fit.J is not None
+    assert fit.J_pvalue is not None
+    assert fit.J_df == 2
+    assert fit.J_pvalue > 0.01
+
+
+def test_block_bootstrap_se_is_finite_on_a_mean():
+    rng = np.random.default_rng(6)
+    x = rng.normal(0.08, 0.02, size=80)
+
+    def estimate_on(idx):
+        return np.array([float(np.mean(x[idx]))])
+
+    se, draws = geap.gmm.block_bootstrap(
+        estimate_on, nobs=len(x), block_length=8, n_boot=30, rng=rng
+    )
+    assert se.shape == (1,)
+    assert np.isfinite(se[0])
+    assert se[0] > 0
+    assert draws.shape == (30, 1)
+
+
 def test_power_utility_model_sdf_on_the_chain_and_on_a_series():
     model = geap.PowerUtilityModel()
     chain = model.sdf()

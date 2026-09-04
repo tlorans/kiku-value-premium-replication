@@ -21,6 +21,11 @@ on the persistent component. The loading $\phi$ is measured from cash
 flows, and returns never enter the measurement. The premium the model
 then returns is a prediction.
 
+Bansal, Kiku, and Yaron (2016) estimate the same structure by GMM,
+recovering the latent states from prices and treating the decision
+frequency as a parameter. That estimator is
+[`geap.lrr.estimation`](estimation.qmd).
+
 Kiku (2006) uses the long-run risks structure on value and growth
 portfolios. Value's dividends load more on the persistent component
 than growth's ($\phi = 6.2$ versus $2.6$ in Table II). The same

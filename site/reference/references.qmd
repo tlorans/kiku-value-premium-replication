@@ -4,6 +4,10 @@ aliases:
   - /references.html
 ---
 
+- Bansal, R., D. Kiku, and A. Yaron, 2016, *Risks for the long run:
+  Estimation with time aggregation*, Journal of Monetary Economics 82,
+  52 to 69.
+  [Author PDF](https://people.duke.edu/~rb7/bio/bansal_kiku_yaron_jme.pdf)
 - Bansal, R., and A. Yaron, 2004, *Risks for the Long Run: A Potential
   Resolution of Asset Pricing Puzzles*, Journal of Finance 59(4),
   1481 to 1509.

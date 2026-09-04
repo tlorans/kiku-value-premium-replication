@@ -2,8 +2,8 @@ from pathlib import Path
 import geap
 
 
-def test_version_is_1_3_0():
-    assert geap.__version__ == "1.3.0"
+def test_version_is_1_4_0():
+    assert geap.__version__ == "1.4.0"
 
 
 def test_tidyfinance_is_a_runtime_dependency():
@@ -21,7 +21,7 @@ def test_pyproject_companion_metadata():
     extras = project["optional-dependencies"]
     extra_blob = "\n".join(x for group in extras.values() for x in group)
     assert project["name"] == "geap"
-    assert project["version"] == "1.3.0"
+    assert project["version"] == "1.4.0"
     assert project["requires-python"] == ">=3.11"
     assert "tidyfinance>=0.5.0" in deps
     assert "numpy>=1.26" in deps

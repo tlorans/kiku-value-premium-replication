@@ -51,6 +51,11 @@ $m_t R^e_t$, and GMM chooses $(\delta,\gamma)$ to make that average
 small. Details are on [Examples](examples.qmd) and the formulas are on
 [Mathematical detail](math.qmd).
 
+The long-run risks estimator in [`geap.lrr.estimation`](../lrr/estimation.qmd)
+uses this GMM engine with continuously updated diagonal weights and
+Hansen's Lemma 4.2 $J$-test. That is Bansal, Kiku, and Yaron (2016),
+not cash-flow calibration.
+
 The source for the estimator is Hansen (1982). Cochrane (2005) is the
 asset-pricing statement of the same GMM. The bibliography is on
 [References](../reference/references.qmd).

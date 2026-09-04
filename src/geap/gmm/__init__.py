@@ -5,6 +5,7 @@ averages in the data. This is a different estimator from the cash-flow
 calibration in :mod:`geap.lrr.calibration`: returns never enter that
 path, and they do not enter it through this module either.
 """
+from .bootstrap import block_bootstrap, moving_block_indices
 from .estimate import estimate
 from .moments import linear_factor, power_utility_sdf, sdf_moments
 from .results import GMMResults
@@ -15,4 +16,6 @@ __all__ = [
     "power_utility_sdf",
     "sdf_moments",
     "GMMResults",
+    "block_bootstrap",
+    "moving_block_indices",
 ]

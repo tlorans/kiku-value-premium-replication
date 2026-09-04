@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geap"
-version = "1.3.0"
+version = "1.4.0"
 description = "General-equilibrium asset pricing models in Python."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -51,6 +51,7 @@ testpaths = ["tests"]
 addopts = ["-m", "not wrds"]
 markers = [
     "wrds: live WRDS reconstruction (needs repo-root .env)",
+    "slow: full BKY GMM / bootstrap / Monte Carlo",
 ]
 
 [tool.setuptools.packages.find]

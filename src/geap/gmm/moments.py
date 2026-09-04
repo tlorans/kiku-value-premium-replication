@@ -6,7 +6,7 @@ from typing import Iterable
 import numpy as np
 
 from .estimate import _assemble, _as_theta
-from .weighting import newey_west, resolve_weights
+from .weighting import invvar_weights, newey_west, resolve_weights
 
 
 def power_utility_sdf(delta, gamma, growth) -> np.ndarray:
@@ -48,6 +48,7 @@ def linear_factor(
     steps: int = 1,
     hac_lags: int | None = None,
     names: Iterable[str] | None = None,
+    j_test: bool = False,
 ):
     """Price of risk from ``E[R^e] = β λ``.
 
@@ -97,9 +98,21 @@ def linear_factor(
             "Two-step GMM needs observation-level moments of shape (T, k)."
         )
     lags = 0 if hac_lags is None else int(hac_lags)
+    cue = isinstance(W, str) and W.lower() == "cue_invvar"
+    if cue and panel is None:
+        raise ValueError("cue_invvar weights need observation-level moments of shape (T, k).")
     g_probe = panel
-    W_mat = resolve_weights(w_spec, g_probe, n_assets)
+    W_mat = resolve_weights("identity" if cue else w_spec, g_probe, n_assets)
     theta = _closed_form(mean, loadings, W_mat)
+    if cue:
+        for _ in range(50):
+            g_t = panel - (loadings @ theta)
+            W_mat = invvar_weights(g_t)
+            nxt = _closed_form(mean, loadings, W_mat)
+            if np.allclose(nxt, theta, atol=1e-12, rtol=1e-10):
+                theta = nxt
+                break
+            theta = nxt
     for _ in range(n_steps - 1):
         g_t = panel - (loadings @ theta)
         S = newey_west(g_t, lags=lags)
@@ -129,4 +142,5 @@ def linear_factor(
         names=names_t,
         jacobian=jacobian,
         efficient=n_steps >= 2,
+        j_test=j_test,
     )

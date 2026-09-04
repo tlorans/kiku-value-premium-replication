@@ -16,7 +16,7 @@ Hansen GMM lives in ``geap.gmm``.
 
 from __future__ import annotations
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 from .base import (
     AssetPricingModel,
