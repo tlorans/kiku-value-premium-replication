@@ -1,0 +1,118 @@
+---
+title: "Size and book-to-market claims"
+---
+
+Table 7 takes the market fit of [Estimation](estimation.qmd) as given
+and asks what the model says about the top and bottom quintiles sorted
+by size and by book-to-market. Preferences, consumption dynamics, and
+the states extracted from the market's price-dividend ratio and the
+risk-free rate stay at the market estimates. Each portfolio gets its
+own cash-flow vector: the mean $\mu_j$, the loading $\phi_j$ on
+expected growth, the loading $\varphi_j$ on volatility, and the
+correlation $\varrho_j$ of its own shock with the consumption shock.
+The moments are the paper's: mean and volatility of dividend growth,
+its correlation with consumption growth, the risk premium, return
+volatility, mean and volatility of the price-dividend ratio, and the
+market beta.
+
+```{python}
+#| code-fold: true
+from great_tables import GT
+
+from geap.lrr.estimation import (
+    estimate_bky,
+    estimate_table7_claims,
+    load_annual,
+    load_cross_section,
+    table7_panel_a,
+    table7_panel_b,
+)
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+panel = load_annual()
+portfolios = load_cross_section()
+```
+
+## Panel A: cash-flow parameters and risk premia
+
+```{python}
+fit = estimate_bky(panel)
+claims = estimate_table7_claims(portfolios, market_params=fit.params, h=fit.h)
+a = table7_panel_a(claims, portfolios, fit.params, fit.h)
+params = a[["claim", "mu", "mu_paper", "mu_paper_se", "phi", "phi_paper", "phi_paper_se",
+            "phi_sigma", "phi_sigma_paper", "phi_sigma_paper_se", "rho", "rho_paper", "rho_paper_se"]]
+(
+    GT(params)
+    .tab_header(title="Table 7, Panel A. Cash-flow parameters by portfolio")
+    .tab_spanner(label="mu_j", columns=["mu", "mu_paper", "mu_paper_se"])
+    .tab_spanner(label="phi_j", columns=["phi", "phi_paper", "phi_paper_se"])
+    .tab_spanner(label="varphi_j", columns=["phi_sigma", "phi_sigma_paper", "phi_sigma_paper_se"])
+    .tab_spanner(label="rho_j", columns=["rho", "rho_paper", "rho_paper_se"])
+    .cols_label(claim="", mu="ours", mu_paper="paper", mu_paper_se="SE",
+                phi="ours", phi_paper="paper", phi_paper_se="SE",
+                phi_sigma="ours", phi_sigma_paper="paper", phi_sigma_paper_se="SE",
+                rho="ours", rho_paper="paper", rho_paper_se="SE")
+    .fmt_number(columns=["mu", "mu_paper", "mu_paper_se"], decimals=4)
+    .fmt_number(columns=["phi", "phi_paper", "phi_paper_se", "phi_sigma", "phi_sigma_paper",
+                         "phi_sigma_paper_se", "rho", "rho_paper", "rho_paper_se"], decimals=2)
+    .tab_source_note("mu_j is per decision period. Paper: BKY (2016) Table 7 Panel A, with its bootstrap SEs.")
+    .tab_options(**KIKU_GT)
+)
+```
+
+```{python}
+premia = a[["claim", "premium_data", "premium_data_paper", "premium_model", "premium_model_paper"]]
+(
+    GT(premia)
+    .tab_header(title="Table 7, Panel A. Risk premia, percent a year")
+    .tab_spanner(label="Data", columns=["premium_data", "premium_data_paper"])
+    .tab_spanner(label="Model", columns=["premium_model", "premium_model_paper"])
+    .cols_label(claim="", premium_data="ours", premium_data_paper="paper",
+                premium_model="ours", premium_model_paper="paper")
+    .fmt_number(columns=["premium_data", "premium_data_paper", "premium_model", "premium_model_paper"], decimals=2)
+    .tab_source_note("Data: mean real return of the Ken French quintile legs, 1930 to 2015. Paper: BKY (2016) Table 7 Panel A.")
+    .tab_options(**KIKU_GT)
+)
+```
+
+## Panel B: CAPM betas and alphas
+
+The model's betas come from a long simulation of the four claims and
+the market on one path of shocks. Alphas are the model premium of the
+spread minus beta times the market premium, in percent a year.
+
+```{python}
+b = table7_panel_b(claims, fit.params, fit.h, portfolios, panel, years=2000, seed=1)
+(
+    GT(b)
+    .tab_header(title="Table 7, Panel B. CAPM implications")
+    .tab_spanner(label="beta, data", columns=["beta_data", "beta_data_paper"])
+    .tab_spanner(label="beta, model", columns=["beta_model", "beta_model_paper"])
+    .tab_spanner(label="alpha, data (%)", columns=["alpha_data", "alpha_data_paper"])
+    .tab_spanner(label="alpha, model (%)", columns=["alpha_model", "alpha_model_paper"])
+    .cols_label(spread="", beta_data="ours", beta_data_paper="paper", beta_model="ours",
+                beta_model_paper="paper", alpha_data="ours", alpha_data_paper="paper",
+                alpha_model="ours", alpha_model_paper="paper")
+    .fmt_number(columns=[c for c in b.columns if c != "spread"], decimals=2)
+    .tab_source_note("Paper: BKY (2016) Table 7 Panel B.")
+    .tab_options(**KIKU_GT)
+)
+```
+
+::: {.firewall}
+Every "paper" column is quoted from Bansal, Kiku, and Yaron (2016),
+Table 7. The portfolio panel is the Ken French size and book-to-market
+lowest and highest quintiles, with and without dividends, deflated by
+the BLS CPI. The second stage is a weighted minimum-distance fit on
+the paper's moment list with the states extracted from the market,
+not the paper's joint GMM, and it reports no standard errors. The
+loadings and premia land near the paper's. The model beta of small
+minus large does not: the simulated beta stays about half the printed
+0.86, even with the market beta among the fitted moments, so the
+model's size alpha is smaller than the paper's. `NUMBERS.md` lists the
+open caveats.
+:::

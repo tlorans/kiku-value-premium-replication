@@ -78,7 +78,7 @@ never enter `calibrate_claim`.
 | `examples/campbell_cochrane.py` | External habit, Campbell and Cochrane (1999) |
 | `examples/gmm_linear_factor.py` | Linear-factor GMM on means and betas |
 | `examples/gmm_power_utility.py` | Power-utility SDF GMM on a three-moment toy |
-| `examples/bky_jme.py` | Bansal, Kiku, Yaron (2016): sample, cold-start Table 2 GMM, Tables 3–8 |
+| `examples/bky_jme.py` | Bansal, Kiku, Yaron (2016) Tables 1 to 8 and Figures 1 and 2, ours beside the paper's |
 
 ## License
 

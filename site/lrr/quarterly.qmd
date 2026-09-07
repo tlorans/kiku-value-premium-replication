@@ -1,0 +1,83 @@
+---
+title: "Post-war quarterly data"
+---
+
+Table 8 repeats the estimation on quarterly data from 1948 to 2015, so
+that the result does not rest on the Great Depression years. With time
+aggregation the decision frequency $h$ is the number of decisions in a
+quarter, chosen on the grid 1 to 4. Without it $h = 1$: the agent
+decides once a quarter.
+
+The quarterly panel follows the model's conventions. Prices and
+dividends are real. The quarterly dividend is the trailing four-quarter
+real sum divided by four, the usual treatment of the seasonal and
+payment-timing noise in quarterly dividends, and the price-dividend
+ratio is price over that one-quarter flow because the model's
+time-aggregated moment sums dividends over one sampling interval. The
+mean log P/D therefore sits about $\log 4$ above the annual one.
+
+```{python}
+#| code-fold: true
+from great_tables import GT
+
+from geap.lrr.estimation import estimate_bky, load_quarterly, table8_frame
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+
+def fmt_params(gt, tab):
+    """Two decimals for the large parameters, four for the rest, scientific for sigma_w."""
+    idx = {name: i for i, name in enumerate(tab["parameter"])}
+    two = [idx[n] for n in ("gamma", "psi", "phi_d", "phi_d_sigma", "h", "J") if n in idx]
+    three = [idx[n] for n in ("rho_d", "p") if n in idx]
+    sci = [idx[n] for n in ("sigma_w",) if n in idx]
+    four = [i for i in range(len(tab)) if i not in two + three + sci]
+    num = [c for c in tab.columns if c != "parameter"]
+    return (
+        gt.fmt_number(columns=num, rows=four, decimals=4)
+        .fmt_number(columns=num, rows=two, decimals=2)
+        .fmt_number(columns=num, rows=three, decimals=3)
+        .fmt_scientific(columns=num, rows=sci, decimals=2)
+        .sub_missing(missing_text="")
+    )
+
+
+quarterly = load_quarterly()
+print(f"n = {len(quarterly)} quarters, {quarterly['date'].dt.year.min()} to {quarterly['date'].dt.year.max()}")
+```
+
+## Table 8
+
+```{python}
+ta = estimate_bky(quarterly, n_starts=3)
+no_ta = estimate_bky(quarterly, h=1, n_starts=6)
+tab8 = table8_frame(ta, no_ta)
+fmt_params(
+    GT(tab8)
+    .tab_header(title="Table 8. Model estimates using post-war quarterly data")
+    .tab_spanner(label="Time aggregation", columns=["ta_hat", "ta_se", "ta_paper", "ta_paper_se"])
+    .tab_spanner(label="No time aggregation", columns=["nota_hat", "nota_se", "nota_paper", "nota_paper_se"])
+    .cols_label(parameter="", ta_hat="estimate", ta_se="SE", ta_paper="paper", ta_paper_se="paper SE",
+                nota_hat="estimate", nota_se="SE", nota_paper="paper", nota_paper_se="paper SE")
+    .tab_source_note("Parameters are per decision period. Paper: BKY (2016) Table 8."),
+    tab8,
+).tab_options(**KIKU_GT)
+```
+
+::: {.firewall}
+Every "paper" column is quoted from Bansal, Kiku, and Yaron (2016),
+Table 8. The quarterly panel is rebuilt from the same CRSP, BLS, and
+BEA sources as the annual one. The paper does not say how it treats
+quarterly dividends; the trailing-sum flow used here matches the
+model's mean and volatility of the price-dividend ratio at the paper's
+printed vector to within 0.03, and its dividend-growth autocorrelation
+of 0.32 sits next to the model's 0.29. The estimates do not reproduce
+the paper's contrast. With time aggregation the grid lands on the
+paper's two decisions a quarter, but with a risk aversion above the
+printed 7.45 and a rejected J-test. Without it the risk aversion sits
+near the printed 8.66 and the J-test does not reject. `NUMBERS.md`
+lists the open caveats.
+:::

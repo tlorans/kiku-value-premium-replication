@@ -1,0 +1,184 @@
+---
+title: "Time aggregation"
+---
+
+The paper's second result is what goes wrong when an econometrician
+ignores time aggregation. Forcing $h = 1$ says the agent decides once
+a year, the sampling interval of the data. The persistent growth shock
+then looks like short-run noise, risk aversion is inflated, and the
+model is rejected. This page holds Tables 4 to 6 and Figure 2. The
+market fit itself is on [Estimation](estimation.qmd).
+
+```{python}
+#| code-fold: true
+from great_tables import GT
+
+from geap.lrr.estimation import (
+    TABLE_5_ANNUAL_MODEL,
+    TABLE_5_ANNUAL_RESIDUALS,
+    estimate_bky,
+    figure2_ggplot,
+    figure2_irf,
+    load_annual,
+    long_run_variance_share,
+    table3_compare,
+    table4_annual_on_lrr_sims,
+    table4_frame,
+    table6_frame,
+)
+
+KIKU_GT = dict(table_background_color="transparent", table_font_size="0.92rem",
+               heading_title_font_size="1.05rem", heading_subtitle_font_size="0.85rem",
+               source_notes_font_size="0.8rem", column_labels_font_weight="bold",
+               data_row_padding="4px")
+
+
+def fmt_params(gt, tab):
+    """Two decimals for the large parameters, four for the rest, scientific for sigma_w."""
+    idx = {name: i for i, name in enumerate(tab["parameter"])}
+    two = [idx[n] for n in ("gamma", "psi", "phi_d", "phi_d_sigma", "h", "J") if n in idx]
+    three = [idx[n] for n in ("rho_d", "p") if n in idx]
+    sci = [idx[n] for n in ("sigma_w",) if n in idx]
+    four = [i for i in range(len(tab)) if i not in two + three + sci]
+    num = [c for c in tab.columns if c != "parameter"]
+    return (
+        gt.fmt_number(columns=num, rows=four, decimals=4)
+        .fmt_number(columns=num, rows=two, decimals=2)
+        .fmt_number(columns=num, rows=three, decimals=3)
+        .fmt_scientific(columns=num, rows=sci, decimals=2)
+        .sub_missing(missing_text="")
+    )
+
+
+def fmt_moments(gt, tab):
+    idx = {name: i for i, name in enumerate(tab["moment"])}
+    sci = [idx[n] for n in ("e_eta_x", "e_eta2_s2") if n in idx]
+    rest = [i for i in range(len(tab)) if i not in sci]
+    num = [c for c in tab.columns if c != "moment"]
+    levels = [c for c in num if not c.startswith("t_diff")]
+    tstats = [c for c in num if c.startswith("t_diff")]
+    gt = gt.fmt_number(columns=num, rows=rest, decimals=3)
+    gt = gt.fmt_scientific(columns=levels, rows=sci, decimals=1)
+    if tstats:
+        gt = gt.fmt_number(columns=tstats, rows=sci, decimals=3)
+    return gt.sub_missing(missing_text="")
+
+
+panel = load_annual()
+```
+
+## Table 4: the annual specification
+
+The CUE surface at $h = 1$ has several local minima. The fit below is
+the lowest objective of six generic starts that differ in the IES and
+in how consumption risk splits between the persistent and the short-run
+shock. The simulated columns re-estimate the annual specification on
+samples drawn from an LRR economy. The paper draws from its Table 2
+estimates; we draw from the monthly fixed-frequency fit of Table 6 on
+this page, twenty samples of 86 years, and fit each with the same CUE
+as the empirical column from a single start.
+
+```{python}
+ann = estimate_bky(panel, h=1, n_starts=6)
+fits = {h: estimate_bky(panel, h=h, n_starts=3) for h in (26, 12, 4)}
+fits[1] = ann
+mc = table4_annual_on_lrr_sims(
+    n_draws=20, years=86, seed=0, lrr_params=fits[12].params, lrr_h=12
+)
+tab4 = table4_frame(ann, mc)
+empirical = tab4[["parameter", "hat", "se_hat", "paper", "se_paper"]]
+fmt_params(
+    GT(empirical)
+    .tab_header(title="Table 4, empirical data. Annual specification, h = 1")
+    .cols_label(parameter="", hat="estimate", se_hat="SE", paper="paper", se_paper="paper SE")
+    .tab_source_note("Paper: BKY (2016) Table 4, first two columns."),
+    empirical,
+).tab_options(**KIKU_GT)
+```
+
+```{python}
+simulated = tab4[["parameter", "ours_p5", "ours_p50", "ours_p95",
+                  "paper_pop", "paper_p5", "paper_p50", "paper_p95"]]
+simulated = simulated[simulated["parameter"] != "h"]
+fmt_params(
+    GT(simulated)
+    .tab_header(title="Table 4, simulated data. Annual specification on LRR samples")
+    .tab_spanner(label="Ours, 20 draws", columns=["ours_p5", "ours_p50", "ours_p95"])
+    .tab_spanner(label="Paper", columns=["paper_pop", "paper_p5", "paper_p50", "paper_p95"])
+    .cols_label(parameter="", ours_p5="5%", ours_p50="50%", ours_p95="95%",
+                paper_pop="population", paper_p5="5%", paper_p50="50%", paper_p95="95%")
+    .tab_source_note("Ours: CUE on 20 draws of 86 years from the h = 12 economy below. Paper: BKY (2016) Table 4, simulated columns."),
+    simulated,
+).tab_options(**KIKU_GT)
+```
+
+## Table 5: moments of the annual specification
+
+```{python}
+tab5 = table3_compare(panel, ann, {**TABLE_5_ANNUAL_MODEL, **TABLE_5_ANNUAL_RESIDUALS})
+fmt_moments(
+    GT(tab5)
+    .tab_header(title="Table 5. Moments of the annual specification")
+    .cols_label(moment="", sample="sample", model="model", t_diff="t(diff)", paper_model="paper model")
+    .tab_source_note("Sample and model at the Table 4 estimates. Paper: BKY (2016) Table 5 model column."),
+    tab5,
+).tab_options(**KIKU_GT)
+```
+
+## Figure 2: impulse responses
+
+An ARMA(8, 8) is fitted to a long simulated annual sample of consumption
+growth and of its squared deviation, under the monthly fixed-frequency
+fit and under the annual specification. Panel (a) is the cumulative
+response of consumption growth, panel (b) the response of the
+conditional variance.
+
+```{python}
+#| fig-cap: "Figure 2. Impulse responses of annual consumption growth (a) and of its conditional variance (b) under the LRR model at h = 12 (solid) and the annual specification (dashed), from ARMA(8, 8) fits to 800 simulated years."
+irf = figure2_irf(years=800, seed=0, lrr_params=fits[12].params, lrr_h=12, annual_params=ann.params)
+figure2_ggplot(irf)
+```
+
+```{python}
+print(irf.loc[[20, 40], ["dc_lrr", "dc_annual"]].to_string())
+```
+
+## Table 6: fixed decision frequencies
+
+Bi-weekly is $h = 26$, monthly 12, quarterly 4, annual 1. The annual
+column is the Table 4 fit.
+
+```{python}
+tab6 = table6_frame(fits)
+fmt_params(
+    GT(tab6)
+    .tab_header(title="Table 6. Model estimates with fixed decision frequency")
+    .tab_spanner(label="Bi-weekly", columns=["hat_26", "paper_26"])
+    .tab_spanner(label="Monthly", columns=["hat_12", "paper_12"])
+    .tab_spanner(label="Quarterly", columns=["hat_4", "paper_4"])
+    .tab_spanner(label="Annual", columns=["hat_1", "paper_1"])
+    .cols_label(parameter="", hat_26="ours", paper_26="paper", hat_12="ours", paper_12="paper",
+                hat_4="ours", paper_4="paper", hat_1="ours", paper_1="paper")
+    .tab_source_note("Paper: BKY (2016) Table 6."),
+    tab6,
+).tab_options(**KIKU_GT)
+```
+
+```{python}
+for h in (26, 12, 4, 1):
+    print(f"h = {h:2d}  long-run share of var(dc) {long_run_variance_share(fits[h].params, h):.2f}")
+```
+
+::: {.firewall}
+Every "paper" column is quoted from Bansal, Kiku, and Yaron (2016),
+Tables 4 to 6 and Figure 2. Everything else is computed by the cell
+above it. Our $J$ statistics reject the annual and quarterly
+specifications as the paper's do, but they are an order of magnitude
+smaller than the printed ones; the difference in the weighting and the
+covariance estimator is not resolved. The annual fit is the lowest of
+six generic starts; a start at the paper's printed Table 4 vector
+reaches a lower objective still, with persistence 0.87 and a larger
+short-run loading, so the surface has basins our starts do not reach.
+The simulated columns of Table 4 rest on 20 draws, each fitted from
+one start. `NUMBERS.md` lists the open caveats.
+:::

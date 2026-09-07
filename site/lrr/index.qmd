@@ -21,10 +21,12 @@ on the persistent component. The loading $\phi$ is measured from cash
 flows, and returns never enter the measurement. The premium the model
 then returns is a prediction.
 
-Bansal, Kiku, and Yaron (2016) estimate the same structure by GMM,
-recovering the latent states from prices and treating the decision
-frequency as a parameter. That estimator is
-[`geap.lrr.estimation`](estimation.qmd).
+Bansal, Kiku, and Yaron (2016) estimate the model by GMM with time
+aggregation. That replication is `geap.lrr.estimation`, and its
+Tables 1 to 8 and Figures 1 and 2 are on four pages:
+[Estimation](estimation.qmd), [Time aggregation](time-aggregation.qmd),
+[Size and book-to-market claims](portfolios.qmd), and [Post-war
+quarterly data](quarterly.qmd).
 
 Kiku (2006) uses the long-run risks structure on value and growth
 portfolios. Value's dividends load more on the persistent component

@@ -22,6 +22,9 @@ website:
           - lrr/user-guide.qmd
           - lrr/examples.qmd
           - lrr/estimation.qmd
+          - lrr/time-aggregation.qmd
+          - lrr/portfolios.qmd
+          - lrr/quarterly.qmd
           - lrr/math.qmd
           - lrr/api.qmd
       - section: "Power utility"

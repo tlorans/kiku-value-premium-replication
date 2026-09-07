@@ -26,25 +26,108 @@ cache and renders everything. Run `uv run pytest` for the package gate.
 ## What still needs recording
 
 Numbers quoted from the paper are the ones that no cell computes, so they are
-pinned in code instead. `src/geap/lrr/estimation/goldens.py` holds Bansal, Kiku, and Yaron
-(2016) printed Tables 1–3. Site cells on
-`site/lrr/estimation.qmd` evaluate the log-linear solution at the
-published Table 2 vector and run `estimate_bky(load_annual(),
-start=COLD_START)` on the reconstructed 1930–2015 panel. The estimator
-does not take Table 2 or the Table 3 model column as an input. Table 2
-is the comparison after GMM. Hats print with this sample's sandwich
-standard errors; $z$ is against the paper's eight-year block-bootstrap
-SEs. At the published Table 2 vector, Hansen's $J$-test on this panel
-is \(J = 7.2\) (\(p = 0.41\)) against the paper's \(10.4\) (\(p = 0.11\)). `examples/bky_jme.py` prints the same comparison. The shipped
-panel is CRSP value-weighted NYSE/AMEX/NASDAQ (`crsp.msi`) with BLS CPI
-and 90-day T-bills (`crsp.mcti`), and BEA NIPA consumption. Rebuild
-with `build_annual(refresh=True)`. Market return, dividend growth, and
-log P/D match Table 1 to display precision. Mean $\Delta c$ is 0.16
-percent against the printed 0.18 (NIPA revisions). The fitted ex-ante
-real T-bill is 0.69 percent against the printed 0.50. Quarterly
-estimation rescales the monthly start by decisions per year (four
-samples per year), so \(h=1\) is a quarterly decision, not an annual
-one.
+pinned in code instead. `src/geap/lrr/estimation/goldens.py` holds every
+printed cell of Bansal, Kiku, and Yaron (2016) that the site quotes:
+Tables 1 to 8 with their standard errors, J-tests, and the simulated
+columns of Table 4. Four pages under Long-run risks show the paper's
+tables and figures with our value beside the printed one, and each page
+ends with a "Where each number comes from" callout.
+
+| Page | Paper objects | Fits the page runs |
+|---|---|---|
+| `site/lrr/estimation.qmd` | Tables 1 to 3, Figure 1 | the LRR grid and the No-Vol grid |
+| `site/lrr/time-aggregation.qmd` | Tables 4 to 6, Figure 2 | h = 1 with six starts, h = 26, 12, 4 with three, a 20-draw Monte Carlo |
+| `site/lrr/portfolios.qmd` | Table 7 | the LRR grid and the four second-stage claims |
+| `site/lrr/quarterly.qmd` | Table 8 | the quarterly grid and h = 1 |
+
+The frames come from `geap.lrr.estimation.report`; the pages wrap them in
+`great_tables`. Hats print with this sample's sandwich standard errors;
+the paper's are an eight-year block bootstrap. `examples/bky_jme.py`
+prints the same frames. The shipped annual panel is CRSP value-weighted
+NYSE/AMEX/NASDAQ (`crsp.msi`) with BLS CPI and 90-day T-bills
+(`crsp.mcti`), and BEA NIPA consumption. Rebuild with
+`build_annual(refresh=True)`. Market return, dividend growth, and log P/D
+match Table 1 to display precision. Mean $\Delta c$ is 0.16 percent
+against the printed 0.18 (NIPA revisions). The fitted ex-ante real T-bill
+is 0.69 percent against the printed 0.50. The quarterly panel is real,
+its dividend flow is the trailing four-quarter sum divided by four, and
+its price-dividend ratio is price over that one-quarter flow, which is
+the convention of the model's time-aggregated moment; the quarterly
+mean log P/D therefore sits about log 4 above the annual one.
+
+## Open caveats on the Bansal, Kiku, and Yaron replication
+
+Each item names what differs from the paper, the size of the gap, what
+was tried, and the test that pins the current state. The Kiku (2006)
+grid-resolution caveat further down has the same shape.
+
+**The J statistics are an order of magnitude smaller than the paper's.**
+At the paper's own printed vectors our J is 7.2 for the LRR model
+(paper 10.4), 25 for the annual specification (paper 231), and 22 for
+No-Vol (paper 78.5). The rejections agree; the magnitudes do not.
+Removing the autoregressive penalty in the state extraction moves the
+LRR J to 16 and the annual J to 15, so the extraction is not the cause.
+The weighting matrix and the covariance estimator of the paper are not
+spelled out beyond "diagonal inverse variance" and Newey-West, and the
+difference is unresolved. `tests/test_bky_estimate.py::test_j_at_table2_is_tens_not_thousands`
+pins the LRR value.
+
+**The CUE surface at h = 1 has several basins.** Seven starts on the
+1930 to 2015 panel end at objectives between 0.31 and 0.71. The cold
+start stops at persistence 0.97 with p 0.27, which is not the paper's
+result. `n_starts=6` runs six generic starts that differ in the IES and
+in the split of consumption risk between the persistent and the
+short-run shock, and the lowest of them has persistence 0.92, risk
+aversion above the LRR fit's, and p 0.02, which is the paper's
+qualitative result. A start at the paper's printed Table 4 vector
+reaches a lower objective still (0.31, persistence 0.87). The site
+reports the lowest generic start, not the paper-seeded one.
+`tests/test_bky_specs.py::test_annual_h1_multi_start_rejects_and_lowers_persistence`
+pins it. The simulated columns of Table 4 are 20 draws of 86 years
+from the monthly fixed-frequency fit, each fitted by the same CUE from
+one start; the paper's population column has no counterpart. The
+staged fit that `method="staged"` still offers piles up at the
+parameter bounds on samples this short and is not used on the site.
+
+**The No-Vol fit does not land on the paper's parameters.** The site's
+three-start grid stops at h = 10 with risk aversion 16, persistence
+0.995 at its upper bound, a dividend loading of 10.5 against the
+printed 4.8, and p 0.06 with nine degrees of freedom; six starts reach
+h = 8 with risk aversion 20 and p 0.048. The paper rejects at p 0.00.
+The surface is flat in the IES (its sandwich SE is above 10). Nothing
+further was tried. `tests/test_bky_specs.py::test_no_vol_gmm_from_cold_start`
+pins the restriction.
+
+**Table 7 is a weighted minimum-distance second stage, not joint GMM.**
+Preferences, consumption, and the states are held at the market fit,
+and each claim's four cash-flow parameters minimize a weighted distance
+on the paper's moment list, including the market beta as a closed-form
+decision-frequency beta. No standard errors are reported. At our market
+fit the loadings and premia land near the paper's, but the simulated
+CAPM beta of small minus large is about 0.4 against the printed 0.86,
+with or without the beta moment; the value minus growth beta matches.
+`tests/test_bky_cross_section.py::test_estimated_phi_within_two_paper_se`
+pins the loadings.
+
+**The quarterly dividend convention is ours, and Table 8 does not
+reproduce the paper's contrast.** The paper does not say how it treats
+quarterly dividends. Raw within-quarter real dividend growth has a
+first autocorrelation near minus one half, which is payment-timing
+noise the model does not have. The trailing-sum flow matches the
+model's mean and volatility of the price-dividend ratio at the paper's
+Table 8 vector to within 0.03 and gives dividend-growth autocorrelation
+0.32 next to the model's 0.29; before the rebuild the panel was
+nominal, seasonal, and on a four-quarter price-dividend convention, and
+J at the printed vector was 134. On the rebuilt panel the
+time-aggregation fit lands on the paper's h = 2 with objective 0.15,
+but with risk aversion 18 against the printed 7.45, persistence 0.89,
+and p 0.0006 against the printed 0.04. The h = 1 fit has risk aversion
+7.9 against the printed 8.66 but p 0.48 against the printed 0.00. The
+paper's ordering, risk aversion higher without time aggregation, is
+reversed. Nothing further was tried.
+`tests/test_bky_quarterly.py::test_quarterly_dividends_are_real_deseasonalised_and_within_quarter`
+pins the conventions and `tests/test_bky_quarterly.py::test_quarterly_gmm_from_cold_start`
+the fit.
 
 `src/geap/lrr/empirical/goldens.py` holds Kiku's printed
 values from Tables I, III, and VI, along with the 1930 to 2003 sample bounds.
@@ -80,7 +163,7 @@ prints its numbers rather than writing them anywhere.
 | `calibrate_any_portfolio.py` | the workflow for calibrating and pricing a cross-section you supply |
 | `gmm_linear_factor.py` | just-identified and over-identified linear-factor GMM |
 | `gmm_power_utility.py` | two-parameter power-utility SDF GMM on a constructed sample |
-| `bky_jme.py` | Bansal, Kiku, Yaron (2016) Table 1 sample, cold-start Table 2 GMM, Tables 3–8 |
+| `bky_jme.py` | Bansal, Kiku, Yaron (2016) Tables 1 to 8 and the two figures' numbers, ours beside the paper's |
 
 ## Resolved findings, kept as history
 

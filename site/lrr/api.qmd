@@ -73,14 +73,67 @@ mine = geap.ClaimParams.from_loading(1.5)
 
 ## Estimation (Bansal, Kiku, and Yaron 2016)
 
+Everything below lives in `geap.lrr.estimation`. The four pages
+[Estimation](estimation.qmd), [Time aggregation](time-aggregation.qmd),
+[Size and book-to-market claims](portfolios.qmd), and [Post-war
+quarterly data](quarterly.qmd) use these names and nothing else.
+
+### Solution and moments
+
 | Member | Signature | What it does |
 |:---|:---|:---|
-| `geap.lrr.estimation.load_annual` | `(path=None, *, start=1930, end=2015)` | shipped 1930–2015 annual sample |
-| `geap.lrr.estimation.solve_loglinear` | `(params)` | appendix A affine solution at the decision frequency |
-| `geap.lrr.estimation.model_moments` | `(params, h)` | time-aggregated moments |
-| `geap.lrr.estimation.estimate_bky` | `(data, *, h=None, start=COLD_START, n_boot=0, bootstrap_h=False, ...)` | CUE GMM; sandwich SEs; ``bootstrap_h`` re-selects \(h\) |
-| `geap.lrr.estimation.table3_frame` | `(data, params, h)` | Table 3 sample, model, and $t$(diff) |
-| `geap.lrr.estimation.COLD_START` | `BKYParams` | Bansal–Yaron (2004) monthly start; not Table 2 |
+| `BKYParams` | `(gamma, psi, delta, mu_c, rho, phi_e, sigma, nu, sigma_w, mu_d, phi_d, phi_d_sigma, rho_d)` | the thirteen decision-frequency parameters |
+| `LogLinearSolution` | dataclass | affine loadings of the consumption and market claims, the risk-free rate, and the risk prices |
+| `solve_loglinear` | `(params)` | appendix A affine solution at the decision frequency |
+| `model_moments` | `(params, h, sol=None)` | time-aggregated moments at `h` decisions per sampling interval |
+| `long_run_variance_share` | `(params, h)` | share of aggregated consumption variance from the persistent component |
+| `extract_states` | `(log_pd, rf, sol, *, params=None, h=1, sigma2_floor=1e-10, ar=True)` | latent expected growth and variance from the price-dividend ratio and the risk-free rate |
+
+### Data
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `load_annual` | `(path=None, *, start=1930, end=2015)` | shipped 1930 to 2015 annual sample |
+| `load_quarterly` | `(path=None, *, start=1948, end=2015)` | shipped 1948 to 2015 quarterly sample |
+| `load_cross_section` | `(path=None)` | shipped size and book-to-market quintile legs |
+| `build_annual` | `(path=None, *, refresh=False)` | rebuild the annual sample from CRSP, BLS, and BEA (needs WRDS) |
+| `sample_moments` | `(data)` | Table 1 descriptive statistics |
+
+### Estimator
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `estimate_bky` | `(data, *, h=None, h_grid=None, start=None, stochastic_vol=True, method="gmm", W="cue_invvar", j_test=True, hac_lags=1, n_boot=0, block_length=8, maxiter=800, bootstrap_h=False, start_is_monthly=True, n_starts=1)` | CUE GMM with `h` chosen on a grid; `n_starts` keeps the lowest objective of several generic starts |
+| `BKYResults` | `params, h, gmm, data, stochastic_vol` | the fit; `summary()`, `table2_frame(paper=, paper_se=, paper_h=)`, `states()`, `moment_table()`, `model` |
+| `COLD_START` | `BKYParams` | the Bansal and Yaron (2004) monthly start |
+| `estimate_table7_claims` | `(panel, market_params=None, h=11)` | second-stage cash-flow vectors of the four portfolios at the market states |
+| `table4_annual_on_lrr_sims` | `(n_draws=20, years=86, seed=0, *, lrr_params=None, lrr_h=None, n_starts=1)` | the annual specification on simulated LRR samples |
+
+### Tables and figures
+
+| Member | Signature | What it does |
+|:---|:---|:---|
+| `table1_frame` | `(data)` | Table 1, ours beside the paper's |
+| `params_frame` | `(res, *, paper, paper_se=None, paper_h=None, paper_j=None)` | one estimated column with the printed vector and SEs |
+| `table2_frame` | `(lrr, novol)` | Table 2, both models |
+| `table3_frame`, `table5_frame` | `(data, params, h, *, hac_lags=1)` | sample, model, and $t$(diff) |
+| `table3_compare` | `(data, res, paper_model, *, hac_lags=1)` | Table 3 or 5 with the paper's model column |
+| `table4_frame` | `(ann, mc=None)` | Table 4, empirical and simulated columns |
+| `table6_frame` | `(fits)` | Table 6 from fits keyed by `h` |
+| `table7_claims`, `table7_premia`, `table7_capm` | `(market=None, h=11, *, claims=None, ...)` | the paper's Panel A vectors, model premia, and simulated CAPM betas |
+| `table7_panel_a`, `table7_panel_b` | `(claims, panel, market, h)`, `(claims, market, h, panel, annual, *, years=2000, seed=1)` | Table 7 panels with the paper's values |
+| `table8_frame` | `(ta, no_ta)` | Table 8 |
+| `figure1_frame`, `figure1_long`, `figure1_ggplot` | `(data, params=None, h=None)`, `(frame)`, `(frame)` | Figure 1 states, tidy frame, plotnine figure |
+| `figure2_irf`, `figure2_long`, `figure2_ggplot` | `(*, horizon_dc=50, horizon_var=150, years=800, seed=0, lrr_params=None, lrr_h=None, annual_params=None)`, `(irf)`, `(irf)` | Figure 2 impulse responses, tidy frame, plotnine figure |
+
+### Printed values
+
+`TABLE_2_LRR`, `TABLE_2_LRR_H`, `TABLE_2_SE`, `TABLE_2_NOVOL`,
+`TABLE_2_NOVOL_H`, `TABLE_3_LRR_MODEL`, `TABLE_3_LRR_RESIDUALS`,
+`TABLE_3_NOVOL_MODEL`, `TABLE_3_NOVOL_RESIDUALS`, `TABLE_4_ANNUAL`,
+`TABLE_5_ANNUAL_MODEL`, `TABLE_5_ANNUAL_RESIDUALS`, `TABLE_8_TA`, and
+`TABLE_8_H` are the paper's printed cells, pinned for comparison. The
+rest of the printed tables live in `geap.lrr.estimation.goldens`.
 
 `method="grid"` solves the Euler equations on the Tauchen-Hussey state
 space, and `method="analytical"` is the log-linear approximation of

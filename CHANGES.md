@@ -1,5 +1,23 @@
 # Changes
 
+## 1.5.0
+
+The Bansal, Kiku, and Yaron (2016) replication on the site: Tables 1
+to 8 and Figures 1 and 2, each beside the paper's printed values, on
+four pages under Long-run risks. New `geap.lrr.estimation.report`
+frames with `paper` columns, plotnine builders for the two figures,
+and the missing printed standard errors, J-tests, and simulated
+columns in `goldens`. Estimator fixes: the No-Vol J-test counts nine
+degrees of freedom, not seven; `start_is_monthly=False` accepts a
+start already at the decision frequency; `n_starts` keeps the lowest
+CUE objective of several generic starts, which matters at short `h`
+and under the No-Vol restriction. The quarterly panel is rebuilt on
+the model's conventions: real prices and dividends, the dividend flow
+as the trailing four-quarter real sum divided by four, and the
+price-dividend ratio over one quarter's flow. The Table 7 second stage
+targets the market beta as the paper does. `figure2_plot` takes
+estimated parameters.
+
 ## 1.4.0
 
 Bansal, Kiku, and Yaron (2016) GMM estimation of long-run risks with

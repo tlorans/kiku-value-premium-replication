@@ -159,6 +159,15 @@ REMOVED_API_NAMES = (
 )
 
 
+def test_api_page_lists_every_estimation_export():
+    import geap.lrr.estimation as estimation
+
+    text = (SITE / "lrr" / "api.qmd").read_text(encoding="utf-8")
+    missing = [name for name in estimation.__all__ if f"`{name}`" not in text
+               and f"`{name}`," not in text and f", `{name}`" not in text]
+    assert not missing, f"api.qmd does not list: {missing}"
+
+
 def test_no_removed_api_names_in_site():
     pattern = re.compile("|".join(REMOVED_API_NAMES))
     offenders = {}
