@@ -265,7 +265,19 @@ def _french_monthly_rf() -> pd.Series:
 
 
 def _quarterly_market(ret: pd.Series, retx: pd.Series, cpi: pd.Series) -> pd.DataFrame:
-    """Campbell–Shiller at the quarter: P over trailing four-quarter dividends."""
+    """Campbell–Shiller at the quarter, on the model's conventions.
+
+    Prices and dividends are deflated by the quarter-end CPI. The
+    quarterly dividend is the trailing four-quarter real sum divided by
+    four, the usual treatment of the seasonal and payment-timing noise
+    in quarterly dividends (raw within-quarter growth has a first
+    autocorrelation near minus one half). The price-dividend ratio is
+    price over that one-quarter flow, because the time-aggregated model
+    moment (``aggregation`` eq. 29) sums dividends over one sampling
+    interval; that puts the quarterly log P/D about log 4 above the
+    annual one. The smoothing leaves dividend growth more autocorrelated
+    than the model's, which the Table 8 fit reports.
+    """
     idx = ret.index.intersection(retx.index).intersection(cpi.index)
     r = ret.loc[idx].astype(float).sort_index()
     rx = retx.loc[idx].astype(float)
@@ -281,18 +293,16 @@ def _quarterly_market(ret: pd.Series, retx: pd.Series, cpi: pd.Series) -> pd.Dat
         rows.append((dt, v, max(d, 0.0), ri))
     m = pd.DataFrame(rows, columns=["date", "v", "d", "r"]).set_index("date")
     m["cpi"] = price.reindex(m.index)
-    q_v = m["v"].resample("QE").last()
-    q_d = m["d"].resample("QE").sum()
-    q_r = (1.0 + m["r"]).resample("QE").prod() - 1.0
     q_cpi = m["cpi"].resample("QE").last()
-    trail = q_d.rolling(4).sum()
-    pd_q = q_v / trail.replace(0.0, np.nan)
-    dd = np.log(q_d.where(q_d > 0)).diff()
-    infl = q_cpi.pct_change()
+    q_v = m["v"].resample("QE").last() / q_cpi
+    q_d = m["d"].resample("QE").sum() / q_cpi
+    q_r = (1.0 + m["r"]).resample("QE").prod() - 1.0
+    d_flow = q_d.rolling(4).sum() / 4.0
+    log_d = np.log(d_flow.where(d_flow > 0))
+    dd = log_d.diff()
+    log_pd = np.log(q_v) - log_d
     rm = (1.0 + q_r) * (q_cpi.shift(1) / q_cpi) - 1.0
-    out = pd.DataFrame(
-        {"dd": dd, "rm": rm, "log_pd": np.log(pd_q), "cpi": q_cpi}
-    )
+    out = pd.DataFrame({"dd": dd, "rm": rm, "log_pd": log_pd, "cpi": q_cpi})
     return out
 
 

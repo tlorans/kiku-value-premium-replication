@@ -104,3 +104,26 @@ def test_quarterly_gmm_from_cold_start():
     assert fit.gmm.J_pvalue is not None
     # Paper: ignoring TA raises gamma (8.66 vs 7.45). CUE on this panel
     # reverses that (task-10-report); do not gate on the ranking.
+
+
+def test_quarterly_dividends_are_real_deseasonalised_and_within_quarter():
+    """Quarterly conventions match the model's time-aggregated moments.
+
+    The model's price-dividend moment is price over dividends summed within
+    one sampling interval, so quarterly log P/D sits about log 4 above the
+    annual one. Quarterly dividend growth is real and has no deterministic
+    seasonal, so its first autocorrelation is not the minus 0.5 of a raw
+    seasonal series.
+    """
+    from geap.lrr.estimation.data import load_annual
+
+    q = load_quarterly()
+    a = load_annual()
+    gap = float(q["log_pd"].mean() - a["log_pd"].mean())
+    assert abs(gap - np.log(4.0)) < 0.25
+    dd = q["dd"].to_numpy(dtype=float)
+    dd = dd[np.isfinite(dd)]
+    ac1 = float(np.corrcoef(dd[1:], dd[:-1])[0, 1])
+    assert ac1 > -0.2
+    assert float(np.std(dd, ddof=1)) < 0.10
+    assert 0.0 < float(np.mean(dd)) < 0.01
