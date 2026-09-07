@@ -207,3 +207,81 @@ def test_gmm_selects_h_on_a_grid():
     data = load_annual()
     fit = estimate_bky(data, start=COLD_START, h_grid=(8, 11, 14))
     assert fit.h in (8, 11, 14)
+
+
+def test_hansen_j_counts_only_free_parameters():
+    """No-Vol fixes ν and σ_w, so the J-test has k − 11 = 9 df, not 7."""
+    from geap.gmm.weighting import invvar_weights
+    from geap.lrr.estimation.estimate import _hansen_j_at_params
+    from geap.lrr.estimation.goldens import TABLE_2_NOVOL, TABLE_2_NOVOL_H
+
+    data = load_annual()
+    g = observation_moments(data, TABLE_2_NOVOL, TABLE_2_NOVOL_H)
+    W = invvar_weights(g)
+    free = tuple(n for n in PARAM_NAMES if n not in ("nu", "sigma_w"))
+    _j, j_df, _p = _hansen_j_at_params(
+        data, TABLE_2_NOVOL, TABLE_2_NOVOL_H, W, 1, free=free
+    )
+    assert j_df == len(MOMENT_NAMES) - 11 == 9
+
+
+def test_start_at_h_can_keep_an_at_frequency_start():
+    from geap.lrr.estimation.estimate import _start_at_h
+    from geap.lrr.estimation.goldens import TABLE_4_ANNUAL
+
+    mean_dc = float(load_annual()["dc"].mean())
+    rescaled = _start_at_h(TABLE_4_ANNUAL, 1, mean_dc, 1)
+    kept = _start_at_h(TABLE_4_ANNUAL, 1, mean_dc, 1, is_monthly=False)
+    assert rescaled.rho != pytest.approx(TABLE_4_ANNUAL.rho)
+    assert kept.rho == pytest.approx(TABLE_4_ANNUAL.rho)
+    assert kept.phi_e == pytest.approx(TABLE_4_ANNUAL.phi_e)
+    assert kept.mu_c == pytest.approx(mean_dc)
+
+
+def test_start_candidates_are_distinct_and_solvable():
+    from geap.lrr.estimation.estimate import _solvable, _start_candidates
+
+    mean_dc = float(load_annual()["dc"].mean())
+    one = _start_candidates(COLD_START, 1, mean_dc, 1, True, 1)
+    three = _start_candidates(COLD_START, 1, mean_dc, 1, True, 3)
+    assert len(one) == 1
+    assert len(three) == 3
+    assert three[0] == one[0]
+    assert len({(round(p.rho, 6), round(p.psi, 6), round(p.gamma, 6)) for p in three}) == 3
+    six = _start_candidates(COLD_START, 1, mean_dc, 1, True, 6)
+    assert len(six) == 6
+    assert len({(round(p.rho, 6), round(p.psi, 6), round(p.gamma, 6)) for p in six}) == 6
+    assert all(_solvable(p) for p in six)
+
+
+def test_multi_start_never_ends_above_single_start():
+    data = load_annual()
+    single = estimate_bky(data, h=1, maxiter=5)
+    multi = estimate_bky(data, h=1, maxiter=5, n_starts=3)
+    assert multi.gmm.objective <= single.gmm.objective + 1e-12
+
+
+def test_table2_frame_accepts_another_paper_column():
+    from geap.lrr.estimation.goldens import TABLE_4_ANNUAL
+
+    dummy = GMMResults(
+        np.zeros(13),
+        np.zeros(15),
+        np.eye(15),
+        objective=0.0,
+        nobs=86,
+        names=tuple(PARAM_NAMES),
+        steps=1,
+        se=np.linspace(0.1, 1.3, 13),
+    )
+    fit = BKYResults(params=TABLE_4_ANNUAL, h=1, gmm=dummy, data=load_annual())
+    tab = fit.table2_frame(
+        paper=TABLE_4_ANNUAL, paper_se={"gamma": 3.42}, paper_h=1.0
+    )
+    by = tab.set_index("parameter")
+    assert by.loc["gamma", "paper"] == pytest.approx(13.83)
+    assert by.loc["gamma", "z"] == pytest.approx(0.0)
+    assert np.isnan(by.loc["psi", "se"])
+    assert np.isnan(by.loc["psi", "z"])
+    assert by.loc["h", "paper"] == pytest.approx(1.0)
+    assert np.isnan(by.loc["h", "z"])

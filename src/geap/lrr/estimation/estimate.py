@@ -1,6 +1,7 @@
 """GMM estimation of the LRR model with time aggregation (BKY 2016)."""
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -138,15 +139,21 @@ def _start_at_h(
     h: int,
     mean_dc: float,
     samples_per_year: int = 1,
+    is_monthly: bool = True,
 ) -> BKYParams:
     """``μ_c = mean(Δc)/h``. Rescale from monthly unless already ~monthly.
 
     Annual ``h≈11`` (one sample per year) stays on the unscaled Bansal–Yaron
     start so Table 2 CUE is unchanged. Quarterly data has four samples per
     year, so ``h=1`` is a quarterly decision (k=3), not an annual one (k=12).
+    ``is_monthly=False`` says the start is already at the decision
+    frequency of ``h`` (a Table 4 or Table 8 vector, say) and only sets
+    ``μ_c``.
     """
-    freq = int(h) * max(int(samples_per_year), 1)
     p0 = replace(start, mu_c=float(mean_dc) / float(h))
+    if not is_monthly:
+        return p0
+    freq = int(h) * max(int(samples_per_year), 1)
     if abs(freq - 12) < 2 and _solvable(p0):
         return p0
     p1 = _rescale_from_monthly(start, h, mean_dc, samples_per_year)
@@ -155,6 +162,63 @@ def _start_at_h(
     if _solvable(p0):
         return p0
     return p1
+
+
+def _clip_to_raw_bounds(p: BKYParams, h: int) -> BKYParams:
+    raw = _raw_bounds(h)
+    kw = {}
+    for i, name in enumerate(PARAM_NAMES):
+        lo, hi = raw[i]
+        kw[name] = float(min(max(getattr(p, name), lo), hi))
+    return BKYParams(**kw)
+
+
+def _start_candidates(
+    start: BKYParams,
+    h: int,
+    mean_dc: float,
+    samples_per_year: int,
+    is_monthly: bool,
+    n_starts: int,
+) -> list[BKYParams]:
+    """Up to six generic starts for one ``h``, the base first.
+
+    The CUE surface at short ``h`` and under the No-Vol restriction has
+    several basins: on the 1930–2015 panel seven starts at ``h=1`` end
+    at objectives between 0.31 and 0.71. The candidates move the start
+    along the two directions that separate those basins, the IES (low
+    IES with high risk aversion against high IES) and the split of
+    consumption risk between the persistent and the short-run shock, so
+    the lowest objective is reported rather than the nearest. None of
+    them is a printed vector from the paper.
+    """
+    base = _start_at_h(start, h, mean_dc, samples_per_year, is_monthly)
+    out = [base]
+    if n_starts <= 1:
+        return out
+    low_ies = replace(base, psi=1.05, gamma=14.0)
+    short_run = replace(
+        base,
+        rho=base.rho - 0.08,
+        phi_e=base.phi_e * 3.0,
+        sigma=base.sigma * 1.5,
+        gamma=base.gamma * 1.3,
+    )
+    long_run = replace(
+        base,
+        rho=base.rho + 0.5 * (0.995 - base.rho),
+        phi_e=base.phi_e * 0.5,
+        psi=base.psi * 1.2,
+    )
+    high_ies = replace(base, psi=2.5, gamma=8.0)
+    low_ies_short_run = replace(short_run, psi=1.05, gamma=14.0)
+    for cand in (low_ies, short_run, long_run, high_ies, low_ies_short_run):
+        if len(out) >= n_starts:
+            break
+        cand = _clip_to_raw_bounds(cand, h)
+        if _solvable(cand):
+            out.append(cand)
+    return out
 
 
 def _pos_simplex(
@@ -189,18 +253,24 @@ def _hansen_j_at_params(
     W: np.ndarray,
     hac_lags: int,
     rel: float = 1e-4,
+    *,
+    free: tuple[str, ...] = PARAM_NAMES,
 ):
     """Hansen Lemma 4.2 J from a raw-parameter finite-difference Jacobian.
 
     The optimiser lives in scaled coordinates. Differencing those
     coordinates produced J in the thousands at the published Table 2
     vector. Raw steps keep the statistic on the order of ``T g'W g``.
+    ``free`` names the estimated parameters; fixed ones (ν and σ_w under
+    No-Vol) are not differenced and do not use up degrees of freedom.
     """
     g = np.asarray(observation_moments(data, params, h), dtype=float)
     gT = g.mean(axis=0)
     theta = _pack(params)
-    d = np.zeros((gT.size, theta.size), dtype=float)
-    for j, value in enumerate(theta):
+    cols = [j for j, name in enumerate(PARAM_NAMES) if name in free]
+    d = np.zeros((gT.size, len(cols)), dtype=float)
+    for jj, j in enumerate(cols):
+        value = theta[j]
         step = _raw_fd_step(PARAM_NAMES[j], float(value), rel)
         for signed in (step, -step):
             bumped = theta.copy()
@@ -214,7 +284,7 @@ def _hansen_j_at_params(
                 ).mean(axis=0)
             except Exception:
                 continue
-            d[:, j] = (gb - gT) / signed
+            d[:, jj] = (gb - gT) / signed
             break
     s = newey_west(g, lags=hac_lags)
     wdiag = np.diag(np.asarray(W, dtype=float))
@@ -302,19 +372,35 @@ class BKYResults:
             h=self.h,
         )
 
-    def table2_frame(self) -> pd.DataFrame:
-        """Hats against the published Table 2 vector and its bootstrap SEs.
+    def table2_frame(
+        self,
+        *,
+        paper: BKYParams | None = None,
+        paper_se: Mapping[str, float] | None = None,
+        paper_h: float | None = None,
+    ) -> pd.DataFrame:
+        """Hats against a printed parameter vector and its bootstrap SEs.
 
-        ``se_hat`` is this sample's SE (sandwich, or block bootstrap when
-        ``n_boot>0``). ``se`` is the paper's eight-year block-bootstrap
-        SE, used for the comparison ``z``.
+        Defaults are the paper's Table 2 LRR column. ``se_hat`` is this
+        sample's SE (sandwich, or block bootstrap when ``n_boot>0``).
+        ``se`` is the paper's eight-year block-bootstrap SE, used for the
+        comparison ``z``; rows the paper prints no SE for get ``nan``.
         """
+        paper = paper if paper is not None else TABLE_2_LRR
+        paper_se = paper_se if paper_se is not None else TABLE_2_SE
+        paper_h = float(TABLE_2_LRR_H) if paper_h is None else float(paper_h)
         own = None if self.gmm.se is None else np.asarray(self.gmm.se, dtype=float)
+
+        def _z(hat: float, ref: float, se: float) -> float:
+            if not np.isfinite(se) or se <= 0.0:
+                return float("nan")
+            return (hat - ref) / se
+
         rows = []
         for i, name in enumerate(PARAM_NAMES):
             hat = getattr(self.params, name)
-            paper = getattr(TABLE_2_LRR, name)
-            se = TABLE_2_SE[name]
+            ref = getattr(paper, name)
+            se = float(paper_se.get(name, np.nan))
             se_hat = (
                 float(own[i])
                 if own is not None and i < own.size
@@ -324,10 +410,10 @@ class BKYResults:
                 {
                     "parameter": name,
                     "hat": hat,
-                    "paper": paper,
+                    "paper": ref,
                     "se_hat": se_hat,
                     "se": se,
-                    "z": (hat - paper) / se,
+                    "z": _z(hat, ref, se),
                 }
             )
         se_h = (
@@ -335,14 +421,15 @@ class BKYResults:
             if own is not None and own.size > len(PARAM_NAMES)
             else float("nan")
         )
+        se_paper_h = float(paper_se.get("h", np.nan))
         rows.append(
             {
                 "parameter": "h",
                 "hat": float(self.h),
-                "paper": float(TABLE_2_LRR_H),
+                "paper": paper_h,
                 "se_hat": se_h,
-                "se": TABLE_2_SE["h"],
-                "z": (self.h - TABLE_2_LRR_H) / TABLE_2_SE["h"],
+                "se": se_paper_h,
+                "z": _z(float(self.h), paper_h, se_paper_h),
             }
         )
         return pd.DataFrame(rows)
@@ -517,8 +604,9 @@ def _staged_at_h(
     start: BKYParams,
     stochastic_vol: bool,
     samples_per_year: int = 1,
+    start_is_monthly: bool = True,
 ) -> tuple[BKYParams, float]:
-    p = _start_at_h(start, h, target["mean_dc"], samples_per_year)
+    p = _start_at_h(start, h, target["mean_dc"], samples_per_year, start_is_monthly)
     p = _fit_subset(p, h, ("rho", "phi_e", "sigma"), [p.rho, p.phi_e, p.sigma], _STAGE1, target)
     p = _fit_subset(
         p, h,
@@ -671,9 +759,57 @@ def _gmm_at_h(
     hac_lags: int = 1,
     maxiter: int = 800,
     samples_per_year: int = 1,
+    start_is_monthly: bool = True,
+    n_starts: int = 1,
 ) -> BKYResults:
+    """CUE at one ``h`` from up to ``n_starts`` starts; lowest objective wins."""
     mean_dc = float(np.nanmean(data["dc"].to_numpy(dtype=float)))
-    p0 = _start_at_h(start, h, mean_dc, samples_per_year)
+    starts = _start_candidates(
+        start, h, mean_dc, samples_per_year, start_is_monthly, max(int(n_starts), 1)
+    )
+    best: BKYResults | None = None
+    errors: list[str] = []
+    for p0 in starts:
+        try:
+            res = _gmm_from_p0(
+                data, h, p0,
+                stochastic_vol=stochastic_vol, W=W, j_test=False,
+                hac_lags=hac_lags, maxiter=maxiter,
+            )
+        except Exception as exc:  # pragma: no cover - surfaced by caller
+            errors.append(str(exc))
+            continue
+        if best is None or res.gmm.objective < best.gmm.objective:
+            best = res
+    if best is None:
+        raise RuntimeError("GMM failed at every start. " + "; ".join(errors))
+    if j_test:
+        names = PARAM_NAMES
+        if not stochastic_vol:
+            names = tuple(n for n in PARAM_NAMES if n not in ("nu", "sigma_w"))
+        try:
+            j_stat, j_df, j_p = _hansen_j_at_params(
+                data, best.params, h, best.gmm.W, hac_lags, free=names
+            )
+            best.gmm.J = j_stat
+            best.gmm.J_df = j_df
+            best.gmm.J_pvalue = j_p
+        except Exception:
+            pass
+    return best
+
+
+def _gmm_from_p0(
+    data: pd.DataFrame,
+    h: int,
+    p0: BKYParams,
+    *,
+    stochastic_vol: bool,
+    W: str,
+    j_test: bool,
+    hac_lags: int = 1,
+    maxiter: int = 800,
+) -> BKYResults:
     bounds = _scaled_bounds(stochastic_vol, h)
     names = PARAM_NAMES
     if not stochastic_vol:
@@ -749,7 +885,7 @@ def _gmm_at_h(
     if j_test:
         try:
             j_stat, j_df, j_p = _hansen_j_at_params(
-                data, params, h, fit.W, hac_lags
+                data, params, h, fit.W, hac_lags, free=names
             )
             fit.J = j_stat
             fit.J_df = j_df
@@ -780,15 +916,21 @@ def estimate_bky(
     block_length: int = 8,
     maxiter: int = 800,
     bootstrap_h: bool = False,
+    start_is_monthly: bool = True,
+    n_starts: int = 1,
 ) -> BKYResults:
     """GMM on the annual or quarterly panel. Table 2 is a comparison, not an input.
 
     ``data`` is ``load_annual()`` or ``load_quarterly()``. The start is
     the Bansal–Yaron (2004) monthly calibration, not the published Table
-    2 vector. Integer ``h`` is chosen on a grid. ``n_boot>0`` is an
-    eight-year moving-block bootstrap at ``ĥ``; ``bootstrap_h=True``
-    re-selects ``h`` on each draw and stores SE(``h``) as the last entry
-    of ``gmm.se``.
+    2 vector; pass ``start_is_monthly=False`` for a start already at the
+    decision frequency of ``h``. Integer ``h`` is chosen on a grid.
+    ``n_starts>1`` runs the CUE from that many spread-out starts at each
+    ``h`` and keeps the lowest objective, which matters at short ``h``
+    and under ``stochastic_vol=False`` where the surface has more than
+    one basin. ``n_boot>0`` is an eight-year moving-block bootstrap at
+    ``ĥ``; ``bootstrap_h=True`` re-selects ``h`` on each draw and stores
+    SE(``h``) as the last entry of ``gmm.se``.
     """
     if data is None or len(data) == 0:
         raise TypeError("estimate_bky needs the annual panel from load_annual().")
@@ -809,6 +951,7 @@ def estimate_bky(
         for cand in grid:
             p, obj = _staged_at_h(
                 cand, tgt, start, stochastic_vol, samples_per_year=spy,
+                start_is_monthly=start_is_monthly,
             )
             if obj < best_obj:
                 best_p, best_h, best_obj = p, cand, obj
@@ -833,6 +976,7 @@ def estimate_bky(
                 stochastic_vol=stochastic_vol, W=W, j_test=j_test,
                 hac_lags=hac_lags, maxiter=maxiter,
                 samples_per_year=spy,
+                start_is_monthly=start_is_monthly, n_starts=n_starts,
             )
         except Exception as exc:
             errors.append(f"h={cand}: {exc}")
@@ -858,6 +1002,8 @@ def estimate_bky(
                     hac_lags=hac_lags,
                     n_boot=0,
                     maxiter=maxiter,
+                    start_is_monthly=start_is_monthly,
+                    n_starts=n_starts,
                 )
                 return np.append(_pack(res.params), float(res.h))
             res = _gmm_at_h(
@@ -865,6 +1011,7 @@ def estimate_bky(
                 stochastic_vol=stochastic_vol, W=W, j_test=False,
                 hac_lags=hac_lags, maxiter=maxiter,
                 samples_per_year=_spy,
+                start_is_monthly=start_is_monthly, n_starts=n_starts,
             )
             return _pack(res.params)
 

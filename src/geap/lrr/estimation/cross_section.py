@@ -17,10 +17,14 @@ from .goldens import (
     TABLE_7_PHI_SIGMA,
     TABLE_7_RHO,
 )
-from .solution import BKYParams, solve_loglinear
+from .solution import BKYParams, LogLinearSolution, solve_loglinear
 from .states import extract_states
 
 _CLAIM_NAMES = ("small", "large", "growth", "value")
+# The paper's per-portfolio moment set (p. 66): mean and volatility of
+# dividend growth, its correlation with consumption growth, the risk
+# premium, return volatility, mean and volatility of the price-dividend
+# ratio, and the market beta.
 _CLAIM_MOMENTS = (
     "mean_dd",
     "vol_dd",
@@ -29,6 +33,7 @@ _CLAIM_MOMENTS = (
     "vol_rd",
     "mean_zd",
     "vol_zd",
+    "beta_mkt",
 )
 # vol_dd is noisy on the small and value legs. Mean P/D and the premium
 # identify long-run leverage φ_j; E[u] and E[u x] use market-extracted x.
@@ -38,6 +43,7 @@ _CLAIM_WEIGHTS = {
     "mean_excess": 3.0,
     "mean_zd": 3.0,
     "vol_zd": 1.5,
+    "beta_mkt": 2.0,
 }
 _CLAIM_BOUNDS = (
     (0.0, 0.02),
@@ -91,17 +97,18 @@ def table7_capm(
     *,
     years: int = 2000,
     seed: int = 0,
+    claims: dict[str, BKYParams] | None = None,
 ) -> dict[str, dict[str, float]]:
     """Model CAPM beta and alpha (%) of small–large and value–growth."""
     from .simulate import simulate_claim_returns
 
     market = market or TABLE_2_LRR
-    claims = table7_claims(market)
+    claims = dict(claims) if claims is not None else table7_claims(market)
     claims["market"] = market
     rets = simulate_claim_returns(claims, h, years=years, seed=seed)
     rf = rets["rf"]
     rm = rets["market"] - rf
-    prem = table7_premia(market, h)
+    prem = table7_premia(market, h, claims=claims)
     mkt_prem = 100.0 * h * _period_premium(market)
     out = {}
     for spread, long, short in (
@@ -174,13 +181,27 @@ def _align_claim(
     return dd, ret, z
 
 
+def _sample_beta(y: np.ndarray, x: np.ndarray) -> float:
+    ok = np.isfinite(y) & np.isfinite(x)
+    if ok.sum() < 3:
+        return float("nan")
+    xd = x[ok] - x[ok].mean()
+    yd = y[ok] - y[ok].mean()
+    return float(np.dot(xd, yd) / np.dot(xd, xd))
+
+
 def _claim_targets(
-    dd: np.ndarray, ret: np.ndarray, z: np.ndarray, dc: np.ndarray, rf: np.ndarray
+    dd: np.ndarray,
+    ret: np.ndarray,
+    z: np.ndarray,
+    dc: np.ndarray,
+    rf: np.ndarray,
+    rm: np.ndarray | None = None,
 ) -> dict[str, float]:
     ok = np.isfinite(dd) & np.isfinite(dc)
     okz = np.isfinite(z)
     okr = np.isfinite(ret)
-    return {
+    out = {
         "mean_dd": float(np.nanmean(dd)),
         "vol_dd": float(np.nanstd(dd[np.isfinite(dd)], ddof=1)),
         "corr_dc_dd": float(np.corrcoef(dc[ok], dd[ok])[0, 1]) if ok.sum() > 2 else 0.0,
@@ -189,6 +210,55 @@ def _claim_targets(
         "mean_zd": float(np.nanmean(z)),
         "vol_zd": float(np.nanstd(z[okz], ddof=1)),
     }
+    if rm is not None:
+        out["beta_mkt"] = _sample_beta(ret - rf, rm - rf)
+    return out
+
+
+def _model_beta(
+    sol_j: LogLinearSolution,
+    p_j: BKYParams,
+    sol_m: LogLinearSolution,
+    p_m: BKYParams,
+    *,
+    same_shock: bool = False,
+) -> float:
+    """Decision-frequency CAPM beta of claim ``j`` on the market claim.
+
+    Returns load on the two states through ``B_d`` and on the three
+    shocks through ``beta_d``; ``rho_d`` is the correlation of the
+    claim's own dividend shock with the consumption shock. The ratio of
+    covariance to market variance at the decision frequency is the
+    moment the second stage targets; annual sums of iid innovations keep
+    the same ratio.
+    """
+    var_x = p_m.phi_e**2 * p_m.sigma**2 / max(1.0 - p_m.rho**2, 1e-12)
+    var_s = p_m.sigma_w**2 / max(1.0 - p_m.nu**2, 1e-12)
+    s2 = p_m.sigma**2
+    sw2 = p_m.sigma_w**2
+    bu_j, be_j, bw_j = sol_j.beta_d
+    bu_m, be_m, bw_m = sol_m.beta_d
+    # Two claims' own dividend shocks are correlated only through the
+    # consumption shock, so corr(u_j, u_m) = rho_j rho_m. ``same_shock``
+    # is the market on itself, which shares one shock. This is a flag
+    # rather than a parameter comparison so the objective stays smooth
+    # when a claim starts at the market's cash-flow vector.
+    corr_u = 1.0 if same_shock else p_j.rho_d * p_m.rho_d
+    cov = (
+        float(sol_j.B_d[1]) * float(sol_m.B_d[1]) * var_x
+        + float(sol_j.B_d[2]) * float(sol_m.B_d[2]) * var_s
+        + bu_j * bu_m * corr_u * s2
+        + be_j * be_m * s2
+        + bw_j * bw_m * sw2
+    )
+    var = (
+        float(sol_m.B_d[1]) ** 2 * var_x
+        + float(sol_m.B_d[2]) ** 2 * var_s
+        + bu_m**2 * s2
+        + be_m**2 * s2
+        + bw_m**2 * sw2
+    )
+    return float(cov / var) if var > 0.0 else float("nan")
 
 
 def _unpack_claim(theta: np.ndarray, market: BKYParams) -> BKYParams:
@@ -209,14 +279,20 @@ def _claim_sse(
     target: dict[str, float],
     dd: np.ndarray,
     x: np.ndarray,
+    market_sol: LogLinearSolution | None = None,
 ) -> float:
     p = _unpack_claim(theta, market)
     try:
-        model = model_moments(p, h)
+        sol = solve_loglinear(p)
+        model = model_moments(p, h, sol=sol)
     except Exception:
         return 1e6
+    if market_sol is not None and np.isfinite(target.get("beta_mkt", np.nan)):
+        model["beta_mkt"] = _model_beta(sol, p, market_sol, market)
     sse = 0.0
     for key in _CLAIM_MOMENTS:
+        if key not in target or key not in model:
+            continue
         scale = max(abs(target[key]), 0.01)
         weight = _CLAIM_WEIGHTS.get(key, 1.0)
         sse += weight * ((model[key] - target[key]) / scale) ** 2
@@ -256,6 +332,7 @@ def estimate_table7_claims(
     years = annual.index.to_numpy()
     dc = annual["dc"].to_numpy(dtype=float)
     rf = annual["rf"].to_numpy(dtype=float)
+    rm = annual["rm"].to_numpy(dtype=float)
     start = np.array(
         [market.mu_d, market.phi_d, market.phi_d_sigma, market.rho_d],
         dtype=float,
@@ -263,11 +340,12 @@ def estimate_table7_claims(
     out: dict[str, BKYParams] = {}
     for name in _CLAIM_NAMES:
         dd, ret, z = _align_claim(panel, name, years)
-        target = _claim_targets(dd, ret, z, dc, rf)
+        target = _claim_targets(dd, ret, z, dc, rf, rm)
 
         def objective(theta, _dd=dd, _target=target):
             return _claim_sse(
-                theta, market=market, h=h, target=_target, dd=_dd, x=states.x
+                theta, market=market, h=h, target=_target, dd=_dd, x=states.x,
+                market_sol=sol,
             )
 
         res = minimize(

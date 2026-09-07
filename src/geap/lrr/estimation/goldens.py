@@ -119,6 +119,26 @@ TABLE_2_NOVOL = BKYParams(
 )
 TABLE_2_NOVOL_H = 9
 
+# Table 2 No-Vol standard errors (block bootstrap, eight-year blocks).
+TABLE_2_NOVOL_SE = {
+    "gamma": 1.94,
+    "psi": 0.85,
+    "delta": 0.0004,
+    "mu_c": 0.0006,
+    "rho": 0.0091,
+    "phi_e": 0.0113,
+    "sigma": 0.0014,
+    "mu_d": 0.0010,
+    "phi_d": 1.74,
+    "phi_d_sigma": 1.04,
+    "rho_d": 0.18,
+    "h": 2.69,
+}
+
+# Table 2 chi-square tests of overidentifying restrictions, (J, p).
+TABLE_2_LRR_J = (10.4, 0.11)
+TABLE_2_NOVOL_J = (78.5, 0.00)
+
 # Table 4 / Table 6 annual column (h = 1, no time aggregation).
 TABLE_4_ANNUAL = BKYParams(
     gamma=13.83,
@@ -135,6 +155,43 @@ TABLE_4_ANNUAL = BKYParams(
     phi_d_sigma=5.12,
     rho_d=0.60,
 )
+
+# Table 4 empirical standard errors (block bootstrap) and J-test.
+TABLE_4_SE = {
+    "gamma": 3.42,
+    "psi": 0.61,
+    "delta": 0.0018,
+    "mu_c": 0.0025,
+    "rho": 0.0646,
+    "phi_e": 0.0345,
+    "sigma": 0.0054,
+    "nu": 0.0415,
+    "sigma_w": 4.57e-6,
+    "mu_d": 0.0052,
+    "phi_d": 0.54,
+    "phi_d_sigma": 0.56,
+    "rho_d": 0.02,
+}
+TABLE_4_J = (231.5, 0.00)
+
+# Table 4 simulated-data columns: annual specification re-estimated on
+# data simulated from the Table 2 economy, (population, 5%, 50%, 95%).
+TABLE_4_SIMULATED = {
+    "gamma": (12.93, 11.01, 14.78, 19.64),
+    "psi": (1.22, 0.86, 1.17, 1.62),
+    "delta": (0.994, 0.987, 0.996, 0.999),
+    "mu_c": (0.015, 0.010, 0.016, 0.021),
+    "rho": (0.859, 0.832, 0.893, 0.952),
+    "phi_e": (0.172, 0.133, 0.177, 0.288),
+    "sigma": (0.026, 0.001, 0.015, 0.023),
+    "nu": (0.860, 0.728, 0.901, 0.954),
+    "sigma_w": (3.5e-6, 2.1e-6, 3.5e-6, 5.3e-6),
+    "mu_d": (0.009, 0.000, 0.009, 0.013),
+    "phi_d": (2.72, 1.872, 2.647, 3.601),
+    "phi_d_sigma": (5.27, 2.958, 5.162, 7.294),
+    "rho_d": (0.60, 0.560, 0.601, 0.651),
+}
+TABLE_4_SIMULATED_J = {"p5": (18.4, 0.00), "p50": (137.9, 0.00), "p95": (792.4, 0.01)}
 
 # Table 6 fixed-h specifications.
 TABLE_6 = {
@@ -158,15 +215,24 @@ TABLE_6 = {
     ),
     1: TABLE_4_ANNUAL,
 }
+TABLE_6_J = {26: (34.4, 0.00), 12: (15.2, 0.03), 4: (119.5, 0.00), 1: TABLE_4_J}
 
-# Table 5, annual-specification model column.
+# Table 5, annual-specification model column (all 20 rows, p. 64).
 TABLE_5_ANNUAL_MODEL = {
     "vol_dc": 0.025,
     "ac1_dc": 0.092,
+    "ac2_dc": 0.080,
+    "vol_dd": 0.125,
+    "ac1_dd": 0.024,
+    "corr_dc_dd": 0.613,
+    "mean_zd": 3.421,
     "vol_zd": 0.083,
+    "ac1_zd": 0.874,
     "mean_excess": 0.040,
     "vol_rd": 0.130,
     "mean_rf": 0.011,
+    "corr_rd_zd": 0.061,
+    "corr_dc_zd": 0.323,
 }
 
 # Table 7 Panel A.
@@ -174,6 +240,11 @@ TABLE_7_MU = {"small": 0.0048, "large": 0.0021, "growth": 0.0027, "value": 0.005
 TABLE_7_PHI = {"small": 10.69, "large": 4.70, "growth": 5.33, "value": 7.51}
 TABLE_7_PHI_SIGMA = {"small": 10.42, "large": 5.83, "growth": 6.09, "value": 7.51}
 TABLE_7_RHO = {"small": 0.41, "large": 0.40, "growth": 0.20, "value": 0.61}
+# Table 7 Panel A bootstrap standard errors, same units as the point values.
+TABLE_7_MU_SE = {"small": 0.0008, "large": 0.0009, "growth": 0.0007, "value": 0.0009}
+TABLE_7_PHI_SE = {"small": 1.45, "large": 1.85, "growth": 0.98, "value": 1.27}
+TABLE_7_PHI_SIGMA_SE = {"small": 2.04, "large": 2.14, "growth": 1.81, "value": 1.75}
+TABLE_7_RHO_SE = {"small": 0.18, "large": 0.15, "growth": 0.16, "value": 0.10}
 TABLE_7_PREMIA_DATA = {"small": 13.61, "large": 7.12, "growth": 7.03, "value": 12.38}
 TABLE_7_PREMIA_MODEL = {"small": 13.93, "large": 6.52, "growth": 6.65, "value": 11.46}
 TABLE_7_CAPM = {
@@ -189,12 +260,45 @@ TABLE_8_TA = BKYParams(
     mu_d=0.0027, phi_d=4.29, phi_d_sigma=5.11, rho_d=0.03,
 )
 TABLE_8_H = 2
+TABLE_8_TA_SE = {
+    "gamma": 0.75,
+    "psi": 0.23,
+    "delta": 0.0003,
+    "mu_c": 0.0003,
+    "rho": 0.0034,
+    "phi_e": 0.0076,
+    "sigma": 0.0005,
+    "nu": 0.0030,
+    "sigma_w": 6.70e-7,
+    "mu_d": 0.0006,
+    "phi_d": 0.30,
+    "phi_d_sigma": 0.26,
+    "rho_d": 0.06,
+    "h": 0.50,
+}
+TABLE_8_TA_J = (13.3, 0.04)
 TABLE_8_NO_TA = BKYParams(
     gamma=8.66, psi=2.83, delta=0.9981,
     mu_c=0.0041, rho=0.9766, phi_e=0.0785, sigma=0.0034,
     nu=0.9945, sigma_w=1.68e-6,
     mu_d=0.0020, phi_d=6.50, phi_d_sigma=5.39, rho_d=0.01,
 )
+TABLE_8_NO_TA_SE = {
+    "gamma": 2.00,
+    "psi": 0.66,
+    "delta": 0.0006,
+    "mu_c": 0.0008,
+    "rho": 0.0249,
+    "phi_e": 0.0244,
+    "sigma": 0.0007,
+    "nu": 0.0061,
+    "sigma_w": 1.67e-6,
+    "mu_d": 0.0011,
+    "phi_d": 1.19,
+    "phi_d_sigma": 0.55,
+    "rho_d": 0.12,
+}
+TABLE_8_NO_TA_J = (22.2, 0.00)
 
 # Table 3, LRR model column (annual moments at Table 2).
 TABLE_3_LRR_MODEL = {
@@ -232,4 +336,35 @@ TABLE_3_NOVOL_MODEL = {
     "mean_rf": 0.010,
     "corr_rd_zd": 0.028,
     "corr_dc_zd": 0.593,
+}
+
+# Residual-moment rows of Tables 3 and 5 (E[η], E[u], E[η x], the
+# volatility orthogonality condition, vol and AC1 of η²). They are kept
+# apart from the model columns above because the tolerance tests iterate
+# over those; the report frames merge the two. The No-Vol model has no
+# volatility state, so the paper prints nothing for E[(η² − E η²) σ²] and
+# zero is the restriction it imposes.
+TABLE_3_LRR_RESIDUALS = {
+    "e_eta": 0.000,
+    "e_u": 0.000,
+    "e_eta_x": 0.000,
+    "e_eta2_s2": 0.000,
+    "vol_eta2": 0.001,
+    "ac1_eta2": 0.152,
+}
+TABLE_3_NOVOL_RESIDUALS = {
+    "e_eta": 0.000,
+    "e_u": 0.000,
+    "e_eta_x": 0.000,
+    "e_eta2_s2": 0.000,
+    "vol_eta2": 1.8e-4,
+    "ac1_eta2": 0.082,
+}
+TABLE_5_ANNUAL_RESIDUALS = {
+    "e_eta": 0.000,
+    "e_u": 0.000,
+    "e_eta_x": 0.000,
+    "e_eta2_s2": 0.000,
+    "vol_eta2": 0.024,
+    "ac1_eta2": 1.3e-7,
 }

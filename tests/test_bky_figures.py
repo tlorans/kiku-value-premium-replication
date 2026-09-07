@@ -64,3 +64,39 @@ def test_figure2_irf_horizon_alias_sets_horizon_dc():
     irf = figure2_irf(horizon=21, years=80, seed=0)
     assert int(irf["dc_lrr"].notna().sum()) == 21
     assert np.isfinite(irf.loc[20, "dc_lrr"])
+
+
+def test_figure2_plot_accepts_estimated_parameters():
+    fig = figure2_plot(
+        years=80, seed=0, lrr_params=TABLE_2_LRR, lrr_h=11, annual_params=TABLE_4_ANNUAL
+    )
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) == 2
+
+
+def test_figure_long_frames_have_tidy_columns():
+    from geap.lrr.estimation.figures import figure1_long, figure2_long
+
+    frame = figure1_frame(load_annual())
+    long1 = figure1_long(frame)
+    assert list(long1.columns) == ["year", "series", "value"]
+    assert set(long1["series"]) == {"Realized consumption growth", "Expected growth x"}
+    assert len(long1) == 2 * len(frame)
+
+    irf = figure2_irf(horizon_dc=20, horizon_var=30, years=80, seed=0)
+    long2 = figure2_long(irf)
+    assert list(long2.columns) == ["horizon", "panel", "spec", "value"]
+    assert set(long2["spec"]) == {"LRR", "Annual"}
+    assert len(set(long2["panel"])) == 2
+    assert long2["value"].notna().all()
+    assert len(long2) == 2 * (20 + 30)
+
+
+def test_figure_ggplot_builders_return_plotnine_objects():
+    plotnine = __import__("pytest").importorskip("plotnine")
+    from geap.lrr.estimation.figures import figure1_ggplot, figure2_ggplot
+
+    g1 = figure1_ggplot(figure1_frame(load_annual()))
+    assert isinstance(g1, plotnine.ggplot)
+    g2 = figure2_ggplot(figure2_irf(horizon_dc=20, horizon_var=30, years=80, seed=0))
+    assert isinstance(g2, plotnine.ggplot)

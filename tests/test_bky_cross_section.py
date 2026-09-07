@@ -87,3 +87,36 @@ def test_estimated_phi_within_two_paper_se(estimated_claims):
         se = _TABLE_7_PHI_SE[name]
         assert abs(hat - paper) <= 2.0 * se, f"{name}: {hat} vs {paper} (se={se})"
 
+
+
+def test_second_stage_targets_the_market_beta():
+    from geap.lrr.estimation.cross_section import _CLAIM_MOMENTS, _model_beta
+    from geap.lrr.estimation.solution import solve_loglinear
+
+    assert "beta_mkt" in _CLAIM_MOMENTS
+    sol = solve_loglinear(TABLE_2_LRR)
+    assert _model_beta(sol, TABLE_2_LRR, sol, TABLE_2_LRR, same_shock=True) == pytest.approx(1.0)
+    assert _model_beta(sol, TABLE_2_LRR, sol, TABLE_2_LRR) < 1.0
+    claims = table7_claims(TABLE_2_LRR)
+    small = _model_beta(solve_loglinear(claims["small"]), claims["small"], sol, TABLE_2_LRR)
+    large = _model_beta(solve_loglinear(claims["large"]), claims["large"], sol, TABLE_2_LRR)
+    assert small > large > 0.0
+
+
+def test_sample_claim_targets_include_the_market_beta():
+    import numpy as np
+
+    from geap.lrr.estimation.cross_section import _align_claim, _claim_targets
+
+    panel = load_cross_section()
+    annual = load_annual().set_index("year")
+    years = annual.index.to_numpy()
+    dd, ret, z = _align_claim(panel, "small", years)
+    tgt = _claim_targets(
+        dd, ret, z,
+        annual["dc"].to_numpy(dtype=float),
+        annual["rf"].to_numpy(dtype=float),
+        annual["rm"].to_numpy(dtype=float),
+    )
+    assert np.isfinite(tgt["beta_mkt"])
+    assert 0.5 < tgt["beta_mkt"] < 2.0
