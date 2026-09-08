@@ -14,7 +14,7 @@ import urllib.request
 
 DATA = Path("../../data")
 if not DATA.exists():
-    DATA = Path("data")
+    DATA = Path("src/geap/data")
     DATA.mkdir(exist_ok=True)
     base = ("https://raw.githubusercontent.com/tlorans/"
             "kiku-value-premium-replication/main/data/")

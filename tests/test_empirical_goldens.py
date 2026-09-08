@@ -14,9 +14,7 @@ from geap.lrr.empirical.goldens import (
 )
 from geap.lrr.empirical.tables import table_i, table_i_corr, table_vi_data, within_se
 
-ROOT = Path(__file__).resolve().parents[1]
-PANEL = ROOT / "data" / "annual_panel.csv"
-DC = ROOT / "data" / "consumption_annual.csv"
+from geap.lrr.empirical.panel import DC_CSV as DC, PANEL_CSV as PANEL
 
 # Off the hard SE gate: 1933 Value CS D=0 when ret==retx (see CASHFLOW_NOTE).
 _TABLE_I_SOFT = {("Value", "dg_sd")}

@@ -234,7 +234,7 @@ import polars as pl
 import geap
 
 dc = pl.read_csv("data/consumption_annual.csv").sort("year")["dc"].to_numpy()
-panel = pl.read_csv("data/annual_panel.csv")
+panel = pl.read_csv("src/geap/data/annual_panel.csv")
 
 def dd(claim):
     return (

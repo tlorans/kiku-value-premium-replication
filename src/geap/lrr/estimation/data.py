@@ -11,9 +11,12 @@ from ..empirical.consumption import load_consumption, load_consumption_quarterly
 from ..empirical.dividends import campbell_shiller_annual
 
 ROOT = Path(__file__).resolve().parents[4]
-ANNUAL_CSV = ROOT / "data" / "bky_annual.csv"
-QUARTERLY_CSV = ROOT / "data" / "bky_quarterly.csv"
-CROSS_CSV = ROOT / "data" / "bky_cross_section.csv"
+# The shipped panels are package data, so an install from git or from a
+# wheel finds them. Only the raw WRDS cache and .env stay at the repo root.
+PACKAGE_DATA = Path(__file__).resolve().parents[2] / "data"
+ANNUAL_CSV = PACKAGE_DATA / "bky_annual.csv"
+QUARTERLY_CSV = PACKAGE_DATA / "bky_quarterly.csv"
+CROSS_CSV = PACKAGE_DATA / "bky_cross_section.csv"
 BKY_RAW = ROOT / "data" / "raw"
 MSI_PARQUET = BKY_RAW / "bky_msi.parquet"
 MCTI_PARQUET = BKY_RAW / "bky_mcti.parquet"

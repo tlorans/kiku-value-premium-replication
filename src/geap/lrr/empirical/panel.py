@@ -24,9 +24,11 @@ from .wrds import (
 
 ROOT = Path(__file__).resolve().parents[3]
 RAW = ROOT / "data" / "raw"
-PANEL_CSV = ROOT / "data" / "annual_panel.csv"
-DC_CSV = ROOT / "data" / "consumption_annual.csv"
-RF_CSV = ROOT / "data" / "rf_annual.csv"
+# The shipped panels are package data; see geap.lrr.estimation.data.
+PACKAGE_DATA = Path(__file__).resolve().parents[2] / "data"
+PANEL_CSV = PACKAGE_DATA / "annual_panel.csv"
+DC_CSV = PACKAGE_DATA / "consumption_annual.csv"
+RF_CSV = PACKAGE_DATA / "rf_annual.csv"
 
 WRDS_CACHE = ("msf", "funda", "names", "link", "mcti")
 

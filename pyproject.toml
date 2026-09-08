@@ -56,3 +56,8 @@ markers = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# The six shipped annual and quarterly panels travel with the package, so
+# geap.lrr.estimation.data.load_annual() works from a git or wheel install.
+[tool.setuptools.package-data]
+geap = ["data/*.csv"]
