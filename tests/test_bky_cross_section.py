@@ -88,6 +88,39 @@ def test_estimated_phi_within_two_paper_se(estimated_claims):
         assert abs(hat - paper) <= 2.0 * se, f"{name}: {hat} vs {paper} (se={se})"
 
 
+@pytest.fixture(scope="module")
+def bky_fits():
+    from geap.lrr.estimation.cross_section import fit_table7_claims
+
+    return fit_table7_claims(load_cross_section(), market_params=TABLE_2_LRR, h=11)
+
+
+@pytest.mark.parametrize("name", ["small", "large", "growth", "value"])
+def test_eq31_recovers_table7_panel_a_within_two_se(bky_fits, name):
+    # The gate: BKY's eq. 31 at their Table 2 point and h = 11, on
+    # 1930 to 2015, lands within two of their bootstrap SEs on every
+    # cash-flow parameter of Table 7 Panel A.
+    from geap.lrr.estimation.goldens import (
+        TABLE_7_MU,
+        TABLE_7_MU_SE,
+        TABLE_7_PHI_SE,
+        TABLE_7_PHI_SIGMA,
+        TABLE_7_PHI_SIGMA_SE,
+        TABLE_7_RHO,
+        TABLE_7_RHO_SE,
+    )
+
+    p = bky_fits[name].params
+    rows = (
+        ("mu_d", p.mu_d, TABLE_7_MU[name], TABLE_7_MU_SE[name]),
+        ("phi_d", p.phi_d, TABLE_7_PHI[name], TABLE_7_PHI_SE[name]),
+        ("phi_d_sigma", p.phi_d_sigma, TABLE_7_PHI_SIGMA[name], TABLE_7_PHI_SIGMA_SE[name]),
+        ("rho_d", p.rho_d, TABLE_7_RHO[name], TABLE_7_RHO_SE[name]),
+    )
+    far = [f"{k} {hat:.4g} vs {paper} (se {se})" for k, hat, paper, se in rows if abs(hat - paper) > 2.0 * se]
+    assert not far, f"{name}: " + "; ".join(far)
+
+
 
 def test_second_stage_targets_the_market_beta():
     from geap.lrr.estimation.cross_section import _CLAIM_MOMENTS, _model_beta
