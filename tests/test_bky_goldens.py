@@ -184,6 +184,44 @@ def test_printed_standard_errors_and_j_tests_are_pinned():
         assert all(v > 0 for v in table.values())
 
 
+def test_table7_panel_a_matches_the_printed_rows():
+    # BKY (2016) Table 7 Panel A, p. 67, as printed. The mu row prints in percent.
+    from geap.lrr.estimation.goldens import (
+        TABLE_7_MU,
+        TABLE_7_MU_SE,
+        TABLE_7_PHI,
+        TABLE_7_PHI_SE,
+        TABLE_7_PHI_SIGMA,
+        TABLE_7_PHI_SIGMA_SE,
+        TABLE_7_PREMIA_DATA,
+        TABLE_7_PREMIA_MODEL,
+        TABLE_7_RHO,
+        TABLE_7_RHO_SE,
+    )
+
+    printed = {
+        "small": ((0.48, 0.08), (10.69, 1.45), (10.42, 2.04), (0.41, 0.18), 13.61, 13.93),
+        "large": ((0.21, 0.09), (4.70, 1.85), (5.83, 2.14), (0.40, 0.15), 7.12, 6.52),
+        "growth": ((0.27, 0.07), (5.33, 0.98), (6.09, 1.81), (0.20, 0.16), 7.03, 6.65),
+        "value": ((0.50, 0.09), (7.29, 1.27), (7.51, 1.75), (0.61, 0.10), 12.38, 11.46),
+    }
+    for name, (mu, phi, phi_sigma, rho, data, model) in printed.items():
+        assert (100 * TABLE_7_MU[name], 100 * TABLE_7_MU_SE[name]) == pytest.approx(mu), name
+        assert (TABLE_7_PHI[name], TABLE_7_PHI_SE[name]) == phi, name
+        assert (TABLE_7_PHI_SIGMA[name], TABLE_7_PHI_SIGMA_SE[name]) == phi_sigma, name
+        assert (TABLE_7_RHO[name], TABLE_7_RHO_SE[name]) == rho, name
+        assert (TABLE_7_PREMIA_DATA[name], TABLE_7_PREMIA_MODEL[name]) == (data, model), name
+
+
+def test_table7_panel_b_matches_the_printed_rows():
+    from geap.lrr.estimation.goldens import TABLE_7_CAPM
+
+    assert TABLE_7_CAPM == {
+        "small_large": {"beta_data": 0.59, "beta_model": 0.86, "alpha_data": 2.07, "alpha_model": 1.63},
+        "value_growth": {"beta_data": 0.30, "beta_model": 0.45, "alpha_data": 3.13, "alpha_model": 1.78},
+    }
+
+
 def test_printed_model_columns_cover_every_table3_moment():
     from geap.lrr.estimation.goldens import (
         TABLE_3_LRR_RESIDUALS,
