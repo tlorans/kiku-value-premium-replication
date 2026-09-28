@@ -1,12 +1,14 @@
 """Table 7: size and book-to-market claims at the Table 2 states."""
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+from scipy.stats import chi2
 
+from ...gmm import estimate
+from ...gmm.weighting import hansen_j_general, invvar_weights, newey_west
 from .aggregation import _flow_loadings, model_moments
 from .data import load_annual
 from .goldens import (
@@ -35,22 +37,12 @@ _CLAIM_MOMENTS = (
     "vol_zd",
     "beta_mkt",
 )
-# vol_dd is noisy on the small and value legs. Mean P/D and the premium
-# identify long-run leverage φ_j; E[u] and E[u x] use market-extracted x.
-_CLAIM_WEIGHTS = {
-    "vol_dd": 0.2,
-    "corr_dc_dd": 1.5,
-    "mean_excess": 3.0,
-    "mean_zd": 3.0,
-    "vol_zd": 1.5,
-    "beta_mkt": 2.0,
-}
-_CLAIM_BOUNDS = (
-    (0.0, 0.02),
-    (0.5, 20.0),
-    (0.5, 20.0),
-    (0.0, 0.90),
-)
+# Table 3's orthogonality conditions for the market, applied to the
+# claim's own dividend residual u_j at the market-extracted x. Section
+# 5.3 does not list them, so they are an option.
+_CLAIM_ORTHOGONALITY = ("e_u", "e_u_x")
+# Newey-West lags, as in the market estimation.
+_CLAIM_HAC_LAGS = 1
 
 
 def table7_claims(market: BKYParams | None = None) -> dict[str, BKYParams]:
@@ -198,6 +190,12 @@ def _claim_targets(
     rf: np.ndarray,
     rm: np.ndarray | None = None,
 ) -> dict[str, float]:
+    """Sample values of the section 5.3 moments, each on its own years.
+
+    Table 3's definitions: the premium is the mean simple excess return
+    E[R_j - R_f], and return volatility is that of the log return
+    r_j = log R_j.
+    """
     ok = np.isfinite(dd) & np.isfinite(dc)
     okz = np.isfinite(z)
     okr = np.isfinite(ret)
@@ -206,7 +204,7 @@ def _claim_targets(
         "vol_dd": float(np.nanstd(dd[np.isfinite(dd)], ddof=1)),
         "corr_dc_dd": float(np.corrcoef(dc[ok], dd[ok])[0, 1]) if ok.sum() > 2 else 0.0,
         "mean_excess": float(np.nanmean(ret - rf)),
-        "vol_rd": float(np.nanstd(ret[okr], ddof=1)),
+        "vol_rd": float(np.std(np.log1p(ret[okr]), ddof=1)),
         "mean_zd": float(np.nanmean(z)),
         "vol_zd": float(np.nanstd(z[okz], ddof=1)),
     }
@@ -271,54 +269,156 @@ def _unpack_claim(theta: np.ndarray, market: BKYParams) -> BKYParams:
     )
 
 
-def _claim_sse(
-    theta: np.ndarray,
-    *,
-    market: BKYParams,
-    h: int,
-    target: dict[str, float],
-    dd: np.ndarray,
-    x: np.ndarray,
-    market_sol: LogLinearSolution | None = None,
-) -> float:
-    p = _unpack_claim(theta, market)
-    try:
+# The optimiser sees (1e3 μ_j, φ_j, log ϕ_j, atanh ρ_j). These are the
+# only bounds the model requires. ρ_j is a correlation, so |ρ_j| < 1.
+# (ϕ_j, u_j, ρ_j) and (-ϕ_j, -u_j, -ρ_j) are one model, so ϕ_j > 0 is a
+# sign normalisation. μ_j and φ_j are free.
+def _to_opt(theta: np.ndarray) -> np.ndarray:
+    mu, phi, vphi, rho = (float(v) for v in theta)
+    rho = min(max(rho, -0.999999), 0.999999)
+    return np.array([1e3 * mu, phi, np.log(max(vphi, 1e-8)), np.arctanh(rho)])
+
+
+def _from_opt(t: np.ndarray) -> np.ndarray:
+    t = np.asarray(t, dtype=float)
+    return np.array([t[0] / 1e3, t[1], np.exp(t[2]), np.tanh(t[3])])
+
+
+@dataclass
+class ClaimMoments:
+    """Observation-level eq. 31 moment conditions of one claim.
+
+    Preferences, consumption, and the market cash-flow vector are held
+    at ``market``, and ``x`` is the expected-growth state extracted from
+    the market's price-dividend ratio and the risk-free rate. Each
+    column of :meth:`conditions` has mean zero when the model moment
+    equals its sample counterpart, following Table 3's definitions: the
+    premium is E[R_j - R_f] in simple returns, and return volatility is
+    that of the log return. The model premium is ``h`` times the
+    per-period premium of the log-linear solution, which is how BKY
+    print it (6.70 percent for the market at Table 2, and each Table 7
+    model premium to within 0.06 at the printed vectors).
+
+    ``common_years=True`` evaluates every moment on the years all its
+    series are available. ``False`` evaluates each moment on its own
+    years: its column is zero outside them and scaled by ``T / T_i``, so
+    the column mean is the own-year mean.
+    """
+
+    name: str
+    market: BKYParams
+    h: int
+    market_sol: LogLinearSolution
+    dc: np.ndarray
+    rf: np.ndarray
+    rm: np.ndarray
+    dd: np.ndarray
+    ret: np.ndarray
+    z: np.ndarray
+    x_lag: np.ndarray
+    keys: tuple[str, ...]
+    common_years: bool = True
+
+    def _masks(self) -> dict[str, np.ndarray]:
+        f = np.isfinite
+        dd = f(self.dd)
+        ret = f(self.ret) & f(self.rf)
+        z = f(self.z)
+        u = dd & f(self.x_lag)
+        masks = {
+            "mean_dd": dd,
+            "vol_dd": dd,
+            "corr_dc_dd": dd & f(self.dc),
+            "mean_excess": ret,
+            "vol_rd": ret,
+            "mean_zd": z,
+            "vol_zd": z,
+            "beta_mkt": ret & f(self.rm),
+            "e_u": u,
+            "e_u_x": u,
+        }
+        masks = {k: masks[k] for k in self.keys}
+        if self.common_years:
+            common = np.logical_and.reduce(list(masks.values()))
+            masks = {k: common for k in masks}
+        return masks
+
+    @property
+    def rows(self) -> np.ndarray:
+        """Rows of the panel that :meth:`conditions` returns."""
+        masks = self._masks()
+        if self.common_years:
+            return next(iter(masks.values()))
+        return np.ones(self.dc.size, dtype=bool)
+
+    def conditions(self, p: BKYParams) -> np.ndarray:
         sol = solve_loglinear(p)
-        model = model_moments(p, h, sol=sol)
-    except Exception:
-        return 1e6
-    if market_sol is not None and np.isfinite(target.get("beta_mkt", np.nan)):
-        model["beta_mkt"] = _model_beta(sol, p, market_sol, market)
-    sse = 0.0
-    for key in _CLAIM_MOMENTS:
-        if key not in target or key not in model:
-            continue
-        scale = max(abs(target[key]), 0.01)
-        weight = _CLAIM_WEIGHTS.get(key, 1.0)
-        sse += weight * ((model[key] - target[key]) / scale) ** 2
-    y_x, _, _ = _flow_loadings(
-        h, p.rho, p.phi_e, p.sigma, p.phi_d, p.phi_d_sigma
-    )
-    u = dd[2:] - p.mu_d * h - y_x * x[:-2]
-    ok = np.isfinite(u) & np.isfinite(x[:-2])
-    if ok.any():
-        sse += 2.0 * (float(np.nanmean(u[ok])) / 0.05) ** 2
-        sse += 2.0 * (float(np.nanmean(u[ok] * x[:-2][ok])) / 0.0005) ** 2
-    return float(sse)
+        m = model_moments(p, self.h, sol=sol)
+        vol_dc = model_moments(self.market, self.h, sol=self.market_sol)["vol_dc"]
+        masks = self._masks()
+
+        def mean_on(v: np.ndarray, key: str) -> float:
+            return float(np.mean(v[masks[key]]))
+
+        r = np.log1p(self.ret)
+        re = self.ret - self.rf
+        rme = self.rm - self.rf
+        y_x, _, _ = _flow_loadings(self.h, p.rho, p.phi_e, p.sigma, p.phi_d, p.phi_d_sigma)
+        u = self.dd - p.mu_d * self.h - y_x * self.x_lag
+        cols: dict[str, np.ndarray] = {}
+        for key in self.keys:
+            if key == "mean_dd":
+                col = self.dd - m["mean_dd"]
+            elif key == "vol_dd":
+                col = (self.dd - m["mean_dd"]) ** 2 - m["vol_dd"] ** 2
+            elif key == "corr_dc_dd":
+                col = (self.dc - mean_on(self.dc, key)) * (self.dd - mean_on(self.dd, key)) - (
+                    m["corr_dc_dd"] * vol_dc * m["vol_dd"]
+                )
+            elif key == "mean_excess":
+                col = re - m["mean_excess"]
+            elif key == "vol_rd":
+                col = (r - mean_on(r, key)) ** 2 - m["vol_rd"] ** 2
+            elif key == "mean_zd":
+                col = self.z - m["mean_zd"]
+            elif key == "vol_zd":
+                col = (self.z - m["mean_zd"]) ** 2 - m["vol_zd"] ** 2
+            elif key == "beta_mkt":
+                beta = _model_beta(sol, p, self.market_sol, self.market)
+                dre = re - mean_on(re, key)
+                drm = rme - mean_on(rme, key)
+                col = dre * drm - beta * drm**2
+            elif key == "e_u":
+                col = u
+            elif key == "e_u_x":
+                col = u * self.x_lag
+            else:
+                raise KeyError(key)
+            cols[key] = np.where(masks[key], col, np.nan)
+        g = np.column_stack([cols[k] for k in self.keys])
+        if self.common_years:
+            return g[self.rows]
+        n_own = np.array([masks[k].sum() for k in self.keys], dtype=float)
+        return np.where(np.isfinite(g), g, 0.0) * (g.shape[0] / n_own)
+
+    def criterion(self, p: BKYParams) -> tuple[float, np.ndarray, np.ndarray]:
+        """Eq. 31 at ``p``: the objective, g_T, and the CUE weights there."""
+        g = self.conditions(p)
+        W = invvar_weights(g, lags=_CLAIM_HAC_LAGS)
+        g_T = g.mean(axis=0)
+        return float(g_T @ W @ g_T), g_T, W
 
 
-def estimate_table7_claims(
+def claim_moments(
     panel: pd.DataFrame,
+    name: str,
     market_params: BKYParams | None = None,
     h: int = 11,
-) -> dict[str, BKYParams]:
-    """Second-stage cash-flow estimates for size and B/M claims.
-
-    Preferences, consumption, and the market cash-flow vector stay at
-    ``market_params``. States are extracted from the market annual
-    ``log_pd`` and ``rf``. Each claim's ``(μ_j, φ_j, ϕ_j, ρ_j)`` starts
-    at the market's ``(μ_d, φ_d, ϕ_d, ρ_d)``.
-    """
+    *,
+    orthogonality: bool = False,
+    common_years: bool = True,
+) -> ClaimMoments:
+    """The eq. 31 moment conditions of one claim at the market states."""
     market = market_params or TABLE_2_LRR
     annual = load_annual().set_index("year")
     sol = solve_loglinear(market)
@@ -330,30 +430,205 @@ def estimate_table7_claims(
         h=h,
     )
     years = annual.index.to_numpy()
-    dc = annual["dc"].to_numpy(dtype=float)
-    rf = annual["rf"].to_numpy(dtype=float)
-    rm = annual["rm"].to_numpy(dtype=float)
-    start = np.array(
-        [market.mu_d, market.phi_d, market.phi_d_sigma, market.rho_d],
-        dtype=float,
+    dd, ret, z = _align_claim(panel, name, years)
+    # Annual dividend growth loads on x at the start of its two-year
+    # window, as in the market's E[u].
+    x_lag = np.full(years.size, np.nan)
+    x_lag[2:] = states.x[:-2]
+    keys = _CLAIM_MOMENTS + (_CLAIM_ORTHOGONALITY if orthogonality else ())
+    return ClaimMoments(
+        name=name,
+        market=market,
+        h=int(h),
+        market_sol=sol,
+        dc=annual["dc"].to_numpy(dtype=float),
+        rf=annual["rf"].to_numpy(dtype=float),
+        rm=annual["rm"].to_numpy(dtype=float),
+        dd=dd,
+        ret=ret,
+        z=z,
+        x_lag=x_lag,
+        keys=keys,
+        common_years=common_years,
     )
-    out: dict[str, BKYParams] = {}
-    for name in _CLAIM_NAMES:
-        dd, ret, z = _align_claim(panel, name, years)
-        target = _claim_targets(dd, ret, z, dc, rf, rm)
 
-        def objective(theta, _dd=dd, _target=target):
-            return _claim_sse(
-                theta, market=market, h=h, target=_target, dd=_dd, x=states.x,
-                market_sol=sol,
-            )
 
-        res = minimize(
-            objective,
-            start,
-            method="L-BFGS-B",
-            bounds=list(_CLAIM_BOUNDS),
-            options={"maxiter": 400, "ftol": 1e-12},
+@dataclass
+class ClaimFit:
+    """Eq. 31 estimate of one claim's cash-flow vector."""
+
+    name: str
+    params: BKYParams
+    moments: tuple[str, ...]
+    nobs: int
+    objective: float
+    g: np.ndarray
+    W: np.ndarray
+    J: float
+    J_df: int
+    J_pvalue: float
+
+    def contributions(self) -> dict[str, float]:
+        """Each moment's term g_i^2 W_ii of the objective."""
+        terms = self.g**2 * np.diag(self.W)
+        return {k: float(v) for k, v in zip(self.moments, terms)}
+
+
+def _claim_starts(market: BKYParams) -> list[np.ndarray]:
+    """The market's cash-flow vector and three spread-out generic starts.
+
+    None of them is a printed Table 7 vector.
+    """
+    mu = market.mu_d
+    return [
+        np.array([mu, market.phi_d, market.phi_d_sigma, market.rho_d]),
+        np.array([mu, 2.0, 3.0, 0.2]),
+        np.array([mu, 8.0, 8.0, 0.5]),
+        np.array([mu, 12.0, 10.0, 0.2]),
+    ]
+
+
+def _hansen_j(cm: ClaimMoments, theta: np.ndarray) -> tuple[float, int, float]:
+    """Hansen (1982) Lemma 4.2 J with a raw-parameter Jacobian."""
+    p = _unpack_claim(theta, cm.market)
+    g = cm.conditions(p)
+    g_T = g.mean(axis=0)
+    W = invvar_weights(g, lags=_CLAIM_HAC_LAGS)
+    d = np.zeros((g_T.size, theta.size))
+    for j in range(theta.size):
+        step = 1e-5 * max(abs(float(theta[j])), 1e-3)
+        bumped = np.array(theta, dtype=float)
+        bumped[j] += step
+        d[:, j] = (cm.conditions(_unpack_claim(bumped, cm.market)).mean(axis=0) - g_T) / step
+    s = newey_west(g, lags=_CLAIM_HAC_LAGS)
+    j_stat, j_df = hansen_j_general(g_T, d, W, s, int(g.shape[0]))
+    return j_stat, j_df, float(chi2.sf(j_stat, j_df))
+
+
+def fit_claim(cm: ClaimMoments, *, maxiter: int = 3000) -> ClaimFit:
+    """Minimise eq. 31 for one claim from each start; the lowest wins."""
+    n_rows = int(cm.rows.sum())
+    k = len(cm.keys)
+    penalty = np.ones((n_rows, k)) * 10.0 + (np.arange(n_rows) / max(n_rows, 1))[:, None]
+
+    def moments(t):
+        try:
+            g = cm.conditions(_unpack_claim(_from_opt(t), cm.market))
+        except Exception:
+            return penalty
+        return g if np.all(np.isfinite(g)) else penalty
+
+    best = None
+    for start in _claim_starts(cm.market):
+        res = estimate(
+            moments,
+            _to_opt(start),
+            W="cue_invvar",
+            hac_lags=_CLAIM_HAC_LAGS,
+            options={"maxiter": maxiter, "xatol": 1e-7, "fatol": 1e-12, "adaptive": True},
         )
-        out[name] = _unpack_claim(res.x, market)
-    return out
+        if best is None or res.objective < best.objective:
+            best = res
+    theta = _from_opt(best.theta)
+    params = _unpack_claim(theta, cm.market)
+    objective, g_T, W = cm.criterion(params)
+    j_stat, j_df, j_p = _hansen_j(cm, theta)
+    return ClaimFit(
+        name=cm.name,
+        params=params,
+        moments=cm.keys,
+        nobs=n_rows,
+        objective=objective,
+        g=g_T,
+        W=W,
+        J=j_stat,
+        J_df=j_df,
+        J_pvalue=j_p,
+    )
+
+
+def fit_table7_claims(
+    panel: pd.DataFrame,
+    market_params: BKYParams | None = None,
+    h: int = 11,
+    *,
+    orthogonality: bool = False,
+    common_years: bool = True,
+) -> dict[str, ClaimFit]:
+    """BKY eq. 31, claim by claim, at the market states (section 5.3).
+
+    The moments are section 5.3's eight, with Table 3's definitions and
+    time aggregation at ``h``. ``orthogonality=True`` adds E[u_j] and
+    E[u_j x], and ``common_years=False`` evaluates each moment on its
+    own years; see :class:`ClaimMoments`. The weighting matrix is the
+    diagonal inverse of the Newey-West covariance of the moment
+    conditions, updated continuously.
+    """
+    return {
+        name: fit_claim(
+            claim_moments(
+                panel, name, market_params, h,
+                orthogonality=orthogonality, common_years=common_years,
+            )
+        )
+        for name in _CLAIM_NAMES
+    }
+
+
+def estimate_table7_claims(
+    panel: pd.DataFrame,
+    market_params: BKYParams | None = None,
+    h: int = 11,
+    *,
+    orthogonality: bool = False,
+    common_years: bool = True,
+) -> dict[str, BKYParams]:
+    """Second-stage cash-flow vectors of the size and B/M claims.
+
+    The parameter vectors of :func:`fit_table7_claims`.
+    """
+    fits = fit_table7_claims(
+        panel, market_params, h,
+        orthogonality=orthogonality, common_years=common_years,
+    )
+    return {name: fit.params for name, fit in fits.items()}
+
+
+def table7_contributions(
+    panel: pd.DataFrame,
+    claims: dict[str, BKYParams],
+    market_params: BKYParams | None = None,
+    h: int = 11,
+    *,
+    orthogonality: bool = False,
+    common_years: bool = True,
+) -> pd.DataFrame:
+    """Eq. 31 at given cash-flow vectors, such as the printed Table 7 ones.
+
+    One row per claim and moment: the moment condition g_i, its CUE
+    weight W_ii, its term g_i^2 W_ii, and that term's share of the
+    claim's objective.
+    """
+    rows = []
+    for name, p in claims.items():
+        cm = claim_moments(
+            panel, name, market_params, h,
+            orthogonality=orthogonality, common_years=common_years,
+        )
+        objective, g_T, W = cm.criterion(p)
+        w = np.diag(W)
+        for key, gi, wi in zip(cm.keys, g_T, w):
+            term = float(gi**2 * wi)
+            rows.append(
+                {
+                    "claim": name,
+                    "moment": key,
+                    "g": float(gi),
+                    "w": float(wi),
+                    "term": term,
+                    "share": term / objective if objective > 0 else float("nan"),
+                }
+            )
+    return pd.DataFrame(rows)
+
+

@@ -106,7 +106,11 @@ quarterly data](quarterly.qmd) use these names and nothing else.
 | `estimate_bky` | `(data, *, h=None, h_grid=None, start=None, stochastic_vol=True, method="gmm", W="cue_invvar", j_test=True, hac_lags=1, n_boot=0, block_length=8, maxiter=800, bootstrap_h=False, start_is_monthly=True, n_starts=1)` | CUE GMM with `h` chosen on a grid; `n_starts` keeps the lowest objective of several generic starts |
 | `BKYResults` | `params, h, gmm, data, stochastic_vol` | the fit; `summary()`, `table2_frame(paper=, paper_se=, paper_h=)`, `states()`, `moment_table()`, `model` |
 | `COLD_START` | `BKYParams` | the Bansal and Yaron (2004) monthly start |
-| `estimate_table7_claims` | `(panel, market_params=None, h=11)` | second-stage cash-flow vectors of the four portfolios at the market states |
+| `fit_table7_claims` | `(panel, market_params=None, h=11, *, orthogonality=False, common_years=True)` | BKY eq. 31 for each of the four portfolios at the market states: CUE with diagonal Newey-West weights, Hansen J |
+| `ClaimFit` | `name, params, moments, nobs, objective, g, W, J, J_df, J_pvalue` | one portfolio's fit; `contributions()` gives each moment's term of the objective |
+| `estimate_table7_claims` | `(panel, market_params=None, h=11, *, orthogonality=False, common_years=True)` | the cash-flow vectors of `fit_table7_claims` |
+| `claim_moments`, `ClaimMoments` | `(panel, name, market_params=None, h=11, *, orthogonality=False, common_years=True)` | one portfolio's observation-level moment conditions; `conditions(params)`, `criterion(params)` |
+| `table7_contributions` | `(panel, claims, market_params=None, h=11, *, orthogonality=False, common_years=True)` | each moment's term of eq. 31 at given vectors, such as the printed ones |
 | `table4_annual_on_lrr_sims` | `(n_draws=20, years=86, seed=0, *, lrr_params=None, lrr_h=None, n_starts=1)` | the annual specification on simulated LRR samples |
 
 ### Tables and figures
