@@ -95,13 +95,16 @@ def observation_moments(
     z = data["log_pd"].to_numpy(dtype=float)
     rf = data["rf"].to_numpy(dtype=float)
     rm = data["rm"].to_numpy(dtype=float)
+    # Table 3: the premium is E[R_d - R_f] in simple returns, while
+    # vol(r_d) and corr(r_d, z_{-1}) use r_d = log R_d.
     excess = rm - rf
+    rd = np.log1p(rm)
     T = dc.size
     hat = extract_states(z, rf, sol, params=params, h=h)
     mean_c = np.nanmean(dc)
     mean_d = np.nanmean(dd)
     mean_z = np.nanmean(z)
-    mean_r = np.nanmean(rm)
+    mean_r = np.nanmean(rd)
     c_x, _, _ = _flow_loadings(h, params.rho, params.phi_e, params.sigma, 1.0, 1.0)
     y_x, _, _ = _flow_loadings(
         h, params.rho, params.phi_e, params.sigma, params.phi_d, params.phi_d_sigma
@@ -141,10 +144,10 @@ def observation_moments(
     cols.append((z - model["mean_zd"]) ** 2 - model["vol_zd"] ** 2)
     cols.append(_acov_series(z, 1) - model["ac1_zd"] * model["vol_zd"] ** 2)
     cols.append(excess - model["mean_excess"])
-    cols.append((rm - mean_r) ** 2 - model["vol_rd"] ** 2)
+    cols.append((rd - mean_r) ** 2 - model["vol_rd"] ** 2)
     cols.append(rf - model["mean_rf"])
     rd_z = np.full(T, np.nan)
-    rd_z[1:] = (rm[1:] - mean_r) * (z[:-1] - mean_z)
+    rd_z[1:] = (rd[1:] - mean_r) * (z[:-1] - mean_z)
     cols.append(rd_z - model["corr_rd_zd"] * model["vol_rd"] * model["vol_zd"])
     dc_z = np.full(T, np.nan)
     dc_z[1:] = (dc[1:] - mean_c) * (z[:-1] - mean_z)
