@@ -119,6 +119,36 @@ def test_table3_frame_has_t_diff_and_sample():
     assert (by_moment["t_diff"].abs() > 0).any()
 
 
+def test_market_return_moments_follow_table3_definitions():
+    # Table 3: r_d = log R_d, "the continuously compounded annual
+    # return", for vol(r_d) and corr(r_d, z_{-1}); the premium is
+    # E[R_d - R_f] in simple returns.
+    from geap.lrr.estimation.aggregation import model_moments
+    from geap.lrr.estimation.moments import observation_moments
+
+    data = load_annual()
+    rm = data["rm"].to_numpy(dtype=float)
+    rf = data["rf"].to_numpy(dtype=float)
+    z = data["log_pd"].to_numpy(dtype=float)
+    rd = np.log1p(rm)
+    samp = sample_table3(data)
+    assert samp["vol_rd"] == pytest.approx(np.std(rd, ddof=1))
+    assert samp["corr_rd_zd"] == pytest.approx(np.corrcoef(rd[1:], z[:-1])[0, 1])
+    assert samp["mean_excess"] == pytest.approx(np.mean(rm - rf))
+    # The log return lands on the printed sample cells; the simple one does not.
+    assert samp["corr_rd_zd"] == pytest.approx(TABLE_3_SAMPLE["corr_rd_zd"], abs=0.01)
+    assert np.corrcoef(rm[1:], z[:-1])[0, 1] < TABLE_3_SAMPLE["corr_rd_zd"] - 0.02
+
+    g = observation_moments(data, TABLE_2_LRR, TABLE_2_LRR_H)
+    col = {name: g[:, i] for i, name in enumerate(MOMENT_NAMES)}
+    m = model_moments(TABLE_2_LRR, TABLE_2_LRR_H)
+    kept = rd[3:]
+    assert np.mean(col["vol_rd"]) + m["vol_rd"] ** 2 == pytest.approx(
+        np.mean((kept - np.mean(rd)) ** 2)
+    )
+    assert np.mean(col["mean_excess"]) + m["mean_excess"] == pytest.approx(np.mean((rm - rf)[3:]))
+
+
 def test_table5_frame_model_column_at_annual_spec():
     data = load_annual()
     frame = table5_frame(data, TABLE_4_ANNUAL, h=1)

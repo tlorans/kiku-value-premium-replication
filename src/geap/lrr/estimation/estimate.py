@@ -529,6 +529,7 @@ def _target_from_data(data: pd.DataFrame) -> dict[str, float]:
     rf = data["rf"].to_numpy(dtype=float)
     rm = data["rm"].to_numpy(dtype=float)
     excess = rm - rf
+    rd = np.log1p(rm)
 
     def _ac1(x: np.ndarray) -> float:
         x = x[np.isfinite(x)]
@@ -557,9 +558,9 @@ def _target_from_data(data: pd.DataFrame) -> dict[str, float]:
         "vol_zd": float(np.nanstd(z, ddof=1)),
         "ac1_zd": _ac1(z),
         "mean_excess": float(np.nanmean(excess)),
-        "vol_rd": float(np.nanstd(rm, ddof=1)),
+        "vol_rd": float(np.nanstd(rd, ddof=1)),
         "mean_rf": float(np.nanmean(rf)),
-        "corr_rd_zd": float(np.corrcoef(rm[1:], z[:-1])[0, 1]),
+        "corr_rd_zd": float(np.corrcoef(rd[1:], z[:-1])[0, 1]),
         "corr_dc_zd": float(np.corrcoef(dc[1:], z[:-1])[0, 1]),
     }
 

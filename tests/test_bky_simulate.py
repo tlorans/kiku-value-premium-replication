@@ -30,3 +30,15 @@ def test_closed_form_corr_dc_zd_matches_simulation_not_the_paper_cell():
     closed = model_moments(TABLE_2_LRR, TABLE_2_LRR_H)["corr_dc_zd"]
     assert sim_corr == pytest.approx(closed, abs=0.04)
     assert abs(closed - TABLE_3_LRR_MODEL["corr_dc_zd"]) > 0.03
+
+
+def test_simulated_market_return_is_simple_and_carries_its_shocks():
+    # rm follows the data panel: a simple annual return, so its log is
+    # the model's r_d, shocks included.
+    sim = simulate_annual(TABLE_2_LRR, TABLE_2_LRR_H, years=4000, seed=0, burn_in=40)
+    m = model_moments(TABLE_2_LRR, TABLE_2_LRR_H)
+    rm = sim["rm"].to_numpy(dtype=float)
+    rf = sim["rf"].to_numpy(dtype=float)
+    assert np.all(rm > -1.0)
+    assert np.std(np.log1p(rm), ddof=1) == pytest.approx(m["vol_rd"], rel=0.1)
+    assert np.mean(rm - rf) == pytest.approx(m["mean_excess"], abs=0.015)

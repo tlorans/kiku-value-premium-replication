@@ -49,6 +49,10 @@ def simulate_annual(
     dd = dd[start:]
     x = x[start : start + years * h]
     s2 = s2[start : start + years * h]
+    u = u[start : start + years * h]
+    e = e[start : start + years * h]
+    w = w[start : start + years * h]
+    bu, be, bw = sol.beta_d
     # Level aggregation.
     c = np.exp(np.cumsum(dc))
     d = np.exp(np.cumsum(dd))
@@ -69,11 +73,15 @@ def simulate_annual(
             d_prev = d_year
         z_m = sol.A_d0 + sol.A_d1 * x[sl][-1] + sol.A_d2 * s2[sl][-1]
         rf_a = float(np.sum(sol.F[0] + sol.F[1] * x[sl] + sol.F[2] * s2[sl]))
+        sig = np.sqrt(np.maximum(s2[sl], 1e-16))
         rd_a = float(
             np.sum(
                 sol.B_d[0]
                 + sol.B_d[1] * x[sl]
                 + sol.B_d[2] * s2[sl]
+                + bu * sig * u[sl]
+                + be * sig * e[sl]
+                + bw * params.sigma_w * w[sl]
             )
         )
         rows.append(
@@ -81,7 +89,8 @@ def simulate_annual(
                 "year": y + 1,
                 "dc": dc_a,
                 "dd": dd_a,
-                "rm": rd_a,
+                # The panel's convention: rm is the simple annual return.
+                "rm": float(np.expm1(rd_a)),
                 "log_pd": float(z_m - np.log(h) - 0.5 * params.mu_d * (h - 1)),
                 "rf": rf_a,
             }

@@ -5,9 +5,14 @@ in, parameters out. The Kiku (2006) quadrature solver is unchanged.
 """
 from .aggregation import long_run_variance_share, model_moments
 from .cross_section import (
+    ClaimFit,
+    ClaimMoments,
+    claim_moments,
     estimate_table7_claims,
+    fit_table7_claims,
     table7_capm,
     table7_claims,
+    table7_contributions,
     table7_premia,
 )
 from .data import (
@@ -92,6 +97,11 @@ __all__ = [
     "table7_premia",
     "table7_capm",
     "estimate_table7_claims",
+    "fit_table7_claims",
+    "claim_moments",
+    "ClaimMoments",
+    "ClaimFit",
+    "table7_contributions",
     "figure1_frame",
     "figure1_long",
     "figure1_ggplot",
