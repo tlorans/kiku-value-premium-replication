@@ -237,7 +237,7 @@ TABLE_5_ANNUAL_MODEL = {
 
 # Table 7 Panel A.
 TABLE_7_MU = {"small": 0.0048, "large": 0.0021, "growth": 0.0027, "value": 0.0050}
-TABLE_7_PHI = {"small": 10.69, "large": 4.70, "growth": 5.33, "value": 7.51}
+TABLE_7_PHI = {"small": 10.69, "large": 4.70, "growth": 5.33, "value": 7.29}
 TABLE_7_PHI_SIGMA = {"small": 10.42, "large": 5.83, "growth": 6.09, "value": 7.51}
 TABLE_7_RHO = {"small": 0.41, "large": 0.40, "growth": 0.20, "value": 0.61}
 # Table 7 Panel A bootstrap standard errors, same units as the point values.
